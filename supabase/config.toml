@@ -1,1 +1,4 @@
 project_id = "zxzlwydiyrbbsrlilvqp"
+
+[functions.sync-nhl-data]
+verify_jwt = false

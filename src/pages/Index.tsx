@@ -2,13 +2,45 @@ import Header from '@/components/Header';
 import GameFeed from '@/components/GameFeed';
 import { mockGames } from '@/data/mockData';
 import { Badge } from '@/components/ui/badge';
-import { Clock, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Clock, RefreshCw, Loader2 } from 'lucide-react';
+import { useNHLGames, useSyncStatus, useSyncNHLData } from '@/hooks/useNHLData';
+import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
-  const lastUpdate = new Date().toLocaleTimeString('en-US', { 
-    hour: '2-digit', 
-    minute: '2-digit' 
-  });
+  const { toast } = useToast();
+  const { data: games, isLoading: gamesLoading } = useNHLGames();
+  const { data: syncStatus } = useSyncStatus();
+  const syncMutation = useSyncNHLData();
+
+  // Use database games if available, otherwise fall back to mock data
+  const displayGames = games && games.length > 0 ? games : mockGames;
+
+  const lastUpdate = syncStatus?.last_synced_at 
+    ? new Date(syncStatus.last_synced_at).toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      })
+    : new Date().toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+
+  const handleSync = async () => {
+    try {
+      await syncMutation.mutateAsync('20242025');
+      toast({
+        title: 'Sync Complete',
+        description: 'NHL data has been updated successfully.',
+      });
+    } catch {
+      toast({
+        title: 'Sync Failed',
+        description: 'Failed to sync NHL data. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -23,7 +55,7 @@ const Index = () => {
           <p className="text-lg text-muted-foreground">
             Track Swedish players making an impact in the National Hockey League
           </p>
-          <div className="mt-4 flex items-center justify-center gap-4">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
             <Badge variant="outline" className="flex items-center gap-1.5 px-3 py-1.5">
               <Clock className="h-3.5 w-3.5" />
               Last update: {lastUpdate}
@@ -32,6 +64,24 @@ const Index = () => {
               <RefreshCw className="h-3.5 w-3.5" />
               Updates bi-hourly
             </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSync}
+              disabled={syncMutation.isPending}
+            >
+              {syncMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Syncing...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Sync Now
+                </>
+              )}
+            </Button>
           </div>
         </div>
 
@@ -39,7 +89,7 @@ const Index = () => {
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard 
             title="Games Today" 
-            value={mockGames.filter(g => {
+            value={displayGames.filter(g => {
               const today = new Date();
               const gameDate = new Date(g.date);
               return gameDate.toDateString() === today.toDateString();
@@ -48,17 +98,17 @@ const Index = () => {
           />
           <StatCard 
             title="Swedish Points" 
-            value={mockGames.reduce((acc, g) => acc + g.swedishPoints.length, 0).toString()} 
+            value={displayGames.reduce((acc, g) => acc + g.swedishPoints.length, 0).toString()} 
             subtitle="Goals & assists today"
           />
           <StatCard 
             title="Swedish Goals" 
-            value={mockGames.reduce((acc, g) => acc + g.swedishPoints.filter(p => p.type === 'goal').length, 0).toString()} 
+            value={displayGames.reduce((acc, g) => acc + g.swedishPoints.filter(p => p.type === 'goal').length, 0).toString()} 
             subtitle="Pucks in the net"
           />
           <StatCard 
             title="Goalie Starts" 
-            value={mockGames.reduce((acc, g) => acc + g.swedishGoalies.length, 0).toString()} 
+            value={displayGames.reduce((acc, g) => acc + g.swedishGoalies.length, 0).toString()} 
             subtitle="Swedish goalies playing"
           />
         </div>
@@ -66,7 +116,13 @@ const Index = () => {
         {/* Game Feed */}
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-foreground">Recent Games</h2>
-          <GameFeed games={mockGames} />
+          {gamesLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <GameFeed games={displayGames} />
+          )}
         </div>
       </main>
 

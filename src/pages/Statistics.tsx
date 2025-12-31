@@ -11,10 +11,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Users, Shield } from 'lucide-react';
+import { Users, Shield, Loader2 } from 'lucide-react';
+import { useSwedishPlayers, useSwedishGoalies } from '@/hooks/useNHLData';
 
 const Statistics = () => {
-  const [selectedSeason, setSelectedSeason] = useState('20252026');
+  const [selectedSeason, setSelectedSeason] = useState('20242025');
+  
+  const { data: players, isLoading: playersLoading } = useSwedishPlayers(selectedSeason);
+  const { data: goalies, isLoading: goaliesLoading } = useSwedishGoalies(selectedSeason);
+
+  // Use database data if available, otherwise fall back to mock data
+  const displayPlayers = players && players.length > 0 ? players : mockPlayers;
+  const displayGoalies = goalies && goalies.length > 0 ? goalies : mockGoalies;
 
   return (
     <div className="min-h-screen bg-background">
@@ -53,11 +61,11 @@ const Statistics = () => {
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="skaters" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              Skaters ({mockPlayers.length})
+              Skaters ({displayPlayers.length})
             </TabsTrigger>
             <TabsTrigger value="goalies" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              Goalies ({mockGoalies.length})
+              Goalies ({displayGoalies.length})
             </TabsTrigger>
           </TabsList>
 
@@ -67,7 +75,13 @@ const Statistics = () => {
                 Click on column headers to sort. Showing {selectedSeason === '20252026' ? '2025-26' : selectedSeason === '20242025' ? '2024-25' : '2023-24'} season stats.
               </p>
             </div>
-            <PlayerTable players={mockPlayers} />
+            {playersLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <PlayerTable players={displayPlayers} />
+            )}
           </TabsContent>
 
           <TabsContent value="goalies" className="space-y-4">
@@ -76,7 +90,13 @@ const Statistics = () => {
                 Click on column headers to sort. Showing {selectedSeason === '20252026' ? '2025-26' : selectedSeason === '20242025' ? '2024-25' : '2023-24'} season stats.
               </p>
             </div>
-            <GoalieTable goalies={mockGoalies} />
+            {goaliesLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <GoalieTable goalies={displayGoalies} />
+            )}
           </TabsContent>
         </Tabs>
 
