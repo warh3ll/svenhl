@@ -1,0 +1,149 @@
+import { Game, GamePoint, GoaliePerformance } from '@/types/nhl';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ExternalLink, Play, Target, Users } from 'lucide-react';
+import { format } from 'date-fns';
+
+interface GameCardProps {
+  game: Game;
+}
+
+const GameCard = ({ game }: GameCardProps) => {
+  const hasSwedishContribution = game.swedishPoints.length > 0 || game.swedishGoalies.length > 0;
+  const gameDate = new Date(game.date);
+
+  return (
+    <Card className={`overflow-hidden transition-all hover:shadow-lg ${hasSwedishContribution ? 'ring-2 ring-accent' : ''}`}>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Badge variant={game.status === 'final' ? 'secondary' : 'default'} className="uppercase text-xs">
+              {game.status}
+            </Badge>
+            <span className="text-sm text-muted-foreground">
+              {format(gameDate, 'MMM d, yyyy • h:mm a')}
+            </span>
+          </div>
+          {game.highlightUrl && (
+            <a
+              href={game.highlightUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20"
+            >
+              <Play className="h-4 w-4" />
+              Watch Highlights
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          )}
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        {/* Score Display */}
+        <div className="flex items-center justify-center gap-6 rounded-xl bg-muted/50 py-4">
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-lg font-bold text-foreground">{game.awayTeamAbbr}</span>
+            <span className="text-sm text-muted-foreground">{game.awayTeam}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-4xl font-bold text-foreground">{game.awayScore}</span>
+            <span className="text-2xl text-muted-foreground">-</span>
+            <span className="text-4xl font-bold text-foreground">{game.homeScore}</span>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-lg font-bold text-foreground">{game.homeTeamAbbr}</span>
+            <span className="text-sm text-muted-foreground">{game.homeTeam}</span>
+          </div>
+        </div>
+
+        {/* Swedish Points */}
+        {game.swedishPoints.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Target className="h-4 w-4 text-accent-foreground" />
+              <span className="text-sm font-semibold text-foreground">Swedish Points</span>
+              <Badge className="bg-accent text-accent-foreground">{game.swedishPoints.length}</Badge>
+            </div>
+            <div className="space-y-2">
+              {game.swedishPoints.map((point, index) => (
+                <PointItem key={index} point={point} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Swedish Goalies */}
+        {game.swedishGoalies.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-accent-foreground" />
+              <span className="text-sm font-semibold text-foreground">Swedish Goalies</span>
+            </div>
+            <div className="space-y-2">
+              {game.swedishGoalies.map((goalie, index) => (
+                <GoalieItem key={index} goalie={goalie} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* No Swedish Contribution */}
+        {!hasSwedishContribution && (
+          <div className="rounded-lg bg-muted/30 py-3 text-center">
+            <span className="text-sm text-muted-foreground">No Swedish players scored in this game</span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+const PointItem = ({ point }: { point: GamePoint }) => {
+  const isGoal = point.type === 'goal';
+
+  return (
+    <div className={`flex items-center gap-3 rounded-lg px-3 py-2 ${isGoal ? 'bg-[hsl(var(--goal))]/10' : 'bg-[hsl(var(--assist))]/10'}`}>
+      <Badge
+        className={`uppercase ${isGoal ? 'bg-[hsl(var(--goal))] text-primary-foreground' : 'bg-[hsl(var(--assist))] text-primary-foreground'}`}
+      >
+        {point.type}
+      </Badge>
+      <div className="flex flex-col">
+        <span className="font-semibold text-foreground">{point.playerName}</span>
+        <span className="text-xs text-muted-foreground">
+          P{point.period} • {point.time} — {point.description}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+const GoalieItem = ({ goalie }: { goalie: GoaliePerformance }) => {
+  const svPct = (goalie.savePercentage * 100).toFixed(1);
+  const isWin = goalie.result === 'W';
+
+  return (
+    <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
+      <div className="flex items-center gap-3">
+        <Badge variant={isWin ? 'default' : 'secondary'}>{goalie.result}</Badge>
+        <div className="flex flex-col">
+          <span className="font-semibold text-foreground">{goalie.goalieName}</span>
+          <span className="text-xs text-muted-foreground">{goalie.team}</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-4 text-right">
+        <div className="flex flex-col">
+          <span className="text-lg font-bold text-foreground">{svPct}%</span>
+          <span className="text-xs text-muted-foreground">SV%</span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-sm font-medium text-foreground">{goalie.saves}/{goalie.shotsAgainst}</span>
+          <span className="text-xs text-muted-foreground">Saves</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default GameCard;
