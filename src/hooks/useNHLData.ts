@@ -60,7 +60,7 @@ const transformGame = (row: any): Game => ({
   timeRemaining: row.time_remaining,
 });
 
-export function useSwedishPlayers(season: string = '20242025') {
+export function useSwedishPlayers(season: string = '20252026') {
   return useQuery({
     queryKey: ['swedish-players', season],
     queryFn: async () => {
@@ -77,7 +77,7 @@ export function useSwedishPlayers(season: string = '20242025') {
   });
 }
 
-export function useSwedishGoalies(season: string = '20242025') {
+export function useSwedishGoalies(season: string = '20252026') {
   return useQuery({
     queryKey: ['swedish-goalies', season],
     queryFn: async () => {
@@ -134,7 +134,7 @@ export function useSyncNHLData() {
   return useMutation({
     mutationFn: async (season?: string) => {
       const { data, error } = await supabase.functions.invoke('sync-nhl-data', {
-        body: { season: season || '20242025' },
+        body: { season: season || '20252026' },
       });
 
       if (error) throw error;
