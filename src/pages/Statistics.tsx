@@ -15,7 +15,7 @@ import { Users, Shield, Loader2 } from 'lucide-react';
 import { useSwedishPlayers, useSwedishGoalies } from '@/hooks/useNHLData';
 
 const Statistics = () => {
-  const [selectedSeason, setSelectedSeason] = useState('20242025');
+  const [selectedSeason, setSelectedSeason] = useState('20252026');
   
   const { data: players, isLoading: playersLoading } = useSwedishPlayers(selectedSeason);
   const { data: goalies, isLoading: goaliesLoading } = useSwedishGoalies(selectedSeason);

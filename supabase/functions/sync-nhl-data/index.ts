@@ -74,7 +74,7 @@ serve(async (req) => {
       .upsert({ id: 'main', sync_status: 'syncing', last_synced_at: new Date().toISOString() });
 
     // Parse request body for optional parameters
-    let season = '20242025'; // Default to current season
+    let season = '20252026'; // Current NHL season
     try {
       const body = await req.json();
       if (body.season) season = body.season;
@@ -82,21 +82,22 @@ serve(async (req) => {
       // No body or invalid JSON, use defaults
     }
 
-    // Fetch Swedish skaters from NHL API
-    console.log('Fetching skater stats...');
-    const skatersResponse = await fetch(
-      `https://api.nhle.com/stats/rest/en/skater/summary?isAggregate=false&isGame=false&sort=%5B%7B%22property%22:%22points%22,%22direction%22:%22DESC%22%7D%5D&start=0&limit=500&cayenneExp=seasonId=${season}`
-    );
+    // Fetch Swedish skaters from NHL API using nationalityCode filter
+    console.log(`Fetching Swedish skater stats for season ${season}...`);
+    const skaterUrl = `https://api.nhle.com/stats/rest/en/skater/summary?isAggregate=false&isGame=false&sort=%5B%7B%22property%22:%22points%22,%22direction%22:%22DESC%22%7D%5D&start=0&limit=100&cayenneExp=seasonId=${season} and nationalityCode="SWE"`;
+    console.log('Skater URL:', skaterUrl);
+    
+    const skatersResponse = await fetch(skaterUrl);
     
     if (!skatersResponse.ok) {
+      const errorText = await skatersResponse.text();
+      console.error('NHL API skaters error response:', errorText);
       throw new Error(`NHL API skaters error: ${skatersResponse.status}`);
     }
 
     const skatersData = await skatersResponse.json();
-    const allSkaters = skatersData.data || [];
-    
-    // Filter for Swedish players
-    const swedishSkaters = allSkaters.filter((p: any) => p.birthCountry === 'SWE');
+    console.log('Skaters API response total:', skatersData.total);
+    const swedishSkaters = skatersData.data || [];
     console.log(`Found ${swedishSkaters.length} Swedish skaters`);
 
     // Upsert Swedish skaters
@@ -125,21 +126,22 @@ serve(async (req) => {
       });
     }
 
-    // Fetch Swedish goalies from NHL API
-    console.log('Fetching goalie stats...');
-    const goaliesResponse = await fetch(
-      `https://api.nhle.com/stats/rest/en/goalie/summary?isAggregate=false&isGame=false&sort=%5B%7B%22property%22:%22wins%22,%22direction%22:%22DESC%22%7D%5D&start=0&limit=100&cayenneExp=seasonId=${season}`
-    );
+    // Fetch Swedish goalies from NHL API using nationalityCode filter
+    console.log(`Fetching Swedish goalie stats for season ${season}...`);
+    const goalieUrl = `https://api.nhle.com/stats/rest/en/goalie/summary?isAggregate=false&isGame=false&sort=%5B%7B%22property%22:%22wins%22,%22direction%22:%22DESC%22%7D%5D&start=0&limit=50&cayenneExp=seasonId=${season} and nationalityCode="SWE"`;
+    console.log('Goalie URL:', goalieUrl);
+    
+    const goaliesResponse = await fetch(goalieUrl);
 
     if (!goaliesResponse.ok) {
+      const errorText = await goaliesResponse.text();
+      console.error('NHL API goalies error response:', errorText);
       throw new Error(`NHL API goalies error: ${goaliesResponse.status}`);
     }
 
     const goaliesData = await goaliesResponse.json();
-    const allGoalies = goaliesData.data || [];
-    
-    // Filter for Swedish goalies
-    const swedishGoalies = allGoalies.filter((g: any) => g.birthCountry === 'SWE');
+    console.log('Goalies API response total:', goaliesData.total);
+    const swedishGoalies = goaliesData.data || [];
     console.log(`Found ${swedishGoalies.length} Swedish goalies`);
 
     // Upsert Swedish goalies
