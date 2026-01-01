@@ -60,7 +60,7 @@ const transformGame = (row: any): Game => ({
   timeRemaining: row.time_remaining,
 });
 
-export function useSwedishPlayers(season: string = '20252026') {
+export function useSwedishPlayers(season: string = '20242025') {
   return useQuery({
     queryKey: ['swedish-players', season],
     queryFn: async () => {
@@ -77,7 +77,7 @@ export function useSwedishPlayers(season: string = '20252026') {
   });
 }
 
-export function useSwedishGoalies(season: string = '20252026') {
+export function useSwedishGoalies(season: string = '20242025') {
   return useQuery({
     queryKey: ['swedish-goalies', season],
     queryFn: async () => {
