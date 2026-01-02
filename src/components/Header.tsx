@@ -14,11 +14,11 @@ const Header = () => {
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-            <span className="text-xl font-bold text-primary-foreground">🇸🇪</span>
+            <span className="text-xl font-bold text-primary-foreground">SE</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-bold text-foreground">SVENHL</span>
-            <span className="text-xs text-muted-foreground">Tracking Swedish points in the NHL</span>
+            <span className="text-lg font-bold text-foreground">Swedish NHL</span>
+            <span className="text-xs text-muted-foreground">Player Tracker</span>
           </div>
         </Link>
 
