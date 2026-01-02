@@ -3,17 +3,15 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink, Play, Target, Users } from 'lucide-react';
 import { format } from 'date-fns';
-
 interface GameCardProps {
   game: Game;
 }
-
-const GameCard = ({ game }: GameCardProps) => {
+const GameCard = ({
+  game
+}: GameCardProps) => {
   const hasSwedishContribution = game.swedishPoints.length > 0 || game.swedishGoalies.length > 0;
   const gameDate = new Date(game.date);
-
-  return (
-    <Card className={`overflow-hidden transition-all hover:shadow-lg ${hasSwedishContribution ? 'ring-2 ring-accent' : ''}`}>
+  return <Card className={`overflow-hidden transition-all hover:shadow-lg ${hasSwedishContribution ? 'ring-2 ring-accent' : ''}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -24,18 +22,11 @@ const GameCard = ({ game }: GameCardProps) => {
               {format(gameDate, 'MMM d, yyyy • h:mm a')}
             </span>
           </div>
-          {game.highlightUrl && (
-            <a
-              href={game.highlightUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-lg bg-destructive/10 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20"
-            >
+          {game.highlightUrl && <a href={game.highlightUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors text-primary bg-primary-foreground">
               <Play className="h-4 w-4" />
               Watch Highlights
               <ExternalLink className="h-3 w-3" />
-            </a>
-          )}
+            </a>}
         </div>
       </CardHeader>
 
@@ -58,55 +49,43 @@ const GameCard = ({ game }: GameCardProps) => {
         </div>
 
         {/* Swedish Points */}
-        {game.swedishPoints.length > 0 && (
-          <div className="space-y-2">
+        {game.swedishPoints.length > 0 && <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4 text-accent-foreground" />
               <span className="text-sm font-semibold text-foreground">Swedish Points</span>
               <Badge className="bg-accent text-accent-foreground">{game.swedishPoints.length}</Badge>
             </div>
             <div className="space-y-2">
-              {game.swedishPoints.map((point, index) => (
-                <PointItem key={index} point={point} />
-              ))}
+              {game.swedishPoints.map((point, index) => <PointItem key={index} point={point} />)}
             </div>
-          </div>
-        )}
+          </div>}
 
         {/* Swedish Goalies */}
-        {game.swedishGoalies.length > 0 && (
-          <div className="space-y-2">
+        {game.swedishGoalies.length > 0 && <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-accent-foreground" />
               <span className="text-sm font-semibold text-foreground">Swedish Goalies</span>
             </div>
             <div className="space-y-2">
-              {game.swedishGoalies.map((goalie, index) => (
-                <GoalieItem key={index} goalie={goalie} />
-              ))}
+              {game.swedishGoalies.map((goalie, index) => <GoalieItem key={index} goalie={goalie} />)}
             </div>
-          </div>
-        )}
+          </div>}
 
         {/* No Swedish Contribution */}
-        {!hasSwedishContribution && (
-          <div className="rounded-lg bg-muted/30 py-3 text-center">
+        {!hasSwedishContribution && <div className="rounded-lg bg-muted/30 py-3 text-center">
             <span className="text-sm text-muted-foreground">No Swedish players scored in this game</span>
-          </div>
-        )}
+          </div>}
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
-const PointItem = ({ point }: { point: GamePoint }) => {
+const PointItem = ({
+  point
+}: {
+  point: GamePoint;
+}) => {
   const isGoal = point.type === 'goal';
-
-  return (
-    <div className={`flex items-center gap-3 rounded-lg px-3 py-2 ${isGoal ? 'bg-[hsl(var(--goal))]/10' : 'bg-[hsl(var(--assist))]/10'}`}>
-      <Badge
-        className={`uppercase ${isGoal ? 'bg-[hsl(var(--goal))] text-primary-foreground' : 'bg-[hsl(var(--assist))] text-primary-foreground'}`}
-      >
+  return <div className={`flex items-center gap-3 rounded-lg px-3 py-2 ${isGoal ? 'bg-[hsl(var(--goal))]/10' : 'bg-[hsl(var(--assist))]/10'}`}>
+      <Badge className={`uppercase ${isGoal ? 'bg-[hsl(var(--goal))] text-primary-foreground' : 'bg-[hsl(var(--assist))] text-primary-foreground'}`}>
         {point.type}
       </Badge>
       <div className="flex flex-col">
@@ -115,16 +94,16 @@ const PointItem = ({ point }: { point: GamePoint }) => {
           P{point.period} • {point.time} — {point.description}
         </span>
       </div>
-    </div>
-  );
+    </div>;
 };
-
-const GoalieItem = ({ goalie }: { goalie: GoaliePerformance }) => {
+const GoalieItem = ({
+  goalie
+}: {
+  goalie: GoaliePerformance;
+}) => {
   const svPct = (goalie.savePercentage * 100).toFixed(1);
   const isWin = goalie.result === 'W';
-
-  return (
-    <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
+  return <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
       <div className="flex items-center gap-3">
         <Badge variant={isWin ? 'default' : 'secondary'}>{goalie.result}</Badge>
         <div className="flex flex-col">
@@ -142,8 +121,6 @@ const GoalieItem = ({ goalie }: { goalie: GoaliePerformance }) => {
           <span className="text-xs text-muted-foreground">Saves</span>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default GameCard;
