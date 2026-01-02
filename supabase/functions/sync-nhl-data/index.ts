@@ -183,16 +183,20 @@ serve(async (req) => {
       const scheduleData = await scheduleResponse.json();
       const gameWeek = scheduleData.gameWeek || [];
 
-      // Get set of Swedish player IDs for quick lookup
+      // Get set of Swedish player IDs for quick lookup (from current season)
       const { data: swedishPlayerData } = await supabase
         .from('swedish_players')
-        .select('id, name');
+        .select('id, name')
+        .eq('season', season);
       const swedishPlayerMap = new Map((swedishPlayerData || []).map(p => [p.id, p.name]));
+      console.log(`Loaded ${swedishPlayerMap.size} Swedish players for game matching`);
 
       const { data: swedishGoalieData } = await supabase
         .from('swedish_goalies')
-        .select('id, name, team_abbr');
+        .select('id, name, team_abbr')
+        .eq('season', season);
       const swedishGoalieMap = new Map((swedishGoalieData || []).map(g => [g.id, { name: g.name, team: g.team_abbr }]));
+      console.log(`Loaded ${swedishGoalieMap.size} Swedish goalies for game matching`);
 
       for (const day of gameWeek) {
         for (const game of day.games || []) {
@@ -213,35 +217,46 @@ serve(async (req) => {
                 const boxscore = await boxscoreResponse.json();
                 
                 // Check for Swedish player goals/assists in scoring plays
-                const plays = boxscore.summary?.scoring || [];
-                for (const period of plays) {
+                const scoringPlays = boxscore.summary?.scoring || [];
+                
+                for (const period of scoringPlays) {
                   for (const goal of period.goals || []) {
-                    // Check scorer
-                    if (swedishPlayerMap.has(String(goal.playerId))) {
+                    // The scorer info is nested differently in the API
+                    const scorerId = goal.playerId?.toString() || goal.scorer?.playerId?.toString();
+                    const scorerName = goal.name?.default || goal.scorer?.name?.default || goal.firstName?.default + ' ' + goal.lastName?.default;
+                    
+                    // Check if scorer is Swedish
+                    if (scorerId && swedishPlayerMap.has(scorerId)) {
                       swedishPoints.push({
-                        playerId: String(goal.playerId),
-                        playerName: swedishPlayerMap.get(String(goal.playerId)),
+                        playerId: scorerId,
+                        playerName: swedishPlayerMap.get(scorerId),
                         type: 'goal',
-                        period: period.periodDescriptor?.number || 0,
-                        time: goal.timeInPeriod || '',
-                        description: `${swedishPlayerMap.get(String(goal.playerId))} - ${goal.shotType || 'Goal'}`
+                        period: period.periodDescriptor?.number || period.period || 0,
+                        time: goal.timeInPeriod || goal.time || '',
+                        description: `${swedishPlayerMap.get(scorerId)} - Goal`
                       });
                     }
                     
-                    // Check assists
-                    for (const assist of goal.assists || []) {
-                      if (swedishPlayerMap.has(String(assist.playerId))) {
+                    // Check assists - they can be in different formats
+                    const assists = goal.assists || [];
+                    for (const assist of assists) {
+                      const assistId = assist.playerId?.toString();
+                      if (assistId && swedishPlayerMap.has(assistId)) {
                         swedishPoints.push({
-                          playerId: String(assist.playerId),
-                          playerName: swedishPlayerMap.get(String(assist.playerId)),
+                          playerId: assistId,
+                          playerName: swedishPlayerMap.get(assistId),
                           type: 'assist',
-                          period: period.periodDescriptor?.number || 0,
-                          time: goal.timeInPeriod || '',
-                          description: `${swedishPlayerMap.get(String(assist.playerId))} - Assist`
+                          period: period.periodDescriptor?.number || period.period || 0,
+                          time: goal.timeInPeriod || goal.time || '',
+                          description: `${swedishPlayerMap.get(assistId)} - Assist`
                         });
                       }
                     }
                   }
+                }
+                
+                if (swedishPoints.length > 0) {
+                  console.log(`Game ${gameId}: Found ${swedishPoints.length} Swedish points`);
                 }
 
                 // Check for Swedish goalies
