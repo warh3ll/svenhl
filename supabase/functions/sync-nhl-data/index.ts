@@ -208,46 +208,56 @@ serve(async (req) => {
           
           if (game.gameState === 'OFF' || game.gameState === 'FINAL') {
             try {
-              // Fetch boxscore for player stats
-              const boxscoreResponse = await fetch(
-                `https://api-web.nhle.com/v1/gamecenter/${game.id}/boxscore`
+              // Fetch LANDING endpoint for scoring data (boxscore has empty summary!)
+              const landingResponse = await fetch(
+                `https://api-web.nhle.com/v1/gamecenter/${game.id}/landing`
               );
               
-              if (boxscoreResponse.ok) {
-                const boxscore = await boxscoreResponse.json();
+              if (landingResponse.ok) {
+                const landing = await landingResponse.json();
                 
-                // Check for Swedish player goals/assists in scoring plays
-                const scoringPlays = boxscore.summary?.scoring || [];
+                // Landing endpoint has scoring data in summary.scoring[]
+                const scoringPeriods = landing.summary?.scoring || [];
+                console.log(`Game ${gameId}: Found ${scoringPeriods.length} scoring periods`);
                 
-                for (const period of scoringPlays) {
-                  for (const goal of period.goals || []) {
-                    // The scorer info is nested differently in the API
-                    const scorerId = goal.playerId?.toString() || goal.scorer?.playerId?.toString();
-                    const scorerName = goal.name?.default || goal.scorer?.name?.default || goal.firstName?.default + ' ' + goal.lastName?.default;
+                for (const period of scoringPeriods) {
+                  const goals = period.goals || [];
+                  console.log(`  Period ${period.periodDescriptor?.number}: ${goals.length} goals`);
+                  
+                  for (const goal of goals) {
+                    // In landing endpoint, scorer ID is directly in playerId field
+                    const scorerId = String(goal.playerId);
+                    const scorerName = goal.name?.default || goal.firstName?.default + ' ' + goal.lastName?.default;
+                    
+                    console.log(`    Goal by player ID: ${scorerId}, name: ${scorerName}`);
                     
                     // Check if scorer is Swedish
-                    if (scorerId && swedishPlayerMap.has(scorerId)) {
+                    if (swedishPlayerMap.has(scorerId)) {
+                      console.log(`      -> Swedish player GOAL: ${swedishPlayerMap.get(scorerId)}`);
                       swedishPoints.push({
                         playerId: scorerId,
                         playerName: swedishPlayerMap.get(scorerId),
                         type: 'goal',
-                        period: period.periodDescriptor?.number || period.period || 0,
-                        time: goal.timeInPeriod || goal.time || '',
+                        period: period.periodDescriptor?.number || 0,
+                        time: goal.timeInPeriod || '',
                         description: `${swedishPlayerMap.get(scorerId)} - Goal`
                       });
                     }
                     
-                    // Check assists - they can be in different formats
+                    // Check assists - in landing endpoint, assists array has playerId
                     const assists = goal.assists || [];
                     for (const assist of assists) {
-                      const assistId = assist.playerId?.toString();
-                      if (assistId && swedishPlayerMap.has(assistId)) {
+                      const assistId = String(assist.playerId);
+                      console.log(`    Assist by player ID: ${assistId}, name: ${assist.name?.default}`);
+                      
+                      if (swedishPlayerMap.has(assistId)) {
+                        console.log(`      -> Swedish player ASSIST: ${swedishPlayerMap.get(assistId)}`);
                         swedishPoints.push({
                           playerId: assistId,
                           playerName: swedishPlayerMap.get(assistId),
                           type: 'assist',
-                          period: period.periodDescriptor?.number || period.period || 0,
-                          time: goal.timeInPeriod || goal.time || '',
+                          period: period.periodDescriptor?.number || 0,
+                          time: goal.timeInPeriod || '',
                           description: `${swedishPlayerMap.get(assistId)} - Assist`
                         });
                       }
@@ -255,9 +265,16 @@ serve(async (req) => {
                   }
                 }
                 
-                if (swedishPoints.length > 0) {
-                  console.log(`Game ${gameId}: Found ${swedishPoints.length} Swedish points`);
-                }
+                console.log(`Game ${gameId}: Total Swedish points found: ${swedishPoints.length}`);
+              }
+              
+              // Fetch BOXSCORE separately for goalie stats (it has playerByGameStats)
+              const boxscoreResponse = await fetch(
+                `https://api-web.nhle.com/v1/gamecenter/${game.id}/boxscore`
+              );
+              
+              if (boxscoreResponse.ok) {
+                const boxscore = await boxscoreResponse.json();
 
                 // Check for Swedish goalies
                 const checkGoalies = (teamData: any, teamAbbr: string) => {
