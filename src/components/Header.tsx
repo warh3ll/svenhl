@@ -1,12 +1,12 @@
-import { Link, useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
+import { Link, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 const Header = () => {
   const location = useLocation();
 
   const navItems = [
-    { href: '/', label: 'Game Feed' },
-    { href: '/statistics', label: 'Statistics' },
+    { href: "/", label: "Game Feed" },
+    { href: "/statistics", label: "Statistics" },
   ];
 
   return (
@@ -17,8 +17,8 @@ const Header = () => {
             <span className="text-xl font-bold text-primary-foreground">🇸🇪</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-bold text-foreground">Swedish NHL</span>
-            <span className="text-xs text-muted-foreground">Player Tracker</span>
+            <span className="text-lg font-bold text-foreground">SVENHL</span>
+            <span className="text-xs text-muted-foreground">Tracking Swedish points in the NHL</span>
           </div>
         </Link>
 
@@ -28,10 +28,10 @@ const Header = () => {
               key={item.href}
               to={item.href}
               className={cn(
-                'px-4 py-2 text-sm font-medium rounded-lg transition-colors',
+                "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
                 location.pathname === item.href
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted",
               )}
             >
               {item.label}
