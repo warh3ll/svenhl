@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Game, SwedishPlayer, SwedishGoalie, GamePoint, GoaliePerformance } from '@/types/nhl';
+import { Game, SwedishPlayer, SwedishGoalie, GamePoint, GoaliePerformance, PlayerGameLogEntry, CareerSeasonStats } from '@/types/nhl';
 
 // Transform database row to frontend type
 const transformPlayer = (row: any): SwedishPlayer => ({
@@ -147,5 +147,142 @@ export function useSyncNHLData() {
       queryClient.invalidateQueries({ queryKey: ['nhl-games'] });
       queryClient.invalidateQueries({ queryKey: ['sync-status'] });
     },
+  });
+}
+
+// Get a single player by ID (tries current season first)
+export function usePlayer(playerId: string) {
+  return useQuery({
+    queryKey: ['player', playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('swedish_players')
+        .select('*')
+        .eq('id', playerId)
+        .order('season', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data ? transformPlayer(data) : null;
+    },
+    enabled: !!playerId,
+    staleTime: 1000 * 60 * 30,
+  });
+}
+
+// Get a single goalie by ID
+export function useGoalie(goalieId: string) {
+  return useQuery({
+    queryKey: ['goalie', goalieId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('swedish_goalies')
+        .select('*')
+        .eq('id', goalieId)
+        .order('season', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data ? transformGoalie(data) : null;
+    },
+    enabled: !!goalieId,
+    staleTime: 1000 * 60 * 30,
+  });
+}
+
+// Get game log for a player (games where they recorded points)
+export function usePlayerGameLog(playerId: string) {
+  return useQuery({
+    queryKey: ['player-game-log', playerId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('nhl_games')
+        .select('*')
+        .order('game_date', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      
+      // Filter games where this player recorded points
+      const gameLog: PlayerGameLogEntry[] = [];
+      
+      for (const game of data || []) {
+        const points = (game.swedish_points as unknown as GamePoint[]) || [];
+        const playerPoints = points.filter(p => p.playerId === playerId);
+        
+        for (const point of playerPoints) {
+          gameLog.push({
+            gameId: game.id,
+            gameDate: game.game_date,
+            homeTeamAbbr: game.home_team_abbr,
+            awayTeamAbbr: game.away_team_abbr,
+            type: point.type,
+            period: point.period,
+            time: point.time,
+            description: point.description,
+          });
+        }
+      }
+      
+      return gameLog;
+    },
+    enabled: !!playerId,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+// Get career stats across all seasons
+export function usePlayerCareerStats(playerId: string) {
+  return useQuery({
+    queryKey: ['player-career', playerId],
+    queryFn: async () => {
+      // Try players table first
+      const { data: playerData } = await supabase
+        .from('swedish_players')
+        .select('*')
+        .eq('id', playerId)
+        .order('season', { ascending: false });
+
+      if (playerData && playerData.length > 0) {
+        return playerData.map((row): CareerSeasonStats => ({
+          season: row.season,
+          team: row.team,
+          teamAbbr: row.team_abbr,
+          games: row.games || 0,
+          goals: row.goals || 0,
+          assists: row.assists || 0,
+          points: row.points || 0,
+          plusMinus: row.plus_minus || 0,
+          penaltyMinutes: row.penalty_minutes || 0,
+        }));
+      }
+
+      // Try goalies table
+      const { data: goalieData } = await supabase
+        .from('swedish_goalies')
+        .select('*')
+        .eq('id', playerId)
+        .order('season', { ascending: false });
+
+      if (goalieData && goalieData.length > 0) {
+        return goalieData.map((row): CareerSeasonStats => ({
+          season: row.season,
+          team: row.team,
+          teamAbbr: row.team_abbr,
+          games: row.games || 0,
+          wins: row.wins || 0,
+          losses: row.losses || 0,
+          savePercentage: Number(row.save_percentage) || 0,
+          goalsAgainstAverage: Number(row.goals_against_average) || 0,
+          shutouts: row.shutouts || 0,
+        }));
+      }
+
+      return [];
+    },
+    enabled: !!playerId,
+    staleTime: 1000 * 60 * 30,
   });
 }
