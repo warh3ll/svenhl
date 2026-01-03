@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Game, GamePoint, GoaliePerformance } from '@/types/nhl';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -89,7 +90,9 @@ const PointItem = ({
         {point.type}
       </Badge>
       <div className="flex flex-col">
-        <span className="font-semibold text-foreground">{point.playerName}</span>
+        <Link to={`/player/${point.playerId}`} className="font-semibold text-foreground hover:text-primary transition-colors">
+          {point.playerName}
+        </Link>
         <span className="text-xs text-muted-foreground">
           P{point.period} • {point.time} — {point.description}
         </span>
@@ -107,7 +110,9 @@ const GoalieItem = ({
       <div className="flex items-center gap-3">
         <Badge variant={isWin ? 'default' : 'secondary'}>{goalie.result}</Badge>
         <div className="flex flex-col">
-          <span className="font-semibold text-foreground">{goalie.goalieName}</span>
+          <Link to={`/player/${goalie.goalieId}`} className="font-semibold text-foreground hover:text-primary transition-colors">
+            {goalie.goalieName}
+          </Link>
           <span className="text-xs text-muted-foreground">{goalie.team}</span>
         </div>
       </div>

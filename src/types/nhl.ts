@@ -74,6 +74,34 @@ export interface Game {
   timeRemaining?: string;
 }
 
+export interface PlayerGameLogEntry {
+  gameId: string;
+  gameDate: string;
+  homeTeamAbbr: string;
+  awayTeamAbbr: string;
+  type: 'goal' | 'assist';
+  period: number;
+  time: string;
+  description: string;
+}
+
+export interface CareerSeasonStats {
+  season: string;
+  team: string;
+  teamAbbr: string;
+  games: number;
+  goals?: number;
+  assists?: number;
+  points?: number;
+  plusMinus?: number;
+  penaltyMinutes?: number;
+  wins?: number;
+  losses?: number;
+  savePercentage?: number;
+  goalsAgainstAverage?: number;
+  shutouts?: number;
+}
+
 export type SortField = 'name' | 'team' | 'games' | 'goals' | 'assists' | 'points' | 'penaltyMinutes' | 'plusMinus';
 export type GoalieSortField = 'name' | 'team' | 'games' | 'wins' | 'losses' | 'savePercentage' | 'goalsAgainstAverage' | 'shutouts';
 export type SortDirection = 'asc' | 'desc';

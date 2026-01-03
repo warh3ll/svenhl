@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { SwedishPlayer, SortField, SortDirection } from '@/types/nhl';
 import {
   Table,
@@ -90,10 +91,12 @@ const PlayerTable = ({ players }: PlayerTableProps) => {
               <TableRow key={player.id} className="hover:bg-muted/30 transition-colors">
                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
                 <TableCell>
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-foreground">{player.name}</span>
-                    <span className="text-xs text-muted-foreground">#{player.jerseyNumber}</span>
-                  </div>
+                  <Link to={`/player/${player.id}`} className="group">
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{player.name}</span>
+                      <span className="text-xs text-muted-foreground">#{player.jerseyNumber}</span>
+                    </div>
+                  </Link>
                 </TableCell>
                 <TableCell>
                   <span className="font-medium">{player.teamAbbr}</span>

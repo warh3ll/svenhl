@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { SwedishGoalie, GoalieSortField, SortDirection } from '@/types/nhl';
 import {
   Table,
@@ -97,10 +98,12 @@ const GoalieTable = ({ goalies }: GoalieTableProps) => {
               <TableRow key={goalie.id} className="hover:bg-muted/30 transition-colors">
                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
                 <TableCell>
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-foreground">{goalie.name}</span>
-                    <span className="text-xs text-muted-foreground">#{goalie.jerseyNumber}</span>
-                  </div>
+                  <Link to={`/player/${goalie.id}`} className="group">
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{goalie.name}</span>
+                      <span className="text-xs text-muted-foreground">#{goalie.jerseyNumber}</span>
+                    </div>
+                  </Link>
                 </TableCell>
                 <TableCell>
                   <span className="font-medium">{goalie.teamAbbr}</span>
