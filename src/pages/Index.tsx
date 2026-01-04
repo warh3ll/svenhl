@@ -2,16 +2,12 @@ import Header from '@/components/Header';
 import GameFeed from '@/components/GameFeed';
 import { mockGames } from '@/data/mockData';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Clock, RefreshCw, Loader2 } from 'lucide-react';
-import { useNHLGames, useSyncStatus, useSyncNHLData } from '@/hooks/useNHLData';
-import { useToast } from '@/hooks/use-toast';
+import { useNHLGames, useSyncStatus } from '@/hooks/useNHLData';
 
 const Index = () => {
-  const { toast } = useToast();
   const { data: games, isLoading: gamesLoading } = useNHLGames();
   const { data: syncStatus } = useSyncStatus();
-  const syncMutation = useSyncNHLData();
 
   // Use database games if available, otherwise fall back to mock data
   const displayGames = games && games.length > 0 ? games : mockGames;
@@ -25,22 +21,6 @@ const Index = () => {
         hour: '2-digit', 
         minute: '2-digit' 
       });
-
-  const handleSync = async () => {
-    try {
-      await syncMutation.mutateAsync('20242025');
-      toast({
-        title: 'Sync Complete',
-        description: 'NHL data has been updated successfully.',
-      });
-    } catch {
-      toast({
-        title: 'Sync Failed',
-        description: 'Failed to sync NHL data. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -64,24 +44,6 @@ const Index = () => {
               <RefreshCw className="h-3.5 w-3.5" />
               Updates bi-hourly
             </Badge>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSync}
-              disabled={syncMutation.isPending}
-            >
-              {syncMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Syncing...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Sync Now
-                </>
-              )}
-            </Button>
           </div>
         </div>
 
