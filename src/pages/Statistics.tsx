@@ -2,6 +2,8 @@ import { useState } from 'react';
 import Header from '@/components/Header';
 import PlayerTable from '@/components/PlayerTable';
 import GoalieTable from '@/components/GoalieTable';
+import PlayerTableSkeleton from '@/components/PlayerTableSkeleton';
+import GoalieTableSkeleton from '@/components/GoalieTableSkeleton';
 import { mockPlayers, mockGoalies, seasons } from '@/data/mockData';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -11,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Users, Shield, Loader2 } from 'lucide-react';
+import { Users, Shield } from 'lucide-react';
 import { useSwedishPlayers, useSwedishGoalies } from '@/hooks/useNHLData';
 
 const Statistics = () => {
@@ -76,9 +78,7 @@ const Statistics = () => {
               </p>
             </div>
             {playersLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
+              <PlayerTableSkeleton />
             ) : (
               <PlayerTable players={displayPlayers} />
             )}
@@ -91,9 +91,7 @@ const Statistics = () => {
               </p>
             </div>
             {goaliesLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
+              <GoalieTableSkeleton />
             ) : (
               <GoalieTable goalies={displayGoalies} />
             )}
