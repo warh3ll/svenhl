@@ -186,16 +186,16 @@ serve(async (req) => {
       // Get set of Swedish player IDs for quick lookup (from current season)
       const { data: swedishPlayerData } = await supabase
         .from('swedish_players')
-        .select('id, name')
+        .select('id, name, team_abbr')
         .eq('season', season);
-      const swedishPlayerMap = new Map((swedishPlayerData || []).map(p => [p.id, p.name]));
+      const swedishPlayerMap = new Map((swedishPlayerData || []).map(p => [p.id, { name: p.name, teamAbbr: p.team_abbr }]));
       console.log(`Loaded ${swedishPlayerMap.size} Swedish players for game matching`);
 
       const { data: swedishGoalieData } = await supabase
         .from('swedish_goalies')
         .select('id, name, team_abbr')
         .eq('season', season);
-      const swedishGoalieMap = new Map((swedishGoalieData || []).map(g => [g.id, { name: g.name, team: g.team_abbr }]));
+      const swedishGoalieMap = new Map((swedishGoalieData || []).map(g => [g.id, { name: g.name, teamAbbr: g.team_abbr }]));
       console.log(`Loaded ${swedishGoalieMap.size} Swedish goalies for game matching`);
 
       for (const day of gameWeek) {
@@ -233,14 +233,16 @@ serve(async (req) => {
                     
                     // Check if scorer is Swedish
                     if (swedishPlayerMap.has(scorerId)) {
-                      console.log(`      -> Swedish player GOAL: ${swedishPlayerMap.get(scorerId)}`);
+                      const playerInfo = swedishPlayerMap.get(scorerId)!;
+                      console.log(`      -> Swedish player GOAL: ${playerInfo.name}`);
                       swedishPoints.push({
                         playerId: scorerId,
-                        playerName: swedishPlayerMap.get(scorerId),
+                        playerName: playerInfo.name,
+                        playerTeamAbbr: playerInfo.teamAbbr,
                         type: 'goal',
                         period: period.periodDescriptor?.number || 0,
                         time: goal.timeInPeriod || '',
-                        description: `${swedishPlayerMap.get(scorerId)} - Goal`
+                        description: `${playerInfo.name} - Goal`
                       });
                     }
                     
@@ -251,14 +253,16 @@ serve(async (req) => {
                       console.log(`    Assist by player ID: ${assistId}, name: ${assist.name?.default}`);
                       
                       if (swedishPlayerMap.has(assistId)) {
-                        console.log(`      -> Swedish player ASSIST: ${swedishPlayerMap.get(assistId)}`);
+                        const playerInfo = swedishPlayerMap.get(assistId)!;
+                        console.log(`      -> Swedish player ASSIST: ${playerInfo.name}`);
                         swedishPoints.push({
                           playerId: assistId,
-                          playerName: swedishPlayerMap.get(assistId),
+                          playerName: playerInfo.name,
+                          playerTeamAbbr: playerInfo.teamAbbr,
                           type: 'assist',
                           period: period.periodDescriptor?.number || 0,
                           time: goal.timeInPeriod || '',
-                          description: `${swedishPlayerMap.get(assistId)} - Assist`
+                          description: `${playerInfo.name} - Assist`
                         });
                       }
                     }
@@ -290,6 +294,7 @@ serve(async (req) => {
                         goalieId: String(goalie.playerId),
                         goalieName: goalieInfo.name,
                         team: teamAbbr,
+                        teamAbbr: goalieInfo.teamAbbr,
                         saves: saves,
                         shotsAgainst: shotsAgainst,
                         savePercentage: savePct,

@@ -41,6 +41,7 @@ export interface SwedishGoalie {
 export interface GamePoint {
   playerId: string;
   playerName: string;
+  playerTeamAbbr?: string;
   type: 'goal' | 'assist';
   period: number;
   time: string;
@@ -51,6 +52,7 @@ export interface GoaliePerformance {
   goalieId: string;
   goalieName: string;
   team: string;
+  teamAbbr: string;
   saves: number;
   shotsAgainst: number;
   savePercentage: number;
