@@ -47,7 +47,7 @@ export const mockGames: Game[] = [
     status: 'final',
     swedishPoints: [],
     swedishGoalies: [
-      { goalieId: '10', goalieName: 'Filip Gustavsson', team: 'MIN', saves: 28, shotsAgainst: 30, savePercentage: 0.933, result: 'W' }
+      { goalieId: '10', goalieName: 'Filip Gustavsson', team: 'MIN', teamAbbr: 'MIN', saves: 28, shotsAgainst: 30, savePercentage: 0.933, result: 'W' }
     ],
     highlightUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
   },
@@ -67,7 +67,7 @@ export const mockGames: Game[] = [
       { playerId: '5', playerName: 'Joel Eriksson Ek', type: 'assist', period: 1, time: '08:55', description: 'Eriksson Ek (18) - Primary assist' },
     ],
     swedishGoalies: [
-      { goalieId: '11', goalieName: 'Jacob Markström', team: 'NJD', saves: 35, shotsAgainst: 40, savePercentage: 0.875, result: 'L' }
+      { goalieId: '11', goalieName: 'Jacob Markström', team: 'NJD', teamAbbr: 'NJD', saves: 35, shotsAgainst: 40, savePercentage: 0.875, result: 'L' }
     ],
     highlightUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
   },
