@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/table';
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import TeamLogo from '@/components/TeamLogo';
 
 interface PlayerTableProps {
   players: SwedishPlayer[];
@@ -99,7 +100,10 @@ const PlayerTable = ({ players }: PlayerTableProps) => {
                   </Link>
                 </TableCell>
                 <TableCell>
-                  <span className="font-medium">{player.teamAbbr}</span>
+                  <div className="flex items-center gap-2">
+                    <TeamLogo teamAbbr={player.teamAbbr} size="sm" />
+                    <span className="font-medium">{player.teamAbbr}</span>
+                  </div>
                 </TableCell>
                 <TableCell>{player.position}</TableCell>
                 <TableCell>{player.games}</TableCell>

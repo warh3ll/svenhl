@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/table';
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import TeamLogo from '@/components/TeamLogo';
 
 interface GoalieTableProps {
   goalies: SwedishGoalie[];
@@ -106,7 +107,10 @@ const GoalieTable = ({ goalies }: GoalieTableProps) => {
                   </Link>
                 </TableCell>
                 <TableCell>
-                  <span className="font-medium">{goalie.teamAbbr}</span>
+                  <div className="flex items-center gap-2">
+                    <TeamLogo teamAbbr={goalie.teamAbbr} size="sm" />
+                    <span className="font-medium">{goalie.teamAbbr}</span>
+                  </div>
                 </TableCell>
                 <TableCell>{goalie.games}</TableCell>
                 <TableCell>{goalie.gamesStarted}</TableCell>
