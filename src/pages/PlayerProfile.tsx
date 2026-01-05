@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, User, Trophy, Target, Shield } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
+import TeamLogo from '@/components/TeamLogo';
 
 const PlayerProfile = () => {
   const { playerId } = useParams<{ playerId: string }>();
@@ -79,8 +80,8 @@ const PlayerProfile = () => {
                   <Badge variant="secondary" className="text-lg">#{currentPlayer.jerseyNumber}</Badge>
                 </div>
                 <div className="flex items-center gap-4 text-muted-foreground">
+                  <TeamLogo teamAbbr={currentPlayer.teamAbbr} size="md" />
                   <span className="font-medium">{currentPlayer.team}</span>
-                  <Badge variant="outline">{currentPlayer.teamAbbr}</Badge>
                   {!isGoalie && player && (
                     <Badge>{player.position}</Badge>
                   )}
