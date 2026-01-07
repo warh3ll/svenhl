@@ -12,6 +12,7 @@ import {
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import TeamLogo from '@/components/TeamLogo';
+import PlayerHeadshot from '@/components/PlayerHeadshot';
 
 interface PlayerTableProps {
   players: SwedishPlayer[];
@@ -93,9 +94,12 @@ const PlayerTable = ({ players }: PlayerTableProps) => {
                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
                 <TableCell>
                   <Link to={`/player/${player.id}`} className="group">
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{player.name}</span>
-                      <span className="text-xs text-muted-foreground">#{player.jerseyNumber}</span>
+                    <div className="flex items-center gap-3">
+                      <PlayerHeadshot playerId={player.id} playerName={player.name} size="sm" />
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{player.name}</span>
+                        <span className="text-xs text-muted-foreground">#{player.jerseyNumber}</span>
+                      </div>
                     </div>
                   </Link>
                 </TableCell>

@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ExternalLink, Play, Target, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import TeamLogo from './TeamLogo';
+import PlayerHeadshot from './PlayerHeadshot';
 interface GameCardProps {
   game: Game;
 }
@@ -92,6 +93,7 @@ const PointItem = ({
       <Badge className={`uppercase ${isGoal ? 'bg-[hsl(var(--goal))] text-primary-foreground' : 'bg-[hsl(var(--assist))] text-primary-foreground'}`}>
         {point.type}
       </Badge>
+      <PlayerHeadshot playerId={point.playerId} playerName={point.playerName} size="sm" />
       {point.playerTeamAbbr && <TeamLogo teamAbbr={point.playerTeamAbbr} size="sm" />}
       <div className="flex flex-col">
         <Link to={`/player/${point.playerId}`} className="font-semibold text-foreground hover:text-primary transition-colors">
@@ -113,6 +115,7 @@ const GoalieItem = ({
   return <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
       <div className="flex items-center gap-3">
         <Badge variant={isWin ? 'default' : 'secondary'}>{goalie.result}</Badge>
+        <PlayerHeadshot playerId={goalie.goalieId} playerName={goalie.goalieName} size="sm" />
         <TeamLogo teamAbbr={goalie.teamAbbr} size="sm" />
         <div className="flex flex-col">
           <Link to={`/player/${goalie.goalieId}`} className="font-semibold text-foreground hover:text-primary transition-colors">

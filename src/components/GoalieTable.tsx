@@ -12,6 +12,7 @@ import {
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import TeamLogo from '@/components/TeamLogo';
+import PlayerHeadshot from '@/components/PlayerHeadshot';
 
 interface GoalieTableProps {
   goalies: SwedishGoalie[];
@@ -100,9 +101,12 @@ const GoalieTable = ({ goalies }: GoalieTableProps) => {
                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
                 <TableCell>
                   <Link to={`/player/${goalie.id}`} className="group">
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{goalie.name}</span>
-                      <span className="text-xs text-muted-foreground">#{goalie.jerseyNumber}</span>
+                    <div className="flex items-center gap-3">
+                      <PlayerHeadshot playerId={goalie.id} playerName={goalie.name} size="sm" />
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{goalie.name}</span>
+                        <span className="text-xs text-muted-foreground">#{goalie.jerseyNumber}</span>
+                      </div>
                     </div>
                   </Link>
                 </TableCell>
