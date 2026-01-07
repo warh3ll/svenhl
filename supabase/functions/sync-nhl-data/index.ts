@@ -56,6 +56,21 @@ interface NHLGoalie {
   timeOnIce: number;
 }
 
+// Team abbreviation to full name mapping
+const TEAM_NAMES: Record<string, string> = {
+  'ANA': 'Anaheim Ducks', 'ARI': 'Arizona Coyotes', 'BOS': 'Boston Bruins',
+  'BUF': 'Buffalo Sabres', 'CGY': 'Calgary Flames', 'CAR': 'Carolina Hurricanes',
+  'CHI': 'Chicago Blackhawks', 'COL': 'Colorado Avalanche', 'CBJ': 'Columbus Blue Jackets',
+  'DAL': 'Dallas Stars', 'DET': 'Detroit Red Wings', 'EDM': 'Edmonton Oilers',
+  'FLA': 'Florida Panthers', 'LAK': 'Los Angeles Kings', 'MIN': 'Minnesota Wild',
+  'MTL': 'Montréal Canadiens', 'NSH': 'Nashville Predators', 'NJD': 'New Jersey Devils',
+  'NYI': 'New York Islanders', 'NYR': 'New York Rangers', 'OTT': 'Ottawa Senators',
+  'PHI': 'Philadelphia Flyers', 'PIT': 'Pittsburgh Penguins', 'SJS': 'San Jose Sharks',
+  'SEA': 'Seattle Kraken', 'STL': 'St. Louis Blues', 'TBL': 'Tampa Bay Lightning',
+  'TOR': 'Toronto Maple Leafs', 'UTA': 'Utah Hockey Club', 'VAN': 'Vancouver Canucks',
+  'VGK': 'Vegas Golden Knights', 'WSH': 'Washington Capitals', 'WPG': 'Winnipeg Jets'
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -99,23 +114,46 @@ serve(async (req) => {
     console.log('Skaters API response total:', skatersData.total);
     const swedishSkaters = skatersData.data || [];
     console.log(`Found ${swedishSkaters.length} Swedish skaters`);
+    
+    // Log first player to debug field names
+    if (swedishSkaters.length > 0) {
+      console.log('Sample skater fields:', JSON.stringify(Object.keys(swedishSkaters[0])));
+    }
+
+    // Fetch jersey numbers from player landing endpoint (stats API doesn't include them)
+    const playerJerseyNumbers = new Map<string, number>();
+    console.log('Fetching jersey numbers from player landing endpoints...');
+    
+    for (const player of swedishSkaters) {
+      try {
+        const playerResponse = await fetch(`https://api-web.nhle.com/v1/player/${player.playerId}/landing`);
+        if (playerResponse.ok) {
+          const playerData = await playerResponse.json();
+          playerJerseyNumbers.set(String(player.playerId), playerData.sweaterNumber || 0);
+        }
+      } catch (e) {
+        console.error(`Failed to fetch jersey for player ${player.playerId}:`, e);
+      }
+    }
 
     // Upsert Swedish skaters
     for (const player of swedishSkaters) {
+      const teamAbbr = player.teamAbbrevs || 'UNK';
+      const jerseyNumber = playerJerseyNumbers.get(String(player.playerId)) || 0;
       await supabase.from('swedish_players').upsert({
         id: String(player.playerId),
         name: `${player.skaterFullName}`,
-        team: player.teamFullName || 'Unknown',
-        team_abbr: player.teamAbbrevs || 'UNK',
+        team: TEAM_NAMES[teamAbbr] || teamAbbr,
+        team_abbr: teamAbbr,
         position: player.positionCode || 'F',
-        jersey_number: player.sweaterNumber || 0,
+        jersey_number: jerseyNumber,
         games: player.gamesPlayed || 0,
         goals: player.goals || 0,
         assists: player.assists || 0,
         points: player.points || 0,
         penalty_minutes: player.penaltyMinutes || 0,
         plus_minus: player.plusMinus || 0,
-        time_on_ice: player.timeOnIcePerGame ? String(Math.floor(player.timeOnIcePerGame / 60)) + ':' + String(player.timeOnIcePerGame % 60).padStart(2, '0') : '0:00',
+        time_on_ice: player.timeOnIcePerGame ? String(Math.floor(player.timeOnIcePerGame / 60)) + ':' + String(Math.floor(player.timeOnIcePerGame % 60)).padStart(2, '0') : '0:00',
         power_play_goals: player.ppGoals || 0,
         power_play_points: player.ppPoints || 0,
         game_winning_goals: player.gameWinningGoals || 0,
@@ -144,14 +182,32 @@ serve(async (req) => {
     const swedishGoalies = goaliesData.data || [];
     console.log(`Found ${swedishGoalies.length} Swedish goalies`);
 
+    // Fetch jersey numbers for goalies
+    const goalieJerseyNumbers = new Map<string, number>();
+    console.log('Fetching jersey numbers for goalies...');
+    
+    for (const goalie of swedishGoalies) {
+      try {
+        const playerResponse = await fetch(`https://api-web.nhle.com/v1/player/${goalie.playerId}/landing`);
+        if (playerResponse.ok) {
+          const playerData = await playerResponse.json();
+          goalieJerseyNumbers.set(String(goalie.playerId), playerData.sweaterNumber || 0);
+        }
+      } catch (e) {
+        console.error(`Failed to fetch jersey for goalie ${goalie.playerId}:`, e);
+      }
+    }
+
     // Upsert Swedish goalies
     for (const goalie of swedishGoalies) {
+      const teamAbbr = goalie.teamAbbrevs || 'UNK';
+      const jerseyNumber = goalieJerseyNumbers.get(String(goalie.playerId)) || 0;
       await supabase.from('swedish_goalies').upsert({
         id: String(goalie.playerId),
         name: goalie.goalieFullName,
-        team: goalie.teamFullName || 'Unknown',
-        team_abbr: goalie.teamAbbrevs || 'UNK',
-        jersey_number: goalie.sweaterNumber || 0,
+        team: TEAM_NAMES[teamAbbr] || teamAbbr,
+        team_abbr: teamAbbr,
+        jersey_number: jerseyNumber,
         games: goalie.gamesPlayed || 0,
         games_started: goalie.gamesStarted || 0,
         wins: goalie.wins || 0,
