@@ -67,12 +67,23 @@ const PlayerProfile = () => {
         <Card className="overflow-hidden">
           <CardContent className="pt-6">
             <div className="flex items-start gap-6">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-                {isGoalie ? (
-                  <Shield className="h-10 w-10 text-primary" />
-                ) : (
-                  <User className="h-10 w-10 text-primary" />
-                )}
+              <div className="relative h-24 w-24 overflow-hidden rounded-full bg-primary/10">
+                <img 
+                  src={`https://assets.nhle.com/mugs/nhl/20252026/${currentPlayer.teamAbbr}/${playerId}.png`}
+                  alt={currentPlayer.name}
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+                <div className="hidden absolute inset-0 flex items-center justify-center">
+                  {isGoalie ? (
+                    <Shield className="h-10 w-10 text-primary" />
+                  ) : (
+                    <User className="h-10 w-10 text-primary" />
+                  )}
+                </div>
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
