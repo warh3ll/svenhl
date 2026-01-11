@@ -2,16 +2,20 @@ import { Link } from 'react-router-dom';
 import { Game, GamePoint, GoaliePerformance } from '@/types/nhl';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Play, Target, Users } from 'lucide-react';
+import { ExternalLink, Play, Target, Users, EyeOff } from 'lucide-react';
 import { format } from 'date-fns';
 import TeamLogo from './TeamLogo';
 import PlayerHeadshot from './PlayerHeadshot';
+import { useSpoiler } from '@/contexts/SpoilerContext';
+
 interface GameCardProps {
   game: Game;
 }
+
 const GameCard = ({
   game
 }: GameCardProps) => {
+  const { spoilerMode } = useSpoiler();
   const hasSwedishContribution = game.swedishPoints.length > 0 || game.swedishGoalies.length > 0;
   const gameDate = new Date(game.date);
   return <Card className={`overflow-hidden transition-all hover:shadow-lg ${hasSwedishContribution ? 'ring-2 ring-accent' : ''}`}>
@@ -42,9 +46,13 @@ const GameCard = ({
             <span className="text-sm text-muted-foreground">{game.awayTeam}</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-4xl font-bold text-foreground">{game.awayScore}</span>
+            <span className={`text-4xl font-bold text-foreground ${spoilerMode ? 'blur-md select-none' : ''}`}>
+              {game.awayScore}
+            </span>
             <span className="text-2xl text-muted-foreground">-</span>
-            <span className="text-4xl font-bold text-foreground">{game.homeScore}</span>
+            <span className={`text-4xl font-bold text-foreground ${spoilerMode ? 'blur-md select-none' : ''}`}>
+              {game.homeScore}
+            </span>
           </div>
           <div className="flex flex-col items-center gap-1">
             <TeamLogo teamAbbr={game.homeTeamAbbr} size="lg" />
@@ -53,33 +61,45 @@ const GameCard = ({
           </div>
         </div>
 
-        {/* Swedish Points */}
-        {game.swedishPoints.length > 0 && <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Target className="h-4 w-4 text-accent-foreground" />
-              <span className="text-sm font-semibold text-foreground">Swedish Points</span>
-              <Badge className="bg-accent text-accent-foreground">{game.swedishPoints.length}</Badge>
+        {/* Spoiler Mode Hidden Content */}
+        {spoilerMode ? (
+          <div className="rounded-lg bg-muted/30 py-4 text-center">
+            <div className="flex items-center justify-center gap-2 text-muted-foreground">
+              <EyeOff className="h-4 w-4" />
+              <span className="text-sm">Spoiler mode enabled - details hidden</span>
             </div>
-            <div className="space-y-2">
-              {game.swedishPoints.map((point, index) => <PointItem key={index} point={point} />)}
-            </div>
-          </div>}
+          </div>
+        ) : (
+          <>
+            {/* Swedish Points */}
+            {game.swedishPoints.length > 0 && <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Target className="h-4 w-4 text-accent-foreground" />
+                  <span className="text-sm font-semibold text-foreground">Swedish Points</span>
+                  <Badge className="bg-accent text-accent-foreground">{game.swedishPoints.length}</Badge>
+                </div>
+                <div className="space-y-2">
+                  {game.swedishPoints.map((point, index) => <PointItem key={index} point={point} />)}
+                </div>
+              </div>}
 
-        {/* Swedish Goalies */}
-        {game.swedishGoalies.length > 0 && <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-accent-foreground" />
-              <span className="text-sm font-semibold text-foreground">Swedish Goalies</span>
-            </div>
-            <div className="space-y-2">
-              {game.swedishGoalies.map((goalie, index) => <GoalieItem key={index} goalie={goalie} />)}
-            </div>
-          </div>}
+            {/* Swedish Goalies */}
+            {game.swedishGoalies.length > 0 && <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-accent-foreground" />
+                  <span className="text-sm font-semibold text-foreground">Swedish Goalies</span>
+                </div>
+                <div className="space-y-2">
+                  {game.swedishGoalies.map((goalie, index) => <GoalieItem key={index} goalie={goalie} />)}
+                </div>
+              </div>}
 
-        {/* No Swedish Contribution */}
-        {!hasSwedishContribution && <div className="rounded-lg bg-muted/30 py-3 text-center">
-            <span className="text-sm text-muted-foreground">No Swedish players scored in this game</span>
-          </div>}
+            {/* No Swedish Contribution */}
+            {!hasSwedishContribution && <div className="rounded-lg bg-muted/30 py-3 text-center">
+                <span className="text-sm text-muted-foreground">No Swedish players scored in this game</span>
+              </div>}
+          </>
+        )}
       </CardContent>
     </Card>;
 };
