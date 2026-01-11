@@ -1,14 +1,16 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Loader2 } from "lucide-react";
+import { RefreshCw, Loader2, Eye, EyeOff } from "lucide-react";
 import { useSyncNHLData } from "@/hooks/useNHLData";
 import { useToast } from "@/hooks/use-toast";
+import { useSpoiler } from "@/contexts/SpoilerContext";
 
 const Header = () => {
   const location = useLocation();
   const { toast } = useToast();
   const syncMutation = useSyncNHLData();
+  const { spoilerMode, toggleSpoilerMode } = useSpoiler();
 
   const navItems = [
     { href: "/", label: "Game Feed" },
@@ -61,6 +63,24 @@ const Header = () => {
               </Link>
             ))}
           </nav>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleSpoilerMode}
+          >
+            {spoilerMode ? (
+              <>
+                <EyeOff className="mr-2 h-4 w-4" />
+                Show Scores
+              </>
+            ) : (
+              <>
+                <Eye className="mr-2 h-4 w-4" />
+                Hide Scores
+              </>
+            )}
+          </Button>
 
           <Button
             variant="outline"
