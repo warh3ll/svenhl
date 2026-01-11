@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 interface PlayerHeadshotProps {
   playerId: string;
   playerName: string;
+  teamAbbr?: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
@@ -21,10 +22,13 @@ const iconSizeClasses = {
   lg: 'h-8 w-8',
 };
 
-const PlayerHeadshot = ({ playerId, playerName, size = 'md', className }: PlayerHeadshotProps) => {
+const PlayerHeadshot = ({ playerId, playerName, teamAbbr, size = 'md', className }: PlayerHeadshotProps) => {
   const [hasError, setHasError] = useState(false);
   
-  const headshotUrl = `https://assets.nhle.com/headshots/current/168x168/${playerId}.png`;
+  // Use the team-specific URL format which is more reliable
+  const headshotUrl = teamAbbr 
+    ? `https://assets.nhle.com/mugs/nhl/20252026/${teamAbbr}/${playerId}.png`
+    : `https://assets.nhle.com/headshots/current/168x168/${playerId}.png`;
 
   if (hasError) {
     return (
