@@ -5,9 +5,9 @@ interface TeamLogoProps {
 }
 
 const sizeClasses = {
-  sm: 'h-5 w-5',
-  md: 'h-8 w-8',
-  lg: 'h-12 w-12',
+  sm: 'h-10 w-10',
+  md: 'h-16 w-16',
+  lg: 'h-24 w-24',
 };
 
 const TeamLogo = ({ teamAbbr, size = 'md', className = '' }: TeamLogoProps) => {
