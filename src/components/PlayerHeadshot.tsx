@@ -24,7 +24,7 @@ const iconSizeClasses = {
 const PlayerHeadshot = ({ playerId, playerName, size = 'md', className }: PlayerHeadshotProps) => {
   const [hasError, setHasError] = useState(false);
   
-  const headshotUrl = `https://assets.nhle.com/mugs/nhl/20242025/${playerId}.png`;
+  const headshotUrl = `https://assets.nhle.com/headshots/current/168x168/${playerId}.png`;
 
   if (hasError) {
     return (
