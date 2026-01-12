@@ -56,6 +56,7 @@ const transformGame = (row: any): Game => ({
   swedishPoints: (row.swedish_points as GamePoint[]) || [],
   swedishGoalies: (row.swedish_goalies as GoaliePerformance[]) || [],
   highlightUrl: row.highlight_url,
+  highlightVideoId: row.highlight_video_id || undefined,
   period: row.period,
   timeRemaining: row.time_remaining,
 });

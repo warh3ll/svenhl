@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Game, GamePoint, GoaliePerformance } from '@/types/nhl';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Play, Target, Users, EyeOff } from 'lucide-react';
+import { ExternalLink, Play, Target, Users, EyeOff, Video } from 'lucide-react';
 import { format } from 'date-fns';
 import TeamLogo from './TeamLogo';
 import PlayerHeadshot from './PlayerHeadshot';
@@ -29,15 +29,41 @@ const GameCard = ({
               {format(gameDate, 'MMM d, yyyy • h:mm a')}
             </span>
           </div>
-          {game.highlightUrl && <a href={game.highlightUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors text-primary bg-primary-foreground">
+          {/* Show fallback link only if no embedded video */}
+          {!game.highlightVideoId && game.highlightUrl && (
+            <a href={game.highlightUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors text-primary bg-primary-foreground">
               <Play className="h-4 w-4" />
-              Watch Highlights
+              Search Highlights
               <ExternalLink className="h-3 w-3" />
-            </a>}
+            </a>
+          )}
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {/* Embedded YouTube Highlight Video */}
+        {!spoilerMode && game.highlightVideoId && (
+          <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+            <iframe
+              src={`https://www.youtube.com/embed/${game.highlightVideoId}`}
+              title={`${game.awayTeamAbbr} vs ${game.homeTeamAbbr} Highlights`}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+            />
+          </div>
+        )}
+
+        {/* Spoiler mode video placeholder */}
+        {spoilerMode && game.highlightVideoId && (
+          <div className="aspect-video rounded-lg bg-muted/50 flex items-center justify-center">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Video className="h-5 w-5" />
+              <span className="text-sm">Video hidden in spoiler mode</span>
+            </div>
+          </div>
+        )}
+
         {/* Score Display */}
         <div className="flex items-center justify-center gap-6 rounded-xl bg-muted/50 py-4">
           <div className="flex flex-col items-center gap-1">

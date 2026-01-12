@@ -21,6 +21,7 @@ export type Database = {
           away_team_abbr: string
           game_date: string
           highlight_url: string | null
+          highlight_video_id: string | null
           home_score: number | null
           home_team: string
           home_team_abbr: string
@@ -38,6 +39,7 @@ export type Database = {
           away_team_abbr: string
           game_date: string
           highlight_url?: string | null
+          highlight_video_id?: string | null
           home_score?: number | null
           home_team: string
           home_team_abbr: string
@@ -55,6 +57,7 @@ export type Database = {
           away_team_abbr?: string
           game_date?: string
           highlight_url?: string | null
+          highlight_video_id?: string | null
           home_score?: number | null
           home_team?: string
           home_team_abbr?: string

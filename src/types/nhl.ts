@@ -72,6 +72,7 @@ export interface Game {
   swedishPoints: GamePoint[];
   swedishGoalies: GoaliePerformance[];
   highlightUrl?: string;
+  highlightVideoId?: string;
   period?: string;
   timeRemaining?: string;
 }
