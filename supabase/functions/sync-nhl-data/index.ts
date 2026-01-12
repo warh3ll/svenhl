@@ -78,7 +78,45 @@ serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const youtubeApiKey = Deno.env.get('YOUTUBE_API_KEY');
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+  // Function to search for highlight video on official NHL YouTube channel
+  async function searchHighlightVideo(homeTeam: string, awayTeam: string, gameDate: string): Promise<string | null> {
+    if (!youtubeApiKey) {
+      console.log('YouTube API key not configured, skipping video search');
+      return null;
+    }
+    
+    try {
+      const dateFormatted = new Date(gameDate).toISOString().split('T')[0];
+      const searchQuery = `NHL ${homeTeam} vs ${awayTeam} ${dateFormatted} highlights`;
+      // UCqFMzb-4AUf6WAIbl132QKA is the official NHL YouTube channel ID
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&channelId=UCqFMzb-4AUf6WAIbl132QKA&type=video&maxResults=1&key=${youtubeApiKey}`;
+      
+      console.log(`Searching YouTube for: ${searchQuery}`);
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        console.error(`YouTube API error: ${response.status}`);
+        return null;
+      }
+      
+      const data = await response.json();
+      const videoId = data.items?.[0]?.id?.videoId || null;
+      
+      if (videoId) {
+        console.log(`Found highlight video: ${videoId}`);
+      } else {
+        console.log('No highlight video found');
+      }
+      
+      return videoId;
+    } catch (error) {
+      console.error('Error searching YouTube:', error);
+      return null;
+    }
+  }
 
   try {
     console.log('Starting NHL data sync...');
@@ -371,6 +409,18 @@ serve(async (req) => {
           // Construct highlight URL (NHL official YouTube format)
           const highlightUrl = `https://www.youtube.com/results?search_query=NHL+${game.homeTeam?.abbrev}+vs+${game.awayTeam?.abbrev}+${day.date}+highlights`;
 
+          // Search for actual highlight video ID (only for completed games)
+          let highlightVideoId: string | null = null;
+          if (game.gameState === 'OFF' || game.gameState === 'FINAL') {
+            highlightVideoId = await searchHighlightVideo(
+              game.homeTeam?.abbrev || '',
+              game.awayTeam?.abbrev || '',
+              game.startTimeUTC
+            );
+            // Small delay to avoid hitting YouTube API rate limits
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
+
           await supabase.from('nhl_games').upsert({
             id: gameId,
             game_date: game.startTimeUTC,
@@ -385,6 +435,7 @@ serve(async (req) => {
             swedish_points: swedishPoints,
             swedish_goalies: swedishGoaliePerformances,
             highlight_url: highlightUrl,
+            highlight_video_id: highlightVideoId,
             period: game.periodDescriptor?.number ? `P${game.periodDescriptor.number}` : null,
             time_remaining: game.clock?.timeRemaining || null,
             updated_at: new Date().toISOString()
