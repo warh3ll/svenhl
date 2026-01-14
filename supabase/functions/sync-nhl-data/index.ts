@@ -82,33 +82,80 @@ serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   // Function to search for highlight video on official NHL YouTube channel
-  async function searchHighlightVideo(homeTeam: string, awayTeam: string, gameDate: string): Promise<string | null> {
+  async function searchHighlightVideo(homeTeamAbbr: string, awayTeamAbbr: string, gameDate: string): Promise<string | null> {
     if (!youtubeApiKey) {
       console.log('YouTube API key not configured, skipping video search');
       return null;
     }
     
     try {
-      const dateFormatted = new Date(gameDate).toISOString().split('T')[0];
-      const searchQuery = `NHL ${homeTeam} vs ${awayTeam} ${dateFormatted} highlights`;
-      // UCqFMzb-4AUf6WAIbl132QKA is the official NHL YouTube channel ID
-      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&channelId=UCqFMzb-4AUf6WAIbl132QKA&type=video&maxResults=1&key=${youtubeApiKey}`;
+      // Use full team names for better YouTube search results
+      const homeTeamFull = TEAM_NAMES[homeTeamAbbr] || homeTeamAbbr;
+      const awayTeamFull = TEAM_NAMES[awayTeamAbbr] || awayTeamAbbr;
+      
+      // Extract just the team name (e.g., "Penguins" from "Pittsburgh Penguins")
+      const getShortName = (fullName: string) => fullName.split(' ').pop() || fullName;
+      const homeShort = getShortName(homeTeamFull);
+      const awayShort = getShortName(awayTeamFull);
+      
+      // NHL videos are titled like "Rangers vs Penguins | NHL Highlights"
+      const searchQuery = `${awayShort} vs ${homeShort} NHL Highlights`;
+      
+      // Search without channel filter first (more flexible), then verify channel
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&maxResults=5&order=date&key=${youtubeApiKey}`;
       
       console.log(`Searching YouTube for: ${searchQuery}`);
+      console.log(`Full URL (without key): ${url.replace(youtubeApiKey, 'REDACTED')}`);
+      
       const response = await fetch(url);
+      const responseText = await response.text();
       
       if (!response.ok) {
         console.error(`YouTube API error: ${response.status}`);
+        console.error(`YouTube API error response: ${responseText}`);
+        
+        // Parse error details if possible
+        try {
+          const errorData = JSON.parse(responseText);
+          const errorReason = errorData.error?.errors?.[0]?.reason || 'unknown';
+          const errorMessage = errorData.error?.message || 'No message';
+          console.error(`YouTube error reason: ${errorReason}`);
+          console.error(`YouTube error message: ${errorMessage}`);
+        } catch {
+          console.error('Could not parse error response as JSON');
+        }
         return null;
       }
       
-      const data = await response.json();
-      const videoId = data.items?.[0]?.id?.videoId || null;
+      const data = JSON.parse(responseText);
+      console.log(`YouTube returned ${data.items?.length || 0} results`);
+      
+      // Find the best match - prefer official NHL channel videos
+      const nhlChannelId = 'UCqFMzb-4AUf6WAIbl132QKA';
+      
+      // First, try to find a video from the official NHL channel
+      let bestMatch = data.items?.find((item: any) => 
+        item.snippet?.channelId === nhlChannelId
+      );
+      
+      // If no NHL channel video, take the first result if it looks like highlights
+      if (!bestMatch && data.items?.length > 0) {
+        bestMatch = data.items.find((item: any) => {
+          const title = item.snippet?.title?.toLowerCase() || '';
+          return title.includes('highlight') || title.includes('nhl');
+        });
+      }
+      
+      const videoId = bestMatch?.id?.videoId || null;
       
       if (videoId) {
-        console.log(`Found highlight video: ${videoId}`);
+        console.log(`Found highlight video: ${videoId} - "${bestMatch?.snippet?.title}"`);
+        console.log(`Channel: ${bestMatch?.snippet?.channelTitle} (${bestMatch?.snippet?.channelId})`);
       } else {
-        console.log('No highlight video found');
+        console.log('No suitable highlight video found');
+        if (data.items?.length > 0) {
+          console.log('Available results:', data.items.map((i: any) => i.snippet?.title).join(', '));
+        }
       }
       
       return videoId;
