@@ -82,10 +82,11 @@ serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   // Function to search for highlight video on official NHL YouTube channel
-  async function searchHighlightVideo(homeTeamAbbr: string, awayTeamAbbr: string, gameDate: string): Promise<string | null> {
+  // Returns { videoId: string | null, quotaExceeded: boolean }
+  async function searchHighlightVideo(homeTeamAbbr: string, awayTeamAbbr: string, gameDate: string): Promise<{ videoId: string | null, quotaExceeded: boolean }> {
     if (!youtubeApiKey) {
       console.log('YouTube API key not configured, skipping video search');
-      return null;
+      return { videoId: null, quotaExceeded: false };
     }
     
     try {
@@ -121,10 +122,16 @@ serve(async (req) => {
           const errorMessage = errorData.error?.message || 'No message';
           console.error(`YouTube error reason: ${errorReason}`);
           console.error(`YouTube error message: ${errorMessage}`);
+          
+          // Check for quota exceeded error
+          if (errorReason === 'quotaExceeded' || response.status === 403) {
+            console.error('YouTube quota exceeded - triggering circuit breaker');
+            return { videoId: null, quotaExceeded: true };
+          }
         } catch {
           console.error('Could not parse error response as JSON');
         }
-        return null;
+        return { videoId: null, quotaExceeded: false };
       }
       
       const data = JSON.parse(responseText);
@@ -158,10 +165,10 @@ serve(async (req) => {
         }
       }
       
-      return videoId;
+      return { videoId, quotaExceeded: false };
     } catch (error) {
       console.error('Error searching YouTube:', error);
-      return null;
+      return { videoId: null, quotaExceeded: false };
     }
   }
 
@@ -339,6 +346,27 @@ serve(async (req) => {
       const swedishGoalieMap = new Map((swedishGoalieData || []).map(g => [g.id, { name: g.name, teamAbbr: g.team_abbr }]));
       console.log(`Loaded ${swedishGoalieMap.size} Swedish goalies for game matching`);
 
+      // Fetch existing games to check for cached video IDs (prevents redundant YouTube API calls)
+      const allGameIds: string[] = [];
+      for (const day of gameWeek) {
+        for (const game of day.games || []) {
+          allGameIds.push(String(game.id));
+        }
+      }
+      
+      const { data: existingGames } = await supabase
+        .from('nhl_games')
+        .select('id, highlight_video_id')
+        .in('id', allGameIds);
+      
+      const existingVideoIds = new Map<string, string | null>(
+        (existingGames || []).map(g => [g.id, g.highlight_video_id])
+      );
+      console.log(`Loaded ${existingVideoIds.size} existing games, ${[...existingVideoIds.values()].filter(v => v).length} already have video IDs`);
+      
+      // Circuit breaker for YouTube quota
+      let youtubeQuotaExceeded = false;
+
       for (const day of gameWeek) {
         for (const game of day.games || []) {
           const gameId = String(game.id);
@@ -459,13 +487,32 @@ serve(async (req) => {
           // Search for actual highlight video ID (only for completed games)
           let highlightVideoId: string | null = null;
           if (game.gameState === 'OFF' || game.gameState === 'FINAL') {
-            highlightVideoId = await searchHighlightVideo(
-              game.homeTeam?.abbrev || '',
-              game.awayTeam?.abbrev || '',
-              game.startTimeUTC
-            );
-            // Small delay to avoid hitting YouTube API rate limits
-            await new Promise(resolve => setTimeout(resolve, 200));
+            // Check if we already have a cached video ID
+            const cachedVideoId = existingVideoIds.get(gameId);
+            if (cachedVideoId) {
+              console.log(`Using cached video ID for game ${gameId}: ${cachedVideoId}`);
+              highlightVideoId = cachedVideoId;
+            } else if (!youtubeQuotaExceeded) {
+              // Only search YouTube if no cached video and quota not exceeded
+              const searchResult = await searchHighlightVideo(
+                game.homeTeam?.abbrev || '',
+                game.awayTeam?.abbrev || '',
+                game.startTimeUTC
+              );
+              
+              highlightVideoId = searchResult.videoId;
+              
+              // Check if quota was exceeded - trigger circuit breaker
+              if (searchResult.quotaExceeded) {
+                youtubeQuotaExceeded = true;
+                console.log('YouTube quota exceeded - circuit breaker activated, skipping remaining searches');
+              }
+              
+              // Small delay to avoid hitting YouTube API rate limits
+              await new Promise(resolve => setTimeout(resolve, 200));
+            } else {
+              console.log(`Skipping YouTube search for game ${gameId} - quota exceeded`);
+            }
           }
 
           await supabase.from('nhl_games').upsert({
