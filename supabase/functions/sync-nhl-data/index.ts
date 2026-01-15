@@ -346,7 +346,7 @@ serve(async (req) => {
       const swedishGoalieMap = new Map((swedishGoalieData || []).map(g => [g.id, { name: g.name, teamAbbr: g.team_abbr }]));
       console.log(`Loaded ${swedishGoalieMap.size} Swedish goalies for game matching`);
 
-      // Fetch existing games to check for cached video IDs (prevents redundant YouTube API calls)
+      // Fetch existing games to check for cached video IDs and highlight_checked_at
       const allGameIds: string[] = [];
       for (const day of gameWeek) {
         for (const game of day.games || []) {
@@ -356,16 +356,28 @@ serve(async (req) => {
       
       const { data: existingGames } = await supabase
         .from('nhl_games')
-        .select('id, highlight_video_id')
+        .select('id, highlight_video_id, highlight_checked_at')
         .in('id', allGameIds);
       
       const existingVideoIds = new Map<string, string | null>(
         (existingGames || []).map(g => [g.id, g.highlight_video_id])
       );
+      const existingCheckedAt = new Map<string, string | null>(
+        (existingGames || []).map(g => [g.id, g.highlight_checked_at])
+      );
       console.log(`Loaded ${existingVideoIds.size} existing games, ${[...existingVideoIds.values()].filter(v => v).length} already have video IDs`);
       
       // Circuit breaker for YouTube quota
       let youtubeQuotaExceeded = false;
+      
+      // Limit YouTube searches per sync run to preserve quota
+      const MAX_YOUTUBE_SEARCHES_PER_SYNC = 5;
+      let youtubeSearchesThisSync = 0;
+      
+      // Only search for videos from games in the last 48 hours
+      const now = new Date();
+      const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
       for (const day of gameWeek) {
         for (const game of day.games || []) {
@@ -486,36 +498,59 @@ serve(async (req) => {
 
           // Search for actual highlight video ID (only for completed games)
           let highlightVideoId: string | null = null;
+          let shouldUpdateCheckedAt = false;
+          
           if (game.gameState === 'OFF' || game.gameState === 'FINAL') {
             // Check if we already have a cached video ID
             const cachedVideoId = existingVideoIds.get(gameId);
             if (cachedVideoId) {
               console.log(`Using cached video ID for game ${gameId}: ${cachedVideoId}`);
               highlightVideoId = cachedVideoId;
-            } else if (!youtubeQuotaExceeded) {
-              // Only search YouTube if no cached video and quota not exceeded
-              const searchResult = await searchHighlightVideo(
-                game.homeTeam?.abbrev || '',
-                game.awayTeam?.abbrev || '',
-                game.startTimeUTC
-              );
-              
-              highlightVideoId = searchResult.videoId;
-              
-              // Check if quota was exceeded - trigger circuit breaker
-              if (searchResult.quotaExceeded) {
-                youtubeQuotaExceeded = true;
-                console.log('YouTube quota exceeded - circuit breaker activated, skipping remaining searches');
-              }
-              
-              // Small delay to avoid hitting YouTube API rate limits
-              await new Promise(resolve => setTimeout(resolve, 200));
             } else {
-              console.log(`Skipping YouTube search for game ${gameId} - quota exceeded`);
+              // Check if we've already searched recently (within 24 hours)
+              const lastChecked = existingCheckedAt.get(gameId);
+              const lastCheckedDate = lastChecked ? new Date(lastChecked) : null;
+              const wasCheckedRecently = lastCheckedDate && lastCheckedDate > twentyFourHoursAgo;
+              
+              // Check if game is recent enough to search (within 48 hours)
+              const gameDate = new Date(game.startTimeUTC);
+              const isRecentGame = gameDate > fortyEightHoursAgo;
+              
+              // Only search if: game is recent, not checked recently, quota not exceeded, and under search limit
+              if (isRecentGame && !wasCheckedRecently && !youtubeQuotaExceeded && youtubeSearchesThisSync < MAX_YOUTUBE_SEARCHES_PER_SYNC) {
+                console.log(`Searching YouTube for game ${gameId} (search ${youtubeSearchesThisSync + 1}/${MAX_YOUTUBE_SEARCHES_PER_SYNC})`);
+                
+                const searchResult = await searchHighlightVideo(
+                  game.homeTeam?.abbrev || '',
+                  game.awayTeam?.abbrev || '',
+                  game.startTimeUTC
+                );
+                
+                highlightVideoId = searchResult.videoId;
+                youtubeSearchesThisSync++;
+                shouldUpdateCheckedAt = true;
+                
+                // Check if quota was exceeded - trigger circuit breaker
+                if (searchResult.quotaExceeded) {
+                  youtubeQuotaExceeded = true;
+                  console.log('YouTube quota exceeded - circuit breaker activated, skipping remaining searches');
+                }
+                
+                // Small delay to avoid hitting YouTube API rate limits
+                await new Promise(resolve => setTimeout(resolve, 200));
+              } else if (!isRecentGame) {
+                console.log(`Skipping YouTube search for game ${gameId} - game older than 48 hours`);
+              } else if (wasCheckedRecently) {
+                console.log(`Skipping YouTube search for game ${gameId} - checked within last 24 hours`);
+              } else if (youtubeSearchesThisSync >= MAX_YOUTUBE_SEARCHES_PER_SYNC) {
+                console.log(`Skipping YouTube search for game ${gameId} - reached max ${MAX_YOUTUBE_SEARCHES_PER_SYNC} searches this sync`);
+              } else {
+                console.log(`Skipping YouTube search for game ${gameId} - quota exceeded`);
+              }
             }
           }
 
-          await supabase.from('nhl_games').upsert({
+          const gameUpsertData: any = {
             id: gameId,
             game_date: game.startTimeUTC,
             home_team: game.homeTeam?.placeName?.default + ' ' + game.homeTeam?.commonName?.default || 'Unknown',
@@ -533,7 +568,14 @@ serve(async (req) => {
             period: game.periodDescriptor?.number ? `P${game.periodDescriptor.number}` : null,
             time_remaining: game.clock?.timeRemaining || null,
             updated_at: new Date().toISOString()
-          });
+          };
+          
+          // Only update highlight_checked_at if we actually searched YouTube
+          if (shouldUpdateCheckedAt) {
+            gameUpsertData.highlight_checked_at = new Date().toISOString();
+          }
+          
+          await supabase.from('nhl_games').upsert(gameUpsertData);
         }
       }
     }
