@@ -3,13 +3,15 @@ import GameFeed from '@/components/GameFeed';
 import TopPlayersOfWeek from '@/components/TopPlayersOfWeek';
 import { mockGames } from '@/data/mockData';
 import { Loader2 } from 'lucide-react';
-import { useNHLGames } from '@/hooks/useNHLData';
+import { useNHLGames, useRecentGamesForStats } from '@/hooks/useNHLData';
 
 const Index = () => {
   const { data: games, isLoading: gamesLoading } = useNHLGames();
+  const { data: recentGames } = useRecentGamesForStats();
 
   // Use database games if available, otherwise fall back to mock data
   const displayGames = games && games.length > 0 ? games : mockGames;
+  const statsGames = recentGames && recentGames.length > 0 ? recentGames : displayGames;
 
   return (
     <div className="min-h-screen bg-background">
@@ -17,7 +19,7 @@ const Index = () => {
       
       <main className="container py-8">
         {/* Top 3 of the Week */}
-        <TopPlayersOfWeek games={displayGames} />
+        <TopPlayersOfWeek games={statsGames} />
 
         {/* Game Feed */}
         <div className="space-y-4">
