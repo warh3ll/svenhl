@@ -112,6 +112,27 @@ export function useNHLGames() {
   });
 }
 
+// Get all games from the last 7 days for Top 3 calculation
+export function useRecentGamesForStats() {
+  return useQuery({
+    queryKey: ['recent-games-stats'],
+    queryFn: async () => {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      
+      const { data, error } = await supabase
+        .from('nhl_games')
+        .select('*')
+        .gte('game_date', sevenDaysAgo.toISOString())
+        .order('game_date', { ascending: false });
+
+      if (error) throw error;
+      return (data || []).map(transformGame);
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
 export function useSyncStatus() {
   return useQuery({
     queryKey: ['sync-status'],
