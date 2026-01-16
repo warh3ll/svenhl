@@ -1,79 +1,23 @@
 import Header from '@/components/Header';
 import GameFeed from '@/components/GameFeed';
+import TopPlayersOfWeek from '@/components/TopPlayersOfWeek';
 import { mockGames } from '@/data/mockData';
-import { Badge } from '@/components/ui/badge';
-import { Clock, RefreshCw, Loader2 } from 'lucide-react';
-import { useNHLGames, useSyncStatus } from '@/hooks/useNHLData';
+import { Loader2 } from 'lucide-react';
+import { useNHLGames } from '@/hooks/useNHLData';
 
 const Index = () => {
   const { data: games, isLoading: gamesLoading } = useNHLGames();
-  const { data: syncStatus } = useSyncStatus();
 
   // Use database games if available, otherwise fall back to mock data
   const displayGames = games && games.length > 0 ? games : mockGames;
-
-  const lastUpdate = syncStatus?.last_synced_at 
-    ? new Date(syncStatus.last_synced_at).toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      })
-    : new Date().toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      });
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       
       <main className="container py-8">
-        {/* Hero Section */}
-        <div className="mb-8 text-center">
-          <h1 className="mb-2 text-4xl font-bold tracking-tight text-foreground">
-            Swedish NHL Tracker
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Track Swedish players making an impact in the National Hockey League
-          </p>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-4">
-            <Badge variant="outline" className="flex items-center gap-1.5 px-3 py-1.5">
-              <Clock className="h-3.5 w-3.5" />
-              Last update: {lastUpdate}
-            </Badge>
-            <Badge variant="outline" className="flex items-center gap-1.5 px-3 py-1.5">
-              <RefreshCw className="h-3.5 w-3.5" />
-              Updates bi-hourly
-            </Badge>
-          </div>
-        </div>
-
-        {/* Stats Summary */}
-        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard 
-            title="Games Today" 
-            value={displayGames.filter(g => {
-              const today = new Date();
-              const gameDate = new Date(g.date);
-              return gameDate.toDateString() === today.toDateString();
-            }).length.toString()} 
-            subtitle="Active NHL games"
-          />
-          <StatCard 
-            title="Swedish Points" 
-            value={displayGames.reduce((acc, g) => acc + g.swedishPoints.length, 0).toString()} 
-            subtitle="Goals & assists today"
-          />
-          <StatCard 
-            title="Swedish Goals" 
-            value={displayGames.reduce((acc, g) => acc + g.swedishPoints.filter(p => p.type === 'goal').length, 0).toString()} 
-            subtitle="Pucks in the net"
-          />
-          <StatCard 
-            title="Goalie Starts" 
-            value={displayGames.reduce((acc, g) => acc + g.swedishGoalies.length, 0).toString()} 
-            subtitle="Swedish goalies playing"
-          />
-        </div>
+        {/* Top 3 of the Week */}
+        <TopPlayersOfWeek games={displayGames} />
 
         {/* Game Feed */}
         <div className="space-y-4">
@@ -98,13 +42,5 @@ const Index = () => {
     </div>
   );
 };
-
-const StatCard = ({ title, value, subtitle }: { title: string; value: string; subtitle: string }) => (
-  <div className="rounded-xl border bg-card p-4 text-center">
-    <p className="text-sm font-medium text-muted-foreground">{title}</p>
-    <p className="mt-1 text-3xl font-bold text-primary">{value}</p>
-    <p className="text-xs text-muted-foreground">{subtitle}</p>
-  </div>
-);
 
 export default Index;
