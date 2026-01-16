@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Game, GamePoint, GoaliePerformance } from '@/types/nhl';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Play, Target, Users, EyeOff, Video } from 'lucide-react';
+import { ExternalLink, Play, Target, Users, EyeOff } from 'lucide-react';
 import { format } from 'date-fns';
 import TeamLogo from './TeamLogo';
 import PlayerHeadshot from './PlayerHeadshot';
@@ -41,8 +41,8 @@ const GameCard = ({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Embedded YouTube Highlight Video */}
-        {!spoilerMode && game.highlightVideoId && (
+        {/* Embedded YouTube Highlight Video - Always visible regardless of spoiler mode */}
+        {game.highlightVideoId && (
           <div className="aspect-video rounded-lg overflow-hidden bg-muted">
             <iframe
               src={`https://www.youtube.com/embed/${game.highlightVideoId}`}
@@ -51,16 +51,6 @@ const GameCard = ({
               allowFullScreen
               className="w-full h-full"
             />
-          </div>
-        )}
-
-        {/* Spoiler mode video placeholder */}
-        {spoilerMode && game.highlightVideoId && (
-          <div className="aspect-video rounded-lg bg-muted/50 flex items-center justify-center">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Video className="h-5 w-5" />
-              <span className="text-sm">Video hidden in spoiler mode</span>
-            </div>
           </div>
         )}
 
