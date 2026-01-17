@@ -48,6 +48,8 @@ const PlayerHeadshot = ({ playerId, playerName, teamAbbr, size = 'md', className
       alt={playerName}
       width={size === 'lg' ? 96 : size === 'md' ? 48 : 32}
       height={size === 'lg' ? 96 : size === 'md' ? 48 : 32}
+      loading="lazy"
+      decoding="async"
       className={cn("rounded-full object-cover bg-muted aspect-square", sizeClasses[size], className)}
       onError={() => setHasError(true)}
     />
