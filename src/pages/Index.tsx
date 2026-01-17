@@ -22,10 +22,10 @@ const Index = () => {
         <TopPlayersOfWeek games={statsGames} />
 
         {/* Game Feed */}
-        <div className="space-y-4">
+        <div className="space-y-4 min-h-[800px]">
           <h2 className="text-2xl font-bold text-foreground">Recent Games</h2>
           {gamesLoading ? (
-            <div className="flex items-center justify-center py-12">
+            <div className="flex items-center justify-center py-12 min-h-[700px]">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : (
