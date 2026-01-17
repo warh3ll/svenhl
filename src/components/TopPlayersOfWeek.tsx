@@ -81,13 +81,13 @@ const TopPlayersOfWeek = ({ games }: TopPlayersOfWeekProps) => {
   const getRankStyles = (index: number) => {
     switch (index) {
       case 0:
-        return 'border-[hsl(var(--sweden-yellow))] bg-[hsl(var(--sweden-yellow))/0.05]';
+        return 'bg-[hsl(var(--sweden-yellow))/0.05]';
       case 1:
-        return 'border-muted-foreground/30 bg-muted/30';
+        return 'bg-muted/30';
       case 2:
-        return 'border-[hsl(var(--sweden-blue))/30] bg-[hsl(var(--sweden-blue))/0.05]';
+        return 'bg-[hsl(var(--sweden-blue))/0.05]';
       default:
-        return 'border-border bg-card';
+        return 'bg-card';
     }
   };
 
@@ -108,7 +108,7 @@ const TopPlayersOfWeek = ({ games }: TopPlayersOfWeekProps) => {
           <Link 
             key={player.playerId}
             to={`/player/${player.playerId}`}
-            className={`group relative rounded-xl border-2 p-6 transition-all hover:shadow-lg ${getRankStyles(index)}`}
+            className={`group relative rounded-xl p-6 transition-all hover:shadow-lg ${getRankStyles(index)}`}
           >
             {/* Rank Badge */}
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl">
