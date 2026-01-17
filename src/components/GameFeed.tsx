@@ -11,9 +11,9 @@ interface GameFeedProps {
 const GameFeed = ({ games, isLoading }: GameFeedProps) => {
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-64 w-full rounded-xl" />
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <Skeleton key={i} className="h-96 w-full rounded-xl" />
         ))}
       </div>
     );
@@ -30,7 +30,7 @@ const GameFeed = ({ games, isLoading }: GameFeedProps) => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {games.map((game) => (
         <GameCard key={game.id} game={game} />
       ))}
