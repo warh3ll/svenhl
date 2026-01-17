@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Game, GamePoint, GoaliePerformance } from '@/types/nhl';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Play, Target, Users, EyeOff } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ExternalLink, Play, Target, Users, EyeOff, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import TeamLogo from './TeamLogo';
 import PlayerHeadshot from './PlayerHeadshot';
@@ -16,6 +18,10 @@ const GameCard = ({
   game
 }: GameCardProps) => {
   const { spoilerMode } = useSpoiler();
+  const [isRevealed, setIsRevealed] = useState(false);
+  
+  // Show details if card is revealed OR if global spoiler mode is off
+  const showDetails = isRevealed || !spoilerMode;
   const hasSwedishContribution = game.swedishPoints.length > 0 || game.swedishGoalies.length > 0;
   const gameDate = new Date(game.date);
   return <Card className={`overflow-hidden transition-all hover:shadow-lg ${hasSwedishContribution ? 'ring-2 ring-accent' : ''}`}>
@@ -62,11 +68,11 @@ const GameCard = ({
             <span className="text-sm text-muted-foreground">{game.awayTeam}</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className={`text-4xl font-bold text-foreground ${spoilerMode ? 'blur-md select-none' : ''}`}>
+            <span className={`text-4xl font-bold text-foreground ${!showDetails ? 'blur-md select-none' : ''}`}>
               {game.awayScore}
             </span>
             <span className="text-2xl text-muted-foreground">-</span>
-            <span className={`text-4xl font-bold text-foreground ${spoilerMode ? 'blur-md select-none' : ''}`}>
+            <span className={`text-4xl font-bold text-foreground ${!showDetails ? 'blur-md select-none' : ''}`}>
               {game.homeScore}
             </span>
           </div>
@@ -78,12 +84,21 @@ const GameCard = ({
         </div>
 
         {/* Spoiler Mode Hidden Content */}
-        {spoilerMode ? (
-          <div className="rounded-lg bg-muted/30 py-4 text-center">
+        {!showDetails ? (
+          <div className="rounded-lg bg-muted/30 py-4 text-center space-y-3">
             <div className="flex items-center justify-center gap-2 text-muted-foreground">
               <EyeOff className="h-4 w-4" />
               <span className="text-sm">Spoiler mode enabled - details hidden</span>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsRevealed(true)}
+              className="flex items-center gap-2"
+            >
+              <Eye className="h-4 w-4" />
+              Reveal Score
+            </Button>
           </div>
         ) : (
           <>
