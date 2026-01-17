@@ -46,7 +46,9 @@ const PlayerHeadshot = ({ playerId, playerName, teamAbbr, size = 'md', className
     <img
       src={headshotUrl}
       alt={playerName}
-      className={cn("rounded-full object-cover bg-muted", sizeClasses[size], className)}
+      width={size === 'lg' ? 96 : size === 'md' ? 48 : 32}
+      height={size === 'lg' ? 96 : size === 'md' ? 48 : 32}
+      className={cn("rounded-full object-cover bg-muted aspect-square", sizeClasses[size], className)}
       onError={() => setHasError(true)}
     />
   );

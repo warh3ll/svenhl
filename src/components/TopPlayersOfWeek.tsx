@@ -68,7 +68,7 @@ const TopPlayersOfWeek = ({ games }: TopPlayersOfWeekProps) => {
 
   if (topPlayers.length === 0) {
     return (
-      <div className="mb-8">
+      <div className="mb-8 min-h-[340px]">
         <div className="flex items-center justify-center gap-2 mb-6">
           <Trophy className="h-6 w-6 text-[hsl(var(--sweden-yellow))]" />
           <h2 className="text-2xl font-bold text-foreground">Top 3 of the Week</h2>
@@ -97,7 +97,7 @@ const TopPlayersOfWeek = ({ games }: TopPlayersOfWeekProps) => {
   };
 
   return (
-    <div className="mb-8">
+    <div className="mb-8 min-h-[340px]">
       <div className="flex items-center justify-center gap-2 mb-6">
         <Trophy className="h-6 w-6 text-[hsl(var(--sweden-yellow))]" />
         <h2 className="text-2xl font-bold text-foreground">Top 3 of the Week</h2>
