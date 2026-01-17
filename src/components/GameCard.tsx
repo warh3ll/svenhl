@@ -51,7 +51,7 @@ const GameCard = ({
         {game.highlightVideoId && (
           <div className="aspect-video rounded-lg overflow-hidden bg-muted">
             <iframe
-              src={`https://www.youtube.com/embed/${game.highlightVideoId}`}
+              src={`https://www.youtube-nocookie.com/embed/${game.highlightVideoId}`}
               title={`${game.awayTeamAbbr} vs ${game.homeTeamAbbr} Highlights`}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
