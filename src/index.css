@@ -30,7 +30,7 @@ All colors MUST be HSL.
     --secondary-foreground: 266 4% 20.8%;
 
     --muted: 248 0.7% 96.8%;
-    --muted-foreground: 257 4.6% 55.4%;
+    --muted-foreground: 257 10% 42%;
 
     --accent: 248 0.7% 96.8%;
     --accent-foreground: 266 4% 20.8%;
@@ -38,8 +38,8 @@ All colors MUST be HSL.
     --sweden-blue: 210 100% 45%;
     --sweden-yellow: 45 100% 50%;
     --ice: 200 40% 96%;
-    --goal: 120 60% 45%;
-    --assist: 210 100% 55%;
+    --goal: 120 60% 30%;
+    --assist: 210 100% 40%;
 
     --destructive: 27 24.5% 57.7%;
     --destructive-foreground: 0 0% 100%;
