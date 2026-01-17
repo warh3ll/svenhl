@@ -151,7 +151,7 @@ const PointItem = ({
           {point.playerName}
         </Link>
         <span className="text-xs text-muted-foreground">
-          P{point.period} • {point.time} — {point.description}
+          P{point.period} • {point.time} — {point.type === 'goal' ? 'Goal' : 'Assist'}
         </span>
       </div>
     </div>;
