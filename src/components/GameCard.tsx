@@ -8,6 +8,7 @@ import { ExternalLink, Play, Target, Users, EyeOff, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import TeamLogo from './TeamLogo';
 import PlayerHeadshot from './PlayerHeadshot';
+import LazyYouTubeEmbed from './LazyYouTubeEmbed';
 import { useSpoiler } from '@/contexts/SpoilerContext';
 
 interface GameCardProps {
@@ -50,12 +51,9 @@ const GameCard = ({
         {/* Embedded YouTube Highlight Video - Always visible regardless of spoiler mode */}
         {game.highlightVideoId && (
           <div className="aspect-video rounded-lg overflow-hidden bg-muted">
-            <iframe
-              src={`https://www.youtube-nocookie.com/embed/${game.highlightVideoId}`}
+            <LazyYouTubeEmbed
+              videoId={game.highlightVideoId}
               title={`${game.awayTeamAbbr} vs ${game.homeTeamAbbr} Highlights`}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="w-full h-full"
             />
           </div>
         )}
