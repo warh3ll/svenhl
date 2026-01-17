@@ -8,6 +8,7 @@ interface PlayerHeadshotProps {
   teamAbbr?: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  priority?: boolean; // For LCP images - disables lazy loading and adds fetchpriority="high"
 }
 
 const sizeClasses = {
@@ -22,7 +23,7 @@ const iconSizeClasses = {
   lg: 'h-8 w-8',
 };
 
-const PlayerHeadshot = ({ playerId, playerName, teamAbbr, size = 'md', className }: PlayerHeadshotProps) => {
+const PlayerHeadshot = ({ playerId, playerName, teamAbbr, size = 'md', className, priority = false }: PlayerHeadshotProps) => {
   const [hasError, setHasError] = useState(false);
   
   // Use the team-specific URL format which is more reliable
@@ -48,8 +49,9 @@ const PlayerHeadshot = ({ playerId, playerName, teamAbbr, size = 'md', className
       alt={playerName}
       width={size === 'lg' ? 96 : size === 'md' ? 48 : 32}
       height={size === 'lg' ? 96 : size === 'md' ? 48 : 32}
-      loading="lazy"
-      decoding="async"
+      loading={priority ? "eager" : "lazy"}
+      decoding={priority ? "sync" : "async"}
+      fetchPriority={priority ? "high" : undefined}
       className={cn("rounded-full object-cover bg-muted aspect-square", sizeClasses[size], className)}
       onError={() => setHasError(true)}
     />

@@ -122,6 +122,7 @@ const TopPlayersOfWeek = ({ games }: TopPlayersOfWeekProps) => {
                 playerName={player.playerName}
                 teamAbbr={player.teamAbbr}
                 size="lg"
+                priority={index === 0} // First player gets priority for LCP
                 className="h-24 w-24 ring-4 ring-border group-hover:ring-primary/20 transition-all"
               />
             </div>
