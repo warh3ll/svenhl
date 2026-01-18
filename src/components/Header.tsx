@@ -110,9 +110,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-            <span className="text-xl font-bold text-primary-foreground">🇸🇪</span>
-          </div>
+          <span className="text-3xl">🇸🇪</span>
           <div className="flex flex-col">
             <span className="text-lg font-bold text-foreground">SVENHL</span>
             <span className="text-xs text-muted-foreground hidden sm:block">Tracking Swedish points in the NHL</span>
