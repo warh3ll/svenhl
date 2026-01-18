@@ -112,14 +112,14 @@ const GameCard = ({
                 </div>
               </div>}
 
-            {/* Swedish Goalies */}
-            {game.swedishGoalies.length > 0 && <div className="space-y-2">
+            {/* Swedish Goalies - only show goalies who actually played (have saves) */}
+            {game.swedishGoalies.filter(g => g.saves > 0).length > 0 && <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-accent-foreground" />
                   <span className="text-sm font-semibold text-foreground">Swedish Goalies</span>
                 </div>
                 <div className="space-y-2">
-                  {game.swedishGoalies.map((goalie, index) => <GoalieItem key={index} goalie={goalie} />)}
+                  {game.swedishGoalies.filter(g => g.saves > 0).map((goalie, index) => <GoalieItem key={index} goalie={goalie} />)}
                 </div>
               </div>}
 
