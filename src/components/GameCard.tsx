@@ -138,18 +138,18 @@ const PointItem = ({
   point: GamePoint;
 }) => {
   const isGoal = point.type === 'goal';
-  return <div className={`flex items-center gap-3 rounded-lg px-3 py-2 ${isGoal ? 'bg-[hsl(var(--goal))]/10' : 'bg-[hsl(var(--assist))]/10'}`}>
-      <Badge className={`uppercase ${isGoal ? 'bg-[hsl(var(--goal))] text-primary-foreground' : 'bg-[hsl(var(--assist))] text-primary-foreground'}`}>
+  return <div className={`flex items-center gap-2 rounded-lg px-3 py-2 ${isGoal ? 'bg-[hsl(var(--goal))]/10' : 'bg-[hsl(var(--assist))]/10'}`}>
+      <Badge className={`uppercase text-xs shrink-0 ${isGoal ? 'bg-[hsl(var(--goal))] text-primary-foreground' : 'bg-[hsl(var(--assist))] text-primary-foreground'}`}>
         {point.type}
       </Badge>
       <PlayerHeadshot playerId={point.playerId} playerName={point.playerName} teamAbbr={point.playerTeamAbbr} size="sm" />
-      {point.playerTeamAbbr && <TeamLogo teamAbbr={point.playerTeamAbbr} size="sm" />}
-      <div className="flex flex-col">
-        <Link to={`/player/${point.playerId}`} className="font-semibold text-foreground hover:text-primary transition-colors">
+      {point.playerTeamAbbr && <TeamLogo teamAbbr={point.playerTeamAbbr} size="sm" className="shrink-0" />}
+      <div className="flex flex-col min-w-0">
+        <Link to={`/player/${point.playerId}`} className="font-semibold text-foreground hover:text-primary transition-colors truncate">
           {point.playerName}
         </Link>
-        <span className="text-xs text-muted-foreground">
-          P{point.period} • {point.time} — {point.type === 'goal' ? 'Goal' : 'Assist'}
+        <span className="text-xs text-muted-foreground whitespace-nowrap">
+          P{point.period} • {point.time}
         </span>
       </div>
     </div>;
