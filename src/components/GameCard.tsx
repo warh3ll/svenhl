@@ -149,7 +149,6 @@ const PointItem = ({
         {isGoal ? 'G' : 'A'}
       </div>
       <PlayerHeadshot playerId={point.playerId} playerName={point.playerName} teamAbbr={point.playerTeamAbbr} size="sm" />
-      {point.playerTeamAbbr && <TeamLogo teamAbbr={point.playerTeamAbbr} size="sm" className="shrink-0" />}
       <div className="flex flex-col min-w-0">
         <Link to={`/player/${point.playerId}`} className="font-semibold text-foreground hover:text-primary transition-colors truncate">
           {point.playerName}
