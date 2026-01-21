@@ -142,7 +142,7 @@ const PointItem = ({
   return (
     <div className="relative flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 overflow-hidden">
       <div 
-        className="absolute left-0 top-0 bottom-0 w-1"
+        className="absolute left-0 top-0 bottom-0 w-1.5"
         style={{ backgroundColor: teamColor.primary }}
       />
       <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shrink-0 ${isGoal ? 'bg-[hsl(var(--goal))] text-primary-foreground' : 'bg-[hsl(var(--assist))] text-primary-foreground'}`}>
@@ -174,7 +174,7 @@ const GoalieItem = ({
       className="relative flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 overflow-hidden"
     >
       <div 
-        className="absolute left-0 top-0 bottom-0 w-1"
+        className="absolute left-0 top-0 bottom-0 w-1.5"
         style={{ backgroundColor: teamColor.primary }}
       />
       <div className="flex items-center gap-3">
