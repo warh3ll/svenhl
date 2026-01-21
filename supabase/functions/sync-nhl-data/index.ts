@@ -562,6 +562,11 @@ serve(async (req) => {
             }
           }
 
+          // Validate YouTube video ID format before storing (11 chars: alphanumeric, hyphen, underscore)
+          const validatedVideoId = highlightVideoId && /^[a-zA-Z0-9_-]{11}$/.test(highlightVideoId) 
+            ? highlightVideoId 
+            : null;
+
           const gameUpsertData: any = {
             id: gameId,
             game_date: game.startTimeUTC,
@@ -576,7 +581,7 @@ serve(async (req) => {
             swedish_points: swedishPoints,
             swedish_goalies: swedishGoaliePerformances,
             highlight_url: highlightUrl,
-            highlight_video_id: highlightVideoId,
+            highlight_video_id: validatedVideoId,
             period: game.periodDescriptor?.number ? `P${game.periodDescriptor.number}` : null,
             time_remaining: game.clock?.timeRemaining || null,
             updated_at: new Date().toISOString()
