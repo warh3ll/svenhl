@@ -26,7 +26,7 @@ const GameCard = ({
   const gameDate = new Date(game.date);
   return <Card className={`h-full overflow-hidden transition-all hover:shadow-lg ${hasSwedishContribution ? 'ring-2 ring-accent' : ''}`}>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <Badge variant={game.status === 'final' ? 'secondary' : 'default'} className="uppercase text-xs">
               {game.status}
@@ -37,7 +37,7 @@ const GameCard = ({
           </div>
           {/* Show fallback link only if no embedded video */}
           {!game.highlightVideoId && game.highlightUrl && (
-            <a href={game.highlightUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors text-primary bg-primary-foreground">
+            <a href={game.highlightUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors text-primary bg-primary-foreground w-fit">
               <Play className="h-4 w-4" />
               Search Highlights
               <ExternalLink className="h-3 w-3" />
