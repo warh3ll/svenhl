@@ -4,7 +4,7 @@ import Header from '@/components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, User, Trophy, Target, Shield } from 'lucide-react';
+import MaterialIcon from '@/components/ui/material-icon';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import TeamLogo from '@/components/TeamLogo';
@@ -59,7 +59,7 @@ const PlayerProfile = () => {
           to="/statistics" 
           className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <MaterialIcon name="arrow_back" size="sm" />
           Back to Statistics
         </Link>
 
@@ -79,9 +79,9 @@ const PlayerProfile = () => {
                 />
                 <div className="hidden absolute inset-0 flex items-center justify-center">
                   {isGoalie ? (
-                    <Shield className="h-10 w-10 text-primary" />
+                    <MaterialIcon name="sports" size="xl" className="text-primary" />
                   ) : (
-                    <User className="h-10 w-10 text-primary" />
+                    <MaterialIcon name="person" size="xl" className="text-primary" />
                   )}
                 </div>
               </div>
@@ -107,7 +107,7 @@ const PlayerProfile = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5" />
+              <MaterialIcon name="emoji_events" size="md" />
               2025-26 Season Statistics
             </CardTitle>
           </CardHeader>
@@ -148,7 +148,7 @@ const PlayerProfile = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5" />
+              <MaterialIcon name="sports_hockey" size="md" />
               Recent Point Production
             </CardTitle>
           </CardHeader>

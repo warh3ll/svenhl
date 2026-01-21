@@ -2,7 +2,7 @@ import Header from '@/components/Header';
 import GameFeed from '@/components/GameFeed';
 import TopPlayersOfWeek from '@/components/TopPlayersOfWeek';
 import { mockGames } from '@/data/mockData';
-import { Loader2 } from 'lucide-react';
+import MaterialIcon from '@/components/ui/material-icon';
 import { useNHLGames, useRecentGamesForStats } from '@/hooks/useNHLData';
 
 const Index = () => {
@@ -26,7 +26,7 @@ const Index = () => {
           <h2 className="text-2xl font-bold text-foreground">Recent Games</h2>
           {gamesLoading ? (
             <div className="flex items-center justify-center py-12 min-h-[700px]">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <MaterialIcon name="progress_activity" size="xl" className="animate-spin text-primary" />
             </div>
           ) : (
             <GameFeed games={displayGames} />

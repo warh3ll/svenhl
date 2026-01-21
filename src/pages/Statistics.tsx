@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Users, Shield } from 'lucide-react';
+import MaterialIcon from '@/components/ui/material-icon';
 import { useSwedishPlayers, useSwedishGoalies } from '@/hooks/useNHLData';
 
 const Statistics = () => {
@@ -62,11 +62,11 @@ const Statistics = () => {
         <Tabs defaultValue="skaters" className="space-y-4">
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="skaters" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
+              <MaterialIcon name="group" size="sm" />
               Skaters ({displayPlayers.length})
             </TabsTrigger>
             <TabsTrigger value="goalies" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
+              <MaterialIcon name="sports" size="sm" />
               Goalies ({displayGoalies.length})
             </TabsTrigger>
           </TabsList>

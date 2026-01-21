@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import PlayerHeadshot from './PlayerHeadshot';
 import TeamLogo from './TeamLogo';
 import { Game } from '@/types/nhl';
-import { Trophy } from 'lucide-react';
+import MaterialIcon from '@/components/ui/material-icon';
 
 interface TopPlayer {
   playerId: string;
@@ -70,7 +70,7 @@ const TopPlayersOfWeek = ({ games }: TopPlayersOfWeekProps) => {
     return (
       <div className="mb-8 min-h-[340px]">
         <div className="flex items-center justify-center gap-2 mb-6">
-          <Trophy className="h-6 w-6 text-[hsl(var(--sweden-yellow))]" />
+          <MaterialIcon name="emoji_events" size="lg" className="text-[hsl(var(--sweden-yellow))]" />
           <h2 className="text-2xl font-bold text-foreground">Top 3 of the Week</h2>
         </div>
         <p className="text-center text-muted-foreground">No points recorded in the last 7 days</p>
@@ -99,7 +99,7 @@ const TopPlayersOfWeek = ({ games }: TopPlayersOfWeekProps) => {
   return (
     <div className="mb-8 min-h-[340px]">
       <div className="flex items-center justify-center gap-2 mb-6">
-        <Trophy className="h-6 w-6 text-[hsl(var(--sweden-yellow))]" />
+        <MaterialIcon name="emoji_events" size="lg" className="text-[hsl(var(--sweden-yellow))]" />
         <h2 className="text-2xl font-bold text-foreground">Top 3 of the Week</h2>
       </div>
       

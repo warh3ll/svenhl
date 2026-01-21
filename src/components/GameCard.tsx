@@ -3,7 +3,7 @@ import { Game, GamePoint, GoaliePerformance } from '@/types/nhl';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Play, Target, Users, EyeOff, Eye } from 'lucide-react';
+import MaterialIcon from '@/components/ui/material-icon';
 import { format } from 'date-fns';
 import TeamLogo from './TeamLogo';
 import PlayerHeadshot from './PlayerHeadshot';
@@ -38,9 +38,9 @@ const GameCard = ({
           {/* Show fallback link only if no embedded video */}
           {!game.highlightVideoId && game.highlightUrl && (
             <a href={game.highlightUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors text-primary bg-primary-foreground w-fit">
-              <Play className="h-4 w-4" />
+              <MaterialIcon name="play_arrow" size="sm" />
               Search Highlights
-              <ExternalLink className="h-3 w-3" />
+              <MaterialIcon name="open_in_new" size="sm" />
             </a>
           )}
         </div>
@@ -84,7 +84,7 @@ const GameCard = ({
         {!showDetails ? (
           <div className="rounded-lg bg-muted/30 py-4 text-center space-y-3">
             <div className="flex items-center justify-center gap-2 text-muted-foreground">
-              <EyeOff className="h-4 w-4" />
+              <MaterialIcon name="visibility_off" size="sm" />
               <span className="text-sm">Spoiler mode enabled - details hidden</span>
             </div>
             <Button
@@ -93,7 +93,7 @@ const GameCard = ({
               onClick={() => revealGame(game.id)}
               className="flex items-center gap-2"
             >
-              <Eye className="h-4 w-4" />
+              <MaterialIcon name="visibility" size="sm" />
               Reveal Score
             </Button>
           </div>
@@ -102,7 +102,7 @@ const GameCard = ({
             {/* Swedish Points */}
             {game.swedishPoints.length > 0 && <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Target className="h-4 w-4 text-accent-foreground" />
+                  <MaterialIcon name="sports_hockey" size="sm" className="text-accent-foreground" />
                   <span className="text-sm font-semibold text-foreground">Swedish Points</span>
                   <Badge className="bg-accent text-accent-foreground">{game.swedishPoints.length}</Badge>
                 </div>
@@ -114,7 +114,7 @@ const GameCard = ({
             {/* Swedish Goalies - only show goalies who actually played (have saves) */}
             {game.swedishGoalies.filter(g => g.saves > 0).length > 0 && <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-accent-foreground" />
+                  <MaterialIcon name="sports" size="sm" className="text-accent-foreground" />
                   <span className="text-sm font-semibold text-foreground">Swedish Goalies</span>
                 </div>
                 <div className="space-y-2">

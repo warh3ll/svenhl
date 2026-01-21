@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Menu } from "lucide-react";
+import MaterialIcon from "@/components/ui/material-icon";
 import { useSpoiler } from "@/contexts/SpoilerContext";
 import {
   Sheet,
@@ -53,12 +53,12 @@ const Header = () => {
       >
         {spoilerMode ? (
           <>
-            <EyeOff className="mr-2 h-4 w-4" />
+            <MaterialIcon name="visibility_off" size="sm" className="mr-2" />
             Show Scores
           </>
         ) : (
           <>
-            <Eye className="mr-2 h-4 w-4" />
+            <MaterialIcon name="visibility" size="sm" className="mr-2" />
             Hide Scores
           </>
         )}
@@ -89,7 +89,7 @@ const Header = () => {
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild className="md:hidden">
             <Button variant="ghost" size="icon">
-              <Menu className="h-5 w-5" />
+              <MaterialIcon name="menu" size="md" />
               <span className="sr-only">Open menu</span>
             </Button>
           </SheetTrigger>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User } from 'lucide-react';
+import MaterialIcon from '@/components/ui/material-icon';
 import { cn } from '@/lib/utils';
 
 interface PlayerHeadshotProps {
@@ -32,13 +32,14 @@ const PlayerHeadshot = ({ playerId, playerName, teamAbbr, size = 'md', className
     : `https://assets.nhle.com/headshots/current/168x168/${playerId}.png`;
 
   if (hasError) {
+    const iconSize = size === 'lg' ? 'lg' : size === 'md' ? 'md' : 'sm';
     return (
       <div className={cn(
         "rounded-full bg-muted flex items-center justify-center",
         sizeClasses[size],
         className
       )}>
-        <User className={cn("text-muted-foreground", iconSizeClasses[size])} />
+        <MaterialIcon name="person" size={iconSize} className="text-muted-foreground" />
       </div>
     );
   }
