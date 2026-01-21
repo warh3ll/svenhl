@@ -6,8 +6,19 @@ interface LazyYouTubeEmbedProps {
   title: string;
 }
 
+// Validate YouTube video ID format (11 characters: alphanumeric, hyphen, underscore)
+const isValidYouTubeId = (id: string): boolean => {
+  return /^[a-zA-Z0-9_-]{11}$/.test(id);
+};
+
 const LazyYouTubeEmbed = ({ videoId, title }: LazyYouTubeEmbedProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // Validate video ID format before rendering
+  if (!isValidYouTubeId(videoId)) {
+    console.error('Invalid YouTube video ID format');
+    return null;
+  }
 
   // Use high-quality thumbnail from YouTube
   const thumbnailUrl = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
