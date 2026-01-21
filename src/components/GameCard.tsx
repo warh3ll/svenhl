@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Game, GamePoint, GoaliePerformance } from '@/types/nhl';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -18,11 +17,10 @@ interface GameCardProps {
 const GameCard = ({
   game
 }: GameCardProps) => {
-  const { spoilerMode } = useSpoiler();
-  const [isRevealed, setIsRevealed] = useState(false);
+  const { spoilerMode, isGameRevealed, revealGame } = useSpoiler();
   
-  // Show details if card is revealed OR if global spoiler mode is off
-  const showDetails = isRevealed || !spoilerMode;
+  // Show details if card is revealed (persisted) OR if global spoiler mode is off
+  const showDetails = isGameRevealed(game.id) || !spoilerMode;
   const hasSwedishContribution = game.swedishPoints.length > 0 || game.swedishGoalies.length > 0;
   const gameDate = new Date(game.date);
   return <Card className={`h-full overflow-hidden transition-all hover:shadow-lg ${hasSwedishContribution ? 'ring-2 ring-accent' : ''}`}>
@@ -91,7 +89,7 @@ const GameCard = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setIsRevealed(true)}
+              onClick={() => revealGame(game.id)}
               className="flex items-center gap-2"
             >
               <Eye className="h-4 w-4" />
