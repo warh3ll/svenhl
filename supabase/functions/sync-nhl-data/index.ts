@@ -115,6 +115,25 @@ serve(async (req) => {
   const youtubeApiKey = Deno.env.get("YOUTUBE_API_KEY");
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+  // Helper function to parse ISO 8601 duration (e.g., "PT10M59S") to seconds
+  function parseDuration(isoDuration: string): number {
+    const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return 0;
+    const hours = parseInt(match[1] || "0");
+    const minutes = parseInt(match[2] || "0");
+    const seconds = parseInt(match[3] || "0");
+    return hours * 3600 + minutes * 60 + seconds;
+  }
+
+  // Minimum duration for a valid highlight video (5 minutes = 300 seconds)
+  const MIN_HIGHLIGHT_DURATION_SECONDS = 300;
+
+  // Title patterns to exclude (shorts, single plays)
+  const EXCLUDE_TITLE_PATTERNS = /\b(#shorts?|short|goal of the|save of the|hit of the|fight|shootout only)\b/i;
+
+  // Title patterns to prefer (full highlights)
+  const PREFER_TITLE_PATTERNS = /\b(full highlights?|game recap|extended highlights?|nhl highlights?)\b/i;
+
   // Function to search for highlight video on official NHL YouTube channel
   // Returns { videoId: string | null, quotaExceeded: boolean }
   async function searchHighlightVideo(
@@ -141,7 +160,7 @@ serve(async (req) => {
       const searchQuery = `${awayShort} vs ${homeShort} NHL Highlights`;
 
       // Search without channel filter first (more flexible), then verify channel
-      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&maxResults=5&order=date&key=${youtubeApiKey}`;
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&maxResults=10&order=date&key=${youtubeApiKey}`;
 
       console.log(`Searching YouTube for: ${searchQuery}`);
       console.log(`Full URL (without key): ${url.replace(youtubeApiKey, "REDACTED")}`);
@@ -173,33 +192,117 @@ serve(async (req) => {
       }
 
       const data = JSON.parse(responseText);
-      console.log(`YouTube returned ${data.items?.length || 0} results`);
+      console.log(`YouTube search returned ${data.items?.length || 0} results`);
 
-      // Find the best match - prefer official NHL channel videos
-      const nhlChannelId = "UCqFMzb-4AUf6WAIbl132QKA";
-
-      // First, try to find a video from the official NHL channel
-      let bestMatch = data.items?.find((item: any) => item.snippet?.channelId === nhlChannelId);
-
-      // If no NHL channel video, take the first result if it looks like highlights
-      if (!bestMatch && data.items?.length > 0) {
-        bestMatch = data.items.find((item: any) => {
-          const title = item.snippet?.title?.toLowerCase() || "";
-          return title.includes("highlight") || title.includes("nhl");
-        });
+      if (!data.items || data.items.length === 0) {
+        console.log("No YouTube results found");
+        return { videoId: null, quotaExceeded: false };
       }
 
-      const videoId = bestMatch?.id?.videoId || null;
+      // Extract video IDs for duration lookup
+      const videoIds = data.items.map((item: any) => item.id?.videoId).filter(Boolean);
+      if (videoIds.length === 0) {
+        console.log("No valid video IDs in search results");
+        return { videoId: null, quotaExceeded: false };
+      }
 
-      if (videoId) {
-        console.log(`Found highlight video: ${videoId} - "${bestMatch?.snippet?.title}"`);
-        console.log(`Channel: ${bestMatch?.snippet?.channelTitle} (${bestMatch?.snippet?.channelId})`);
-      } else {
-        console.log("No suitable highlight video found");
-        if (data.items?.length > 0) {
-          console.log("Available results:", data.items.map((i: any) => i.snippet?.title).join(", "));
+      // Fetch video details including duration (costs 1 quota unit per call, regardless of how many IDs)
+      const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds.join(",")}&key=${youtubeApiKey}`;
+      const videosResponse = await fetch(videosUrl);
+      const videosText = await videosResponse.text();
+
+      if (!videosResponse.ok) {
+        console.error(`YouTube videos API error: ${videosResponse.status}`);
+        try {
+          const errorData = JSON.parse(videosText);
+          if (errorData.error?.errors?.[0]?.reason === "quotaExceeded" || videosResponse.status === 403) {
+            console.error("YouTube quota exceeded on videos lookup");
+            return { videoId: null, quotaExceeded: true };
+          }
+        } catch {
+          // Ignore parse error
         }
+        // Fall back to search results without duration filtering
+        console.log("Falling back to search results without duration filtering");
       }
+
+      // Create a map of video ID to duration (in seconds)
+      const videoDurations = new Map<string, number>();
+      try {
+        const videosData = JSON.parse(videosText);
+        for (const video of videosData.items || []) {
+          const duration = parseDuration(video.contentDetails?.duration || "");
+          videoDurations.set(video.id, duration);
+          console.log(`Video ${video.id}: duration ${duration}s (${video.contentDetails?.duration})`);
+        }
+      } catch (e) {
+        console.error("Failed to parse videos response:", e);
+      }
+
+      // Filter and score candidates
+      const nhlChannelId = "UCqFMzb-4AUf6WAIbl132QKA";
+      const candidates: Array<{ item: any; score: number; duration: number }> = [];
+
+      for (const item of data.items) {
+        const videoId = item.id?.videoId;
+        if (!videoId) continue;
+
+        const title = item.snippet?.title?.toLowerCase() || "";
+        const channelId = item.snippet?.channelId;
+        const duration = videoDurations.get(videoId) || 0;
+
+        // Skip videos that are too short (likely Shorts or single plays)
+        if (duration > 0 && duration < MIN_HIGHLIGHT_DURATION_SECONDS) {
+          console.log(`Skipping ${videoId} - too short (${duration}s < ${MIN_HIGHLIGHT_DURATION_SECONDS}s): "${item.snippet?.title}"`);
+          continue;
+        }
+
+        // Skip videos with excluded title patterns
+        if (EXCLUDE_TITLE_PATTERNS.test(title)) {
+          console.log(`Skipping ${videoId} - excluded title pattern: "${item.snippet?.title}"`);
+          continue;
+        }
+
+        // Calculate score
+        let score = 0;
+
+        // Prefer NHL channel (+100)
+        if (channelId === nhlChannelId) {
+          score += 100;
+        }
+
+        // Prefer titles with highlight keywords (+50)
+        if (PREFER_TITLE_PATTERNS.test(title)) {
+          score += 50;
+        }
+
+        // Prefer longer videos (up to +30 for 10+ minute videos)
+        if (duration > 0) {
+          score += Math.min(30, Math.floor(duration / 20));
+        }
+
+        // Bonus for containing "nhl" in title (+10)
+        if (title.includes("nhl")) {
+          score += 10;
+        }
+
+        candidates.push({ item, score, duration });
+        console.log(`Candidate ${videoId}: score=${score}, duration=${duration}s, title="${item.snippet?.title}"`);
+      }
+
+      // Sort by score (descending) and pick the best
+      candidates.sort((a, b) => b.score - a.score);
+
+      if (candidates.length === 0) {
+        console.log("No suitable highlight video found after filtering");
+        return { videoId: null, quotaExceeded: false };
+      }
+
+      const bestMatch = candidates[0];
+      const videoId = bestMatch.item.id?.videoId;
+
+      console.log(`Selected highlight video: ${videoId} (score=${bestMatch.score}, duration=${bestMatch.duration}s) - "${bestMatch.item.snippet?.title}"`);
+      console.log(`Channel: ${bestMatch.item.snippet?.channelTitle} (${bestMatch.item.snippet?.channelId})`);
 
       return { videoId, quotaExceeded: false };
     } catch (error) {
