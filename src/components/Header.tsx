@@ -1,9 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Loader2, Eye, EyeOff, Menu } from "lucide-react";
-import { useSyncNHLData } from "@/hooks/useNHLData";
-import { useToast } from "@/hooks/use-toast";
+import { Eye, EyeOff, Menu } from "lucide-react";
 import { useSpoiler } from "@/contexts/SpoilerContext";
 import {
   Sheet,
@@ -16,8 +14,6 @@ import { useState } from "react";
 
 const Header = () => {
   const location = useLocation();
-  const { toast } = useToast();
-  const syncMutation = useSyncNHLData();
   const { spoilerMode, toggleSpoilerMode } = useSpoiler();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -25,22 +21,6 @@ const Header = () => {
     { href: "/", label: "Game Feed" },
     { href: "/statistics", label: "Statistics" },
   ];
-
-  const handleSync = async () => {
-    try {
-      await syncMutation.mutateAsync('20242025');
-      toast({
-        title: 'Sync Complete',
-        description: 'All NHL data has been updated successfully.',
-      });
-    } catch {
-      toast({
-        title: 'Sync Failed',
-        description: 'Failed to sync NHL data. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  };
 
   const NavLinks = ({ mobile = false, onNavigate }: { mobile?: boolean; onNavigate?: () => void }) => (
     <>
@@ -80,26 +60,6 @@ const Header = () => {
           <>
             <Eye className="mr-2 h-4 w-4" />
             Hide Scores
-          </>
-        )}
-      </Button>
-
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleSync}
-        disabled={syncMutation.isPending}
-        className={cn(mobile && "w-full justify-start")}
-      >
-        {syncMutation.isPending ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Syncing...
-          </>
-        ) : (
-          <>
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Sync Now
           </>
         )}
       </Button>
