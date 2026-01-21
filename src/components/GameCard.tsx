@@ -62,7 +62,6 @@ const GameCard = ({
           <div className="flex flex-col items-center gap-1">
             <TeamLogo teamAbbr={game.awayTeamAbbr} size="lg" />
             <span className="text-lg font-bold text-foreground">{game.awayTeamAbbr}</span>
-            <span className="text-sm text-muted-foreground hidden sm:block">{game.awayTeam}</span>
           </div>
           <div className="flex items-center gap-3">
             <span className={`text-4xl font-bold text-foreground ${!showDetails ? 'blur-md select-none' : ''}`}>
@@ -76,7 +75,6 @@ const GameCard = ({
           <div className="flex flex-col items-center gap-1">
             <TeamLogo teamAbbr={game.homeTeamAbbr} size="lg" />
             <span className="text-lg font-bold text-foreground">{game.homeTeamAbbr}</span>
-            <span className="text-sm text-muted-foreground hidden sm:block">{game.homeTeam}</span>
           </div>
         </div>
 
