@@ -9,6 +9,7 @@ import TeamLogo from './TeamLogo';
 import PlayerHeadshot from './PlayerHeadshot';
 import LazyYouTubeEmbed from './LazyYouTubeEmbed';
 import { useSpoiler } from '@/contexts/SpoilerContext';
+import { getTeamColor } from '@/lib/teamColors';
 
 interface GameCardProps {
   game: Game;
@@ -136,7 +137,13 @@ const PointItem = ({
   point: GamePoint;
 }) => {
   const isGoal = point.type === 'goal';
-  return <div className={`flex items-center gap-2 rounded-lg px-3 py-2 ${isGoal ? 'bg-[hsl(var(--goal))]/10' : 'bg-[hsl(var(--assist))]/10'}`}>
+  const teamColor = getTeamColor(point.playerTeamAbbr || '');
+  
+  return (
+    <div 
+      className={`flex items-center gap-2 rounded-lg px-3 py-2 ${isGoal ? 'bg-[hsl(var(--goal))]/10' : 'bg-[hsl(var(--assist))]/10'}`}
+      style={{ borderLeft: `4px solid ${teamColor.primary}` }}
+    >
       <Badge className={`uppercase text-xs shrink-0 ${isGoal ? 'bg-[hsl(var(--goal))] text-primary-foreground' : 'bg-[hsl(var(--assist))] text-primary-foreground'}`}>
         {point.type}
       </Badge>
@@ -150,7 +157,8 @@ const PointItem = ({
           P{point.period} • {point.time}
         </span>
       </div>
-    </div>;
+    </div>
+  );
 };
 const GoalieItem = ({
   goalie
@@ -159,7 +167,13 @@ const GoalieItem = ({
 }) => {
   const svPct = (goalie.savePercentage * 100).toFixed(1);
   const isWin = goalie.result === 'W';
-  return <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
+  const teamColor = getTeamColor(goalie.teamAbbr);
+  
+  return (
+    <div 
+      className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2"
+      style={{ borderLeft: `4px solid ${teamColor.primary}` }}
+    >
       <div className="flex items-center gap-3">
         <Badge variant={isWin ? 'default' : 'secondary'}>{goalie.result}</Badge>
         <PlayerHeadshot playerId={goalie.goalieId} playerName={goalie.goalieName} teamAbbr={goalie.teamAbbr} size="sm" />
@@ -181,6 +195,8 @@ const GoalieItem = ({
           <span className="text-xs text-muted-foreground">Saves</span>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default GameCard;
