@@ -141,9 +141,12 @@ const PointItem = ({
   
   return (
     <div 
-      className={`flex items-center gap-2 rounded-lg px-3 py-2 ${isGoal ? 'bg-[hsl(var(--goal))]/10' : 'bg-[hsl(var(--assist))]/10'}`}
-      style={{ borderLeft: `4px solid ${teamColor.primary}` }}
+      className={`relative flex items-center gap-2 rounded-lg px-3 py-2 overflow-hidden ${isGoal ? 'bg-[hsl(var(--goal))]/10' : 'bg-[hsl(var(--assist))]/10'}`}
     >
+      <div 
+        className="absolute left-0 top-0 bottom-0 w-1"
+        style={{ backgroundColor: teamColor.primary }}
+      />
       <Badge className={`uppercase text-xs shrink-0 ${isGoal ? 'bg-[hsl(var(--goal))] text-primary-foreground' : 'bg-[hsl(var(--assist))] text-primary-foreground'}`}>
         {point.type}
       </Badge>
@@ -171,9 +174,12 @@ const GoalieItem = ({
   
   return (
     <div 
-      className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2"
-      style={{ borderLeft: `4px solid ${teamColor.primary}` }}
+      className="relative flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 overflow-hidden"
     >
+      <div 
+        className="absolute left-0 top-0 bottom-0 w-1"
+        style={{ backgroundColor: teamColor.primary }}
+      />
       <div className="flex items-center gap-3">
         <Badge variant={isWin ? 'default' : 'secondary'}>{goalie.result}</Badge>
         <PlayerHeadshot playerId={goalie.goalieId} playerName={goalie.goalieName} teamAbbr={goalie.teamAbbr} size="sm" />
