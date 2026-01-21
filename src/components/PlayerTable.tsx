@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import MaterialIcon from '@/components/ui/material-icon';
 import { cn } from '@/lib/utils';
 import TeamLogo from '@/components/TeamLogo';
 import PlayerHeadshot from '@/components/PlayerHeadshot';
@@ -49,10 +49,10 @@ const PlayerTable = ({ players }: PlayerTableProps) => {
   };
 
   const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) return <ArrowUpDown className="h-4 w-4 opacity-50" />;
+    if (sortField !== field) return <MaterialIcon name="swap_vert" size="sm" className="opacity-50" />;
     return sortDirection === 'asc' 
-      ? <ArrowUp className="h-4 w-4" /> 
-      : <ArrowDown className="h-4 w-4" />;
+      ? <MaterialIcon name="arrow_upward" size="sm" /> 
+      : <MaterialIcon name="arrow_downward" size="sm" />;
   };
 
   const SortableHeader = ({ field, children, className }: { field: SortField; children: React.ReactNode; className?: string }) => (

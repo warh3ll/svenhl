@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Play } from 'lucide-react';
+import MaterialIcon from '@/components/ui/material-icon';
 
 interface LazyYouTubeEmbedProps {
   videoId: string;
@@ -54,7 +54,7 @@ const LazyYouTubeEmbed = ({ videoId, title }: LazyYouTubeEmbedProps) => {
       {/* Play button */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground shadow-lg group-hover:scale-110 transition-transform">
-          <Play className="h-8 w-8 ml-1" fill="currentColor" />
+          <MaterialIcon name="play_arrow" size="xl" />
         </div>
       </div>
     </button>
