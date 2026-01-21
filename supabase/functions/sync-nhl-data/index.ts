@@ -421,7 +421,7 @@ serve(async (req) => {
       // Only search for videos from games in the last 48 hours
       const now = new Date();
       const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
-      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const fourHoursAgo = new Date(now.getTime() - 4 * 60 * 60 * 1000);
 
       for (const day of gameWeek) {
         for (const game of day.games || []) {
@@ -547,10 +547,10 @@ serve(async (req) => {
               console.log(`Using cached video ID for game ${gameId}: ${cachedVideoId}`);
               highlightVideoId = cachedVideoId;
             } else {
-              // Check if we've already searched recently (within 24 hours)
+              // Check if we've already searched recently (within 4 hours)
               const lastChecked = existingCheckedAt.get(gameId);
               const lastCheckedDate = lastChecked ? new Date(lastChecked) : null;
-              const wasCheckedRecently = lastCheckedDate && lastCheckedDate > twentyFourHoursAgo;
+              const wasCheckedRecently = lastCheckedDate && lastCheckedDate > fourHoursAgo;
 
               // Check if game is recent enough to search (within 48 hours)
               const gameDate = new Date(game.startTimeUTC);
