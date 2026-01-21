@@ -140,16 +140,14 @@ const PointItem = ({
   const teamColor = getTeamColor(point.playerTeamAbbr || '');
   
   return (
-    <div 
-      className={`relative flex items-center gap-2 rounded-lg px-3 py-2 overflow-hidden ${isGoal ? 'bg-[hsl(var(--goal))]/10' : 'bg-[hsl(var(--assist))]/10'}`}
-    >
+    <div className="relative flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 overflow-hidden">
       <div 
         className="absolute left-0 top-0 bottom-0 w-1"
         style={{ backgroundColor: teamColor.primary }}
       />
-      <Badge className={`uppercase text-xs shrink-0 ${isGoal ? 'bg-[hsl(var(--goal))] text-primary-foreground' : 'bg-[hsl(var(--assist))] text-primary-foreground'}`}>
-        {point.type}
-      </Badge>
+      <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shrink-0 ${isGoal ? 'bg-[hsl(var(--goal))] text-primary-foreground' : 'bg-[hsl(var(--assist))] text-primary-foreground'}`}>
+        {isGoal ? 'G' : 'A'}
+      </div>
       <PlayerHeadshot playerId={point.playerId} playerName={point.playerName} teamAbbr={point.playerTeamAbbr} size="sm" />
       {point.playerTeamAbbr && <TeamLogo teamAbbr={point.playerTeamAbbr} size="sm" className="shrink-0" />}
       <div className="flex flex-col min-w-0">
