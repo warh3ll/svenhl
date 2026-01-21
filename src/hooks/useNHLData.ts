@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Game, SwedishPlayer, SwedishGoalie, GamePoint, GoaliePerformance, PlayerGameLogEntry, CareerSeasonStats } from '@/types/nhl';
+import { toast } from 'sonner';
 
 // Transform database row to frontend type
 const transformPlayer = (row: any): SwedishPlayer => ({
@@ -306,5 +307,34 @@ export function usePlayerCareerStats(playerId: string) {
     },
     enabled: !!playerId,
     staleTime: 1000 * 60 * 30,
+  });
+}
+
+// Report a video as incorrect - clears cached video to trigger re-search on next sync
+export function useReportVideo() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (gameId: string) => {
+      const { error } = await supabase
+        .from('nhl_games')
+        .update({
+          highlight_video_id: null,
+          highlight_checked_at: null,
+          video_reported_at: new Date().toISOString(),
+        })
+        .eq('id', gameId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['nhl-games'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-games-stats'] });
+      toast.success('Video reported - a new highlight will be searched on next sync');
+    },
+    onError: (error) => {
+      console.error('Failed to report video:', error);
+      toast.error('Failed to report video. Please try again.');
+    },
   });
 }

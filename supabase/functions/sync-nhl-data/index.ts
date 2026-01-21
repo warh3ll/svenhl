@@ -501,7 +501,7 @@ serve(async (req) => {
 
       const { data: existingGames } = await supabase
         .from("nhl_games")
-        .select("id, highlight_video_id, highlight_checked_at")
+        .select("id, highlight_video_id, highlight_checked_at, video_reported_at")
         .in("id", allGameIds);
 
       const existingVideoIds = new Map<string, string | null>(
@@ -510,8 +510,11 @@ serve(async (req) => {
       const existingCheckedAt = new Map<string, string | null>(
         (existingGames || []).map((g) => [g.id, g.highlight_checked_at]),
       );
+      const existingReportedAt = new Map<string, string | null>(
+        (existingGames || []).map((g) => [g.id, g.video_reported_at]),
+      );
       console.log(
-        `Loaded ${existingVideoIds.size} existing games, ${[...existingVideoIds.values()].filter((v) => v).length} already have video IDs`,
+        `Loaded ${existingVideoIds.size} existing games, ${[...existingVideoIds.values()].filter((v) => v).length} already have video IDs, ${[...existingReportedAt.values()].filter((v) => v).length} reported`,
       );
 
       // Circuit breaker for YouTube quota
@@ -646,7 +649,11 @@ serve(async (req) => {
           if (game.gameState === "OFF" || game.gameState === "FINAL") {
             // Check if we already have a cached video ID
             const cachedVideoId = existingVideoIds.get(gameId);
-            if (cachedVideoId) {
+            
+            // Check if video was reported (force re-search)
+            const wasReported = existingReportedAt.get(gameId);
+            
+            if (cachedVideoId && !wasReported) {
               console.log(`Using cached video ID for game ${gameId}: ${cachedVideoId}`);
               highlightVideoId = cachedVideoId;
             } else {
@@ -655,20 +662,28 @@ serve(async (req) => {
               const lastCheckedDate = lastChecked ? new Date(lastChecked) : null;
               const wasCheckedRecently = lastCheckedDate && lastCheckedDate > fourHoursAgo;
 
-              // Check if game is recent enough to search (within 48 hours)
+              // Check if game is recent enough to search (within 48 hours) OR was reported
               const gameDate = new Date(game.startTimeUTC);
               const isRecentGame = gameDate > fortyEightHoursAgo;
 
-              // Only search if: game is recent, not checked recently, quota not exceeded, and under search limit
+              // Only search if: 
+              // - (game is recent OR was reported)
+              // - AND (not checked recently OR was reported - reported bypasses cooldown)
+              // - AND quota not exceeded
+              // - AND under search limit
               if (
-                isRecentGame &&
-                !wasCheckedRecently &&
+                (isRecentGame || wasReported) &&
+                (!wasCheckedRecently || wasReported) &&
                 !youtubeQuotaExceeded &&
                 youtubeSearchesThisSync < MAX_YOUTUBE_SEARCHES_PER_SYNC
               ) {
-                console.log(
-                  `Searching YouTube for game ${gameId} (search ${youtubeSearchesThisSync + 1}/${MAX_YOUTUBE_SEARCHES_PER_SYNC})`,
-                );
+                if (wasReported) {
+                  console.log(`Searching YouTube for REPORTED game ${gameId} (search ${youtubeSearchesThisSync + 1}/${MAX_YOUTUBE_SEARCHES_PER_SYNC})`);
+                } else {
+                  console.log(
+                    `Searching YouTube for game ${gameId} (search ${youtubeSearchesThisSync + 1}/${MAX_YOUTUBE_SEARCHES_PER_SYNC})`,
+                  );
+                }
 
                 const searchResult = await searchHighlightVideo(
                   game.homeTeam?.abbrev || "",
@@ -733,6 +748,8 @@ serve(async (req) => {
           // Only update highlight_checked_at if we actually searched YouTube
           if (shouldUpdateCheckedAt) {
             gameUpsertData.highlight_checked_at = new Date().toISOString();
+            // Clear video_reported_at after a successful search (whether we found a video or not)
+            gameUpsertData.video_reported_at = null;
           }
 
           await supabase.from("nhl_games").upsert(gameUpsertData);

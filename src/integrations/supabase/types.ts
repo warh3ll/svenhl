@@ -33,6 +33,7 @@ export type Database = {
           swedish_points: Json | null
           time_remaining: string | null
           updated_at: string | null
+          video_reported_at: string | null
         }
         Insert: {
           away_score?: number | null
@@ -52,6 +53,7 @@ export type Database = {
           swedish_points?: Json | null
           time_remaining?: string | null
           updated_at?: string | null
+          video_reported_at?: string | null
         }
         Update: {
           away_score?: number | null
@@ -71,6 +73,7 @@ export type Database = {
           swedish_points?: Json | null
           time_remaining?: string | null
           updated_at?: string | null
+          video_reported_at?: string | null
         }
         Relationships: []
       }
