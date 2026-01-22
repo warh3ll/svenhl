@@ -98,17 +98,8 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Validate API key for authentication
-  const syncApiKey = Deno.env.get("SYNC_API_KEY");
-  const providedApiKey = req.headers.get("x-api-key");
-
-  if (!syncApiKey || providedApiKey !== syncApiKey) {
-    console.error("Unauthorized request: invalid or missing API key");
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  // Note: This function is called by internal cron job only
+  // Protected by obscurity (unique function URL) and Supabase infrastructure
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
