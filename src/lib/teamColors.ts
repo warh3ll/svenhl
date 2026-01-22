@@ -50,3 +50,19 @@ export function getTeamColor(teamAbbr: string): { primary: string; secondary: st
   
   return TEAM_COLORS[abbr] || DEFAULT_COLOR;
 }
+
+/**
+ * Generate a very light tint of the team's primary color for card backgrounds
+ * Uses low opacity to ensure WCAG AAA contrast (7:1) with black text
+ */
+export function getTeamBackgroundColor(teamAbbr: string, opacity: number = 0.1): string {
+  const { primary } = getTeamColor(teamAbbr);
+  
+  // Convert hex to RGB
+  const hex = primary.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
