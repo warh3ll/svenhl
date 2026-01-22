@@ -207,7 +207,6 @@ const GoalieItem = ({
       <div className="flex items-center gap-3">
         <Badge variant={isWin ? 'default' : 'secondary'}>{goalie.result}</Badge>
         <PlayerHeadshot playerId={goalie.goalieId} playerName={goalie.goalieName} teamAbbr={goalie.teamAbbr} size="sm" />
-        <TeamLogo teamAbbr={goalie.teamAbbr} size="sm" />
         <div className="flex flex-col">
           <Link to={`/player/${goalie.goalieId}`} className="font-semibold text-foreground hover:text-primary transition-colors">
             {goalie.goalieName}
