@@ -520,8 +520,44 @@ serve(async (req) => {
       const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
       const fourHoursAgo = new Date(now.getTime() - 4 * 60 * 60 * 1000);
 
+      // Collect all games first, then sort to prioritize those needing YouTube searches
+      const allGames: any[] = [];
       for (const day of gameWeek) {
         for (const game of day.games || []) {
+          allGames.push(game);
+        }
+      }
+
+      // Sort games: prioritize (1) reported games, (2) games without videos that need searching
+      allGames.sort((a, b) => {
+        const aId = String(a.id);
+        const bId = String(b.id);
+        const aReported = existingReportedAt.get(aId);
+        const bReported = existingReportedAt.get(bId);
+        const aHasVideo = existingVideoIds.get(aId);
+        const bHasVideo = existingVideoIds.get(bId);
+        const aChecked = existingCheckedAt.get(aId);
+        const bChecked = existingCheckedAt.get(bId);
+        const aCheckedRecently = aChecked && new Date(aChecked) > fourHoursAgo;
+        const bCheckedRecently = bChecked && new Date(bChecked) > fourHoursAgo;
+        
+        // Reported games first
+        if (aReported && !bReported) return -1;
+        if (bReported && !aReported) return 1;
+        
+        // Games without videos (and not recently checked) second
+        const aNeedsSearch = !aHasVideo && !aCheckedRecently;
+        const bNeedsSearch = !bHasVideo && !bCheckedRecently;
+        if (aNeedsSearch && !bNeedsSearch) return -1;
+        if (bNeedsSearch && !aNeedsSearch) return 1;
+        
+        // Sort by date (newest first) for games needing search
+        return new Date(b.startTimeUTC).getTime() - new Date(a.startTimeUTC).getTime();
+      });
+
+      console.log(`Processing ${allGames.length} games in priority order`);
+
+      for (const game of allGames) {
           const gameId = String(game.id);
 
           // Fetch game details including plays/scoring
@@ -631,7 +667,7 @@ serve(async (req) => {
           }
 
           // Construct highlight URL (NHL official YouTube format)
-          const highlightUrl = `https://www.youtube.com/results?search_query=NHL+${game.homeTeam?.abbrev}+vs+${game.awayTeam?.abbrev}+${day.date}+highlights`;
+          const highlightUrl = `https://www.youtube.com/results?search_query=NHL+${game.homeTeam?.abbrev}+vs+${game.awayTeam?.abbrev}+${game.startTimeUTC?.split('T')[0] || ''}+highlights`;
 
           // Search for actual highlight video ID (only for completed games)
           let highlightVideoId: string | null = null;
@@ -746,7 +782,6 @@ serve(async (req) => {
           await supabase.from("nhl_games").upsert(gameUpsertData);
         }
       }
-    }
 
     // Update sync status to complete
     await supabase
