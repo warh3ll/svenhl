@@ -9,7 +9,7 @@ import TeamLogo from './TeamLogo';
 import PlayerHeadshot from './PlayerHeadshot';
 import LazyYouTubeEmbed from './LazyYouTubeEmbed';
 import { useSpoiler } from '@/contexts/SpoilerContext';
-import { getTeamColor } from '@/lib/teamColors';
+import { getTeamColor, getTeamBackgroundColor } from '@/lib/teamColors';
 import { useReportVideo } from '@/hooks/useNHLData';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -159,9 +159,13 @@ const PointItem = ({
 }) => {
   const isGoal = point.type === 'goal';
   const teamColor = getTeamColor(point.playerTeamAbbr || '');
+  const bgColor = getTeamBackgroundColor(point.playerTeamAbbr || '', 0.1);
   
   return (
-    <div className="relative flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 overflow-hidden">
+    <div 
+      className="relative flex items-center gap-2 rounded-lg px-3 py-2 overflow-hidden"
+      style={{ backgroundColor: bgColor }}
+    >
       <div 
         className="absolute left-0 top-0 bottom-0 w-1.5"
         style={{ backgroundColor: teamColor.primary }}
@@ -189,10 +193,12 @@ const GoalieItem = ({
   const svPct = (goalie.savePercentage * 100).toFixed(1);
   const isWin = goalie.result === 'W';
   const teamColor = getTeamColor(goalie.teamAbbr);
+  const bgColor = getTeamBackgroundColor(goalie.teamAbbr, 0.1);
   
   return (
     <div 
-      className="relative flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 overflow-hidden"
+      className="relative flex items-center justify-between rounded-lg px-3 py-2 overflow-hidden"
+      style={{ backgroundColor: bgColor }}
     >
       <div 
         className="absolute left-0 top-0 bottom-0 w-1.5"
