@@ -27,7 +27,9 @@ const GameCard = ({
   const showDetails = isGameRevealed(game.id) || !spoilerMode;
   const hasSwedishContribution = game.swedishPoints.length > 0 || game.swedishGoalies.length > 0;
   const gameDate = new Date(game.date);
-  const isVideoReported = reportVideo.isPending;
+  
+  // Track if this specific game's report is pending
+  const isReportPending = reportVideo.isPending && reportVideo.variables === game.id;
   return <Card className={`h-full overflow-hidden transition-all hover:shadow-lg ${hasSwedishContribution ? 'ring-2 ring-accent' : ''}`}>
       <CardHeader className="pb-3">
         <div className="flex flex-col gap-2">
@@ -68,13 +70,13 @@ const GameCard = ({
                   size="icon"
                   className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background text-muted-foreground hover:text-destructive"
                   onClick={() => reportVideo.mutate(game.id)}
-                  disabled={isVideoReported}
+                  disabled={isReportPending}
                 >
-                  <MaterialIcon name={isVideoReported ? "check" : "flag"} size="sm" />
+                  <MaterialIcon name={isReportPending ? "hourglass_empty" : "flag"} size="sm" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Report wrong video</p>
+                <p>{isReportPending ? "Reporting..." : "Report wrong video"}</p>
               </TooltipContent>
             </Tooltip>
           </div>
