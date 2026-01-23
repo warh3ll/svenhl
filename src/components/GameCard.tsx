@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Game, GamePoint, GoaliePerformance } from '@/types/nhl';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -22,14 +23,19 @@ const GameCard = ({
 }: GameCardProps) => {
   const { spoilerMode, isGameRevealed, revealGame } = useSpoiler();
   const reportVideo = useReportVideo();
+  const [isReporting, setIsReporting] = useState(false);
   
   // Show details if card is revealed (persisted) OR if global spoiler mode is off
   const showDetails = isGameRevealed(game.id) || !spoilerMode;
   const hasSwedishContribution = game.swedishPoints.length > 0 || game.swedishGoalies.length > 0;
   const gameDate = new Date(game.date);
   
-  // Track if this specific game's report is pending
-  const isReportPending = reportVideo.isPending && reportVideo.variables === game.id;
+  const handleReportVideo = () => {
+    setIsReporting(true);
+    reportVideo.mutate(game.id, {
+      onSettled: () => setIsReporting(false),
+    });
+  };
   return <Card className={`h-full overflow-hidden transition-all hover:shadow-lg ${hasSwedishContribution ? 'ring-2 ring-accent' : ''}`}>
       <CardHeader className="pb-3">
         <div className="flex flex-col gap-2">
@@ -69,14 +75,14 @@ const GameCard = ({
                   variant="ghost"
                   size="icon"
                   className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background text-muted-foreground hover:text-destructive"
-                  onClick={() => reportVideo.mutate(game.id)}
-                  disabled={isReportPending}
+                  onClick={handleReportVideo}
+                  disabled={isReporting}
                 >
-                  <MaterialIcon name={isReportPending ? "hourglass_empty" : "flag"} size="sm" />
+                  <MaterialIcon name={isReporting ? "hourglass_empty" : "flag"} size="sm" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{isReportPending ? "Reporting..." : "Report wrong video"}</p>
+                <p>{isReporting ? "Reporting..." : "Report wrong video"}</p>
               </TooltipContent>
             </Tooltip>
           </div>
