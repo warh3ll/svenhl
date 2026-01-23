@@ -24,6 +24,7 @@ const GameCard = ({
   const { spoilerMode, isGameRevealed, revealGame } = useSpoiler();
   const reportVideo = useReportVideo();
   const [isReporting, setIsReporting] = useState(false);
+  const [hasReported, setHasReported] = useState(false);
   
   // Show details if card is revealed (persisted) OR if global spoiler mode is off
   const showDetails = isGameRevealed(game.id) || !spoilerMode;
@@ -31,8 +32,10 @@ const GameCard = ({
   const gameDate = new Date(game.date);
   
   const handleReportVideo = () => {
+    if (hasReported || isReporting) return;
     setIsReporting(true);
     reportVideo.mutate(game.id, {
+      onSuccess: () => setHasReported(true),
       onSettled: () => setIsReporting(false),
     });
   };
@@ -74,15 +77,15 @@ const GameCard = ({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background text-muted-foreground hover:text-destructive"
+                  className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background text-muted-foreground hover:text-destructive disabled:opacity-50"
                   onClick={handleReportVideo}
-                  disabled={isReporting}
+                  disabled={isReporting || hasReported}
                 >
-                  <MaterialIcon name={isReporting ? "hourglass_empty" : "flag"} size="sm" />
+                  <MaterialIcon name={hasReported ? "check" : isReporting ? "hourglass_empty" : "flag"} size="sm" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{isReporting ? "Reporting..." : "Report wrong video"}</p>
+                <p>{hasReported ? "Reported" : isReporting ? "Reporting..." : "Report wrong video"}</p>
               </TooltipContent>
             </Tooltip>
           </div>
