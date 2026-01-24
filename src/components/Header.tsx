@@ -21,6 +21,7 @@ const Header = () => {
   const navItems = [
     { href: "/", label: "Game Feed" },
     { href: "/statistics", label: "Statistics" },
+    { href: "/teams", label: "Teams" },
   ];
 
   const NavLinks = ({ mobile = false, onNavigate }: { mobile?: boolean; onNavigate?: () => void }) => (
