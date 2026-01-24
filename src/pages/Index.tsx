@@ -1,4 +1,5 @@
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import GameFeed from '@/components/GameFeed';
 import TopPlayersOfWeek from '@/components/TopPlayersOfWeek';
 import { mockGames } from '@/data/mockData';
@@ -34,13 +35,7 @@ const Index = () => {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border bg-card py-6">
-        <div className="container text-center text-sm text-muted-foreground">
-          <p>Data updated every 2 hours. Stats provided for informational purposes.</p>
-          <p className="mt-1">🇸🇪 Celebrating Swedish excellence in the NHL</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

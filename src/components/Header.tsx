@@ -48,28 +48,6 @@ const Header = () => {
       <Button
         variant="outline"
         size="sm"
-        asChild
-        className={cn(
-          "bg-[#FF5E5B] hover:bg-[#FF5E5B]/90 text-white border-[#FF5E5B] hover:border-[#FF5E5B]/90",
-          mobile && "w-full justify-start"
-        )}
-      >
-        <a
-          href="https://ko-fi.com/svenhl"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img
-            src="https://storage.ko-fi.com/cdn/cup-border.png"
-            alt=""
-            className="h-4 w-4 mr-2"
-          />
-          Support
-        </a>
-      </Button>
-      <Button
-        variant="outline"
-        size="sm"
         onClick={toggleSpoilerMode}
         className={cn(mobile && "w-full justify-start")}
       >

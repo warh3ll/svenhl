@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import PlayerTable from '@/components/PlayerTable';
 import GoalieTable from '@/components/GoalieTable';
 import PlayerTableSkeleton from '@/components/PlayerTableSkeleton';
@@ -118,13 +119,7 @@ const Statistics = () => {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border bg-card py-6">
-        <div className="container text-center text-sm text-muted-foreground">
-          <p>Data updated every 2 hours. Stats provided for informational purposes.</p>
-          <p className="mt-1">🇸🇪 Celebrating Swedish excellence in the NHL</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
