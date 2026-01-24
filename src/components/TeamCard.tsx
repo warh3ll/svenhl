@@ -63,18 +63,20 @@ const TeamCard = ({ teamAbbr, players, goalies }: TeamCardProps) => {
       className="overflow-hidden transition-shadow hover:shadow-lg"
       style={{ borderLeftWidth: '4px', borderLeftColor: teamColor.primary }}
     >
-      <CardHeader 
-        className="flex flex-row items-center gap-4 py-4"
-        style={{ backgroundColor: bgColor }}
-      >
-        <TeamLogo teamAbbr={teamAbbr} size="lg" />
-        <div className="flex flex-col">
-          <h3 className="text-lg font-bold text-foreground">{teamName}</h3>
-          <span className="text-sm text-muted-foreground">
-            {sortedPlayers.length + sortedGoalies.length} Swedish player{sortedPlayers.length + sortedGoalies.length !== 1 ? 's' : ''}
-          </span>
-        </div>
-      </CardHeader>
+      <Link to={`/teams/${teamAbbr}`}>
+        <CardHeader 
+          className="flex flex-row items-center gap-4 py-4 cursor-pointer hover:bg-muted/30 transition-colors"
+          style={{ backgroundColor: bgColor }}
+        >
+          <TeamLogo teamAbbr={teamAbbr} size="lg" />
+          <div className="flex flex-col">
+            <h3 className="text-lg font-bold text-foreground">{teamName}</h3>
+            <span className="text-sm text-muted-foreground">
+              {sortedPlayers.length + sortedGoalies.length} Swedish player{sortedPlayers.length + sortedGoalies.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+        </CardHeader>
+      </Link>
       <CardContent className="p-0">
         <div className="divide-y divide-border">
           {sortedPlayers.map((player) => (
