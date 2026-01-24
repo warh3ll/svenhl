@@ -9,6 +9,7 @@ import { SpoilerProvider } from "./contexts/SpoilerContext";
 // Lazy load pages for code splitting
 const Index = lazy(() => import("./pages/Index"));
 const Statistics = lazy(() => import("./pages/Statistics"));
+const Teams = lazy(() => import("./pages/Teams"));
 const PlayerProfile = lazy(() => import("./pages/PlayerProfile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -25,6 +26,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/statistics" element={<Statistics />} />
+              <Route path="/teams" element={<Teams />} />
               <Route path="/player/:playerId" element={<PlayerProfile />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
