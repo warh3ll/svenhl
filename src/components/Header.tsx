@@ -11,6 +11,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useState } from "react";
+import svenhlLogo from "@/assets/svenhl-logo.png";
 
 const Header = () => {
   const location = useLocation();
@@ -70,7 +71,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <span className="text-3xl">🇸🇪</span>
+          <img src={svenhlLogo} alt="SVENHL Logo" className="h-10 w-10" />
           <div className="flex flex-col">
             <span className="text-lg font-bold text-foreground">SVENHL</span>
             <span className="text-xs text-muted-foreground hidden sm:block">Tracking Swedish points in the NHL</span>
