@@ -68,18 +68,24 @@ const TeamDetail = () => {
   
   const isLoading = playersLoading || goaliesLoading || gamesLoading;
   
-  // Filter players and goalies for this team
+  // Filter players and goalies for this team (use LAST team for traded players = current team)
   const teamPlayers = useMemo(() => {
     if (!allPlayers) return [];
     return allPlayers
-      .filter(p => p.teamAbbr.split(',')[0].trim() === normalizedAbbr)
+      .filter(p => {
+        const teams = p.teamAbbr.split(',').map(t => t.trim());
+        return teams[teams.length - 1] === normalizedAbbr;
+      })
       .sort((a, b) => b.points - a.points);
   }, [allPlayers, normalizedAbbr]);
   
   const teamGoalies = useMemo(() => {
     if (!allGoalies) return [];
     return allGoalies
-      .filter(g => g.teamAbbr.split(',')[0].trim() === normalizedAbbr)
+      .filter(g => {
+        const teams = g.teamAbbr.split(',').map(t => t.trim());
+        return teams[teams.length - 1] === normalizedAbbr;
+      })
       .sort((a, b) => b.wins - a.wins);
   }, [allGoalies, normalizedAbbr]);
   

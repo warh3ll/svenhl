@@ -30,19 +30,21 @@ function groupByTeam(players: SwedishPlayer[], goalies: SwedishGoalie[]) {
     teamMap[abbr] = { players: [], goalies: [] };
   });
 
-  // Group players by team (handle traded players by using first team)
+  // Group players by team (use LAST team for traded players = current team)
   players.forEach(player => {
-    const teamAbbr = player.teamAbbr.split(',')[0].trim();
-    if (teamMap[teamAbbr]) {
-      teamMap[teamAbbr].players.push(player);
+    const teams = player.teamAbbr.split(',').map(t => t.trim());
+    const currentTeam = teams[teams.length - 1]; // Last team is their current team
+    if (teamMap[currentTeam]) {
+      teamMap[currentTeam].players.push(player);
     }
   });
 
-  // Group goalies by team
+  // Group goalies by team (use LAST team for traded players = current team)
   goalies.forEach(goalie => {
-    const teamAbbr = goalie.teamAbbr.split(',')[0].trim();
-    if (teamMap[teamAbbr]) {
-      teamMap[teamAbbr].goalies.push(goalie);
+    const teams = goalie.teamAbbr.split(',').map(t => t.trim());
+    const currentTeam = teams[teams.length - 1]; // Last team is their current team
+    if (teamMap[currentTeam]) {
+      teamMap[currentTeam].goalies.push(goalie);
     }
   });
 
