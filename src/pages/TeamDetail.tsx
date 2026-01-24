@@ -4,6 +4,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import TeamLogo from '@/components/TeamLogo';
 import PlayerHeadshot from '@/components/PlayerHeadshot';
+import GameCard from '@/components/GameCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useSwedishPlayers, useSwedishGoalies } from '@/hooks/useNHLData';
+import { useSwedishPlayers, useSwedishGoalies, useNHLGames } from '@/hooks/useNHLData';
 import { getTeamColor, getTeamBackgroundColor } from '@/lib/teamColors';
 import { cn } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
@@ -63,8 +64,9 @@ const TeamDetail = () => {
   
   const { data: allPlayers, isLoading: playersLoading } = useSwedishPlayers('20252026');
   const { data: allGoalies, isLoading: goaliesLoading } = useSwedishGoalies('20252026');
+  const { data: allGames, isLoading: gamesLoading } = useNHLGames();
   
-  const isLoading = playersLoading || goaliesLoading;
+  const isLoading = playersLoading || goaliesLoading || gamesLoading;
   
   // Filter players and goalies for this team
   const teamPlayers = useMemo(() => {
@@ -80,6 +82,14 @@ const TeamDetail = () => {
       .filter(g => g.teamAbbr.split(',')[0].trim() === normalizedAbbr)
       .sort((a, b) => b.wins - a.wins);
   }, [allGoalies, normalizedAbbr]);
+  
+  // Filter games where this team played (home or away)
+  const teamGames = useMemo(() => {
+    if (!allGames) return [];
+    return allGames.filter(
+      g => g.homeTeamAbbr === normalizedAbbr || g.awayTeamAbbr === normalizedAbbr
+    );
+  }, [allGames, normalizedAbbr]);
   
   const teamName = TEAM_NAMES[normalizedAbbr] || normalizedAbbr;
   const teamColor = getTeamColor(normalizedAbbr);
@@ -302,6 +312,20 @@ const TeamDetail = () => {
                   </div>
                 </CardContent>
               </Card>
+            )}
+            
+            {/* Team Games */}
+            {teamGames.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-xl font-bold text-foreground">
+                  Recent Games ({teamGames.length})
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {teamGames.map((game) => (
+                    <GameCard key={game.id} game={game} />
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         )}
