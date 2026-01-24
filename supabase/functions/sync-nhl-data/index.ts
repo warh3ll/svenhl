@@ -125,8 +125,59 @@ serve(async (req) => {
   // Title patterns to prefer (full highlights)
   const PREFER_TITLE_PATTERNS = /\b(full highlights?|game recap|extended highlights?|nhl highlights?)\b/i;
 
+  // Helper function to extract date from video title
+  // NHL videos are titled like "Rangers vs Penguins | NHL Highlights | January 20, 2026"
+  function extractDateFromTitle(title: string): Date | null {
+    const monthNames: Record<string, number> = {
+      january: 0, jan: 0,
+      february: 1, feb: 1,
+      march: 2, mar: 2,
+      april: 3, apr: 3,
+      may: 4,
+      june: 5, jun: 5,
+      july: 6, jul: 6,
+      august: 7, aug: 7,
+      september: 8, sep: 8, sept: 8,
+      october: 9, oct: 9,
+      november: 10, nov: 10,
+      december: 11, dec: 11,
+    };
+
+    // Match patterns like "January 20, 2026" or "Jan 20, 2026"
+    const dateMatch = title.match(
+      /\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)\s+(\d{1,2}),?\s+(\d{4})\b/i
+    );
+    
+    if (dateMatch) {
+      const monthStr = dateMatch[1].toLowerCase();
+      const month = monthNames[monthStr];
+      const day = parseInt(dateMatch[2], 10);
+      const year = parseInt(dateMatch[3], 10);
+      
+      if (month !== undefined && day >= 1 && day <= 31 && year >= 2020) {
+        return new Date(year, month, day);
+      }
+    }
+    return null;
+  }
+
+  // Helper function to check if video title contains both team names
+  function titleContainsBothTeams(title: string, homeShort: string, awayShort: string): boolean {
+    const lowerTitle = title.toLowerCase();
+    return lowerTitle.includes(homeShort.toLowerCase()) && 
+           lowerTitle.includes(awayShort.toLowerCase());
+  }
+
+  // Helper function to check if video date matches game date (within 36 hours tolerance)
+  function datesMatch(videoDate: Date, gameDate: Date): boolean {
+    const diffMs = Math.abs(videoDate.getTime() - gameDate.getTime());
+    const thirtyySixHoursMs = 36 * 60 * 60 * 1000;
+    return diffMs <= thirtyySixHoursMs;
+  }
+
   // Function to search for highlight video on official NHL YouTube channel
   // Returns { videoId: string | null, quotaExceeded: boolean }
+  // STRICT MATCHING: NHL channel only, both teams in title, date must match
   async function searchHighlightVideo(
     homeTeamAbbr: string,
     awayTeamAbbr: string,
@@ -147,14 +198,20 @@ serve(async (req) => {
       const homeShort = getShortName(homeTeamFull);
       const awayShort = getShortName(awayTeamFull);
 
+      // Parse game date for validation
+      const gameDateObj = new Date(gameDate);
+      console.log(`Game date: ${gameDateObj.toISOString()}, homeShort: ${homeShort}, awayShort: ${awayShort}`);
+
       // NHL videos are titled like "Rangers vs Penguins | NHL Highlights"
       const searchQuery = `${awayShort} vs ${homeShort} NHL Highlights`;
 
-      // Search without channel filter first (more flexible), then verify channel
-      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&maxResults=10&order=date&key=${youtubeApiKey}`;
+      // Official NHL channel ID - STRICT: only accept videos from this channel
+      const nhlChannelId = "UCqFMzb-4AUf6WAIbl132QKA";
 
-      console.log(`Searching YouTube for: ${searchQuery}`);
-      console.log(`Full URL (without key): ${url.replace(youtubeApiKey, "REDACTED")}`);
+      // Search on NHL channel only for better accuracy
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(searchQuery)}&type=video&channelId=${nhlChannelId}&maxResults=15&order=date&key=${youtubeApiKey}`;
+
+      console.log(`Searching YouTube for: ${searchQuery} (NHL channel only)`);
 
       const response = await fetch(url);
       const responseText = await response.text();
@@ -183,10 +240,10 @@ serve(async (req) => {
       }
 
       const data = JSON.parse(responseText);
-      console.log(`YouTube search returned ${data.items?.length || 0} results`);
+      console.log(`YouTube search returned ${data.items?.length || 0} results from NHL channel`);
 
       if (!data.items || data.items.length === 0) {
-        console.log("No YouTube results found");
+        console.log("No YouTube results found on NHL channel");
         return { videoId: null, quotaExceeded: false };
       }
 
@@ -230,40 +287,58 @@ serve(async (req) => {
         console.error("Failed to parse videos response:", e);
       }
 
-      // Filter and score candidates
-      const nhlChannelId = "UCqFMzb-4AUf6WAIbl132QKA";
+      // Filter and score candidates with STRICT matching
       const candidates: Array<{ item: any; score: number; duration: number }> = [];
 
       for (const item of data.items) {
         const videoId = item.id?.videoId;
         if (!videoId) continue;
 
-        const title = item.snippet?.title?.toLowerCase() || "";
+        const title = item.snippet?.title || "";
+        const titleLower = title.toLowerCase();
         const channelId = item.snippet?.channelId;
         const duration = videoDurations.get(videoId) || 0;
 
-        // Skip videos that are too short (likely Shorts or single plays)
+        // HARD FILTER 1: NHL channel only (should already be filtered by search, but double-check)
+        if (channelId !== nhlChannelId) {
+          console.log(`SKIP ${videoId} - not NHL channel: "${title}"`);
+          continue;
+        }
+
+        // HARD FILTER 2: Must contain both team names in title
+        if (!titleContainsBothTeams(title, homeShort, awayShort)) {
+          console.log(`SKIP ${videoId} - missing team name(s) (need "${homeShort}" AND "${awayShort}"): "${title}"`);
+          continue;
+        }
+
+        // HARD FILTER 3: Date in title must match game date
+        const videoDate = extractDateFromTitle(title);
+        if (!videoDate) {
+          console.log(`SKIP ${videoId} - no date found in title: "${title}"`);
+          continue;
+        }
+        if (!datesMatch(videoDate, gameDateObj)) {
+          console.log(`SKIP ${videoId} - date mismatch (video: ${videoDate.toDateString()}, game: ${gameDateObj.toDateString()}): "${title}"`);
+          continue;
+        }
+
+        // HARD FILTER 4: Skip videos that are too short (likely Shorts or single plays)
         if (duration > 0 && duration < MIN_HIGHLIGHT_DURATION_SECONDS) {
-          console.log(`Skipping ${videoId} - too short (${duration}s < ${MIN_HIGHLIGHT_DURATION_SECONDS}s): "${item.snippet?.title}"`);
+          console.log(`SKIP ${videoId} - too short (${duration}s < ${MIN_HIGHLIGHT_DURATION_SECONDS}s): "${title}"`);
           continue;
         }
 
-        // Skip videos with excluded title patterns
-        if (EXCLUDE_TITLE_PATTERNS.test(title)) {
-          console.log(`Skipping ${videoId} - excluded title pattern: "${item.snippet?.title}"`);
+        // HARD FILTER 5: Skip videos with excluded title patterns
+        if (EXCLUDE_TITLE_PATTERNS.test(titleLower)) {
+          console.log(`SKIP ${videoId} - excluded title pattern: "${title}"`);
           continue;
         }
 
-        // Calculate score
-        let score = 0;
-
-        // Prefer NHL channel (+100)
-        if (channelId === nhlChannelId) {
-          score += 100;
-        }
+        // All hard filters passed - calculate score for ranking
+        let score = 100; // Base score for passing all filters
 
         // Prefer titles with highlight keywords (+50)
-        if (PREFER_TITLE_PATTERNS.test(title)) {
+        if (PREFER_TITLE_PATTERNS.test(titleLower)) {
           score += 50;
         }
 
@@ -272,28 +347,22 @@ serve(async (req) => {
           score += Math.min(30, Math.floor(duration / 20));
         }
 
-        // Bonus for containing "nhl" in title (+10)
-        if (title.includes("nhl")) {
-          score += 10;
-        }
-
         candidates.push({ item, score, duration });
-        console.log(`Candidate ${videoId}: score=${score}, duration=${duration}s, title="${item.snippet?.title}"`);
+        console.log(`CANDIDATE ${videoId}: score=${score}, duration=${duration}s, title="${title}"`);
       }
 
       // Sort by score (descending) and pick the best
       candidates.sort((a, b) => b.score - a.score);
 
       if (candidates.length === 0) {
-        console.log("No suitable highlight video found after filtering");
+        console.log("No suitable highlight video found after strict filtering (prefer no video over wrong video)");
         return { videoId: null, quotaExceeded: false };
       }
 
       const bestMatch = candidates[0];
       const videoId = bestMatch.item.id?.videoId;
 
-      console.log(`Selected highlight video: ${videoId} (score=${bestMatch.score}, duration=${bestMatch.duration}s) - "${bestMatch.item.snippet?.title}"`);
-      console.log(`Channel: ${bestMatch.item.snippet?.channelTitle} (${bestMatch.item.snippet?.channelId})`);
+      console.log(`SELECTED video: ${videoId} (score=${bestMatch.score}, duration=${bestMatch.duration}s) - "${bestMatch.item.snippet?.title}"`);
 
       return { videoId, quotaExceeded: false };
     } catch (error) {
