@@ -10,9 +10,13 @@ const sizeClasses = {
   lg: 'h-24 w-24',
 };
 
+// Teams that use light mode logos (better visibility on backgrounds)
+const LIGHT_MODE_TEAMS = ['TBL', 'TOR'];
+
 const TeamLogo = ({ teamAbbr, size = 'md', className = '' }: TeamLogoProps) => {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const logoUrl = `${supabaseUrl}/storage/v1/object/public/teams/${teamAbbr}_dark.svg`;
+  const logoVariant = LIGHT_MODE_TEAMS.includes(teamAbbr) ? 'light' : 'dark';
+  const logoUrl = `${supabaseUrl}/storage/v1/object/public/teams/${teamAbbr}_${logoVariant}.svg`;
 
   return (
     <img
