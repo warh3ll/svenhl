@@ -44,6 +44,12 @@ const transformGoalie = (row: any): SwedishGoalie => ({
   timeOnIce: row.time_on_ice || '0:00',
 });
 
+const getOvertimeType = (period: string | null): 'OT' | 'SO' | undefined => {
+  if (period === 'P4') return 'OT';
+  if (period === 'P5') return 'SO';
+  return undefined;
+};
+
 const transformGame = (row: any): Game => ({
   id: row.id,
   date: row.game_date,
@@ -60,6 +66,7 @@ const transformGame = (row: any): Game => ({
   highlightVideoId: row.highlight_video_id || undefined,
   period: row.period,
   timeRemaining: row.time_remaining,
+  overtimeType: getOvertimeType(row.period),
 });
 
 export function useSwedishPlayers(season: string = '20252026') {
