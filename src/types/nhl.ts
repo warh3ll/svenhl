@@ -75,6 +75,7 @@ export interface Game {
   highlightVideoId?: string;
   period?: string;
   timeRemaining?: string;
+  overtimeType?: 'OT' | 'SO';
 }
 
 export interface PlayerGameLogEntry {

@@ -92,24 +92,32 @@ const GameCard = ({
         )}
 
         {/* Score Display */}
-        <div className="flex items-center justify-center gap-6 rounded-xl bg-muted/50 py-4">
-          <div className="flex flex-col items-center gap-1">
-            <TeamLogo teamAbbr={game.awayTeamAbbr} size="lg" />
-            <span className="text-lg font-bold text-foreground">{game.awayTeamAbbr}</span>
+        <div className="flex flex-col items-center rounded-xl bg-muted/50 py-4">
+          <div className="flex items-center justify-center gap-6">
+            <div className="flex flex-col items-center gap-1">
+              <TeamLogo teamAbbr={game.awayTeamAbbr} size="lg" />
+              <span className="text-lg font-bold text-foreground">{game.awayTeamAbbr}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className={`text-4xl font-bold text-foreground ${!showDetails ? 'blur-md select-none' : ''}`}>
+                {game.awayScore}
+              </span>
+              <span className="text-2xl text-muted-foreground">-</span>
+              <span className={`text-4xl font-bold text-foreground ${!showDetails ? 'blur-md select-none' : ''}`}>
+                {game.homeScore}
+              </span>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+              <TeamLogo teamAbbr={game.homeTeamAbbr} size="lg" />
+              <span className="text-lg font-bold text-foreground">{game.homeTeamAbbr}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className={`text-4xl font-bold text-foreground ${!showDetails ? 'blur-md select-none' : ''}`}>
-              {game.awayScore}
+          {/* Overtime/Shootout indicator */}
+          {game.overtimeType && (
+            <span className={`mt-1 text-sm font-medium text-muted-foreground ${!showDetails ? 'blur-md select-none' : ''}`}>
+              {game.overtimeType}
             </span>
-            <span className="text-2xl text-muted-foreground">-</span>
-            <span className={`text-4xl font-bold text-foreground ${!showDetails ? 'blur-md select-none' : ''}`}>
-              {game.homeScore}
-            </span>
-          </div>
-          <div className="flex flex-col items-center gap-1">
-            <TeamLogo teamAbbr={game.homeTeamAbbr} size="lg" />
-            <span className="text-lg font-bold text-foreground">{game.homeTeamAbbr}</span>
-          </div>
+          )}
         </div>
 
         {/* Spoiler Mode Hidden Content */}
