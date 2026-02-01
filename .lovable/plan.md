@@ -1,61 +1,66 @@
 
 
-## Plan: Integrate Hotjar for Visitor Feedback
+## Implementation: NHL Sverige YouTube Playlist Carousel
 
-### Overview
-Hotjar is a behavior analytics tool that provides heatmaps, session recordings, and - importantly for your use case - **feedback widgets** that allow visitors to leave feedback directly on your site. We'll integrate the Hotjar tracking script and enable the feedback functionality.
+I have the playlist ID: **PLfsAEO-f92nqOtemyyAvcxpKU6JjiAGqM**
 
-### What You'll Get
-- **Feedback Widget**: A button visitors can click to leave feedback (ratings, comments)
-- **Session Recordings**: See how visitors interact with your site
-- **Heatmaps**: Visual data on where users click and scroll
+### Files to Create
 
-### Prerequisites
-You'll need a Hotjar account and Site ID:
-1. Sign up at [hotjar.com](https://www.hotjar.com) (free tier available)
-2. Create a new site in your Hotjar dashboard
-3. Copy your **Site ID** (a numeric ID like `1234567`)
-
-### Implementation
-
-**File: `index.html`**
-
-Add the Hotjar tracking script in the `<head>` section:
-
-```html
-<!-- Hotjar Tracking Code -->
-<script>
-  (function(h,o,t,j,a,r){
-    h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
-    h._hjSettings={hjid:YOUR_HOTJAR_SITE_ID,hjsv:6};
-    a=o.getElementsByTagName('head')[0];
-    r=o.createElement('script');r.async=1;
-    r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
-    a.appendChild(r);
-  })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
-</script>
-```
-
-### Important Note About API Keys
-
-Since the Hotjar Site ID is a **publishable identifier** (similar to Google Analytics tracking IDs), it's safe to include directly in the codebase. It's not a secret key - it's designed to be public-facing in your website's source code.
+| File | Purpose |
+|------|---------|
+| `supabase/functions/nhl-sverige-videos/index.ts` | Edge function to fetch playlist videos from YouTube API |
+| `src/hooks/useNHLSverigeVideos.ts` | React Query hook to fetch and cache video data |
+| `src/components/NHLSverigeCarousel.tsx` | Full-width carousel component for displaying videos |
 
 ### Files to Modify
 
 | File | Change |
 |------|--------|
-| `index.html` | Add Hotjar tracking script with your Site ID |
+| `supabase/config.toml` | Add config for the new edge function |
+| `src/components/GameFeed.tsx` | Add support for inserting content after N cards |
+| `src/pages/Index.tsx` | Integrate the carousel between game sections |
 
-### After Integration
-
-Once integrated:
-1. Log into your Hotjar dashboard
-2. Go to **Feedback** → **Incoming Feedback** to enable the feedback widget
-3. Customize the widget's appearance, position, and questions
-4. The feedback button will automatically appear on your site
+---
 
 ### Technical Details
-- Script loads asynchronously (won't block page rendering)
-- Works with your existing SPA routing (React Router)
-- No additional React components needed - Hotjar handles everything via their dashboard
+
+#### 1. Edge Function: `nhl-sverige-videos`
+
+```typescript
+// Uses existing YOUTUBE_API_KEY secret
+// Calls YouTube playlistItems.list API with playlist ID
+// Returns array of: { id, title, thumbnail, publishedAt }
+// Ordered by position (newest first based on playlist order)
+```
+
+#### 2. React Hook: `useNHLSverigeVideos`
+
+```typescript
+// Uses supabase.functions.invoke('nhl-sverige-videos')
+// React Query with 5-minute stale time
+// Returns { data: Video[], isLoading, error }
+```
+
+#### 3. Carousel Component
+
+- Full-width section (breaks out of container using negative margins)
+- Dark themed background with Swedish yellow accent
+- Section header with "NHL Sverige" title
+- Uses existing Embla Carousel components
+- Responsive: 1 video mobile, 2 tablet, 4 desktop
+- Previous/Next navigation buttons
+- Swipe support on touch devices
+- Lazy-loaded video thumbnails with play button overlay
+- Clicking opens video in embedded player or new tab
+
+#### 4. Layout Changes
+
+GameFeed will split the games into two sections:
+- First 6 game cards in a grid
+- NHL Sverige carousel (full-width)
+- Remaining game cards in a grid
+
+---
+
+### Implementation will proceed immediately since the plan was already approved.
 
