@@ -58,7 +58,7 @@ const NHLSverigeCarousel = () => {
     console.error('Failed to load NHL Sverige videos:', error);
     return null; // Silently fail - don't break the page
   }
-  return <section className="w-screen relative left-1/2 right-1/2 -mx-[50vw] py-8 my-8 border-y border-border/50 bg-secondary">
+  return <section className="w-screen relative left-1/2 right-1/2 -mx-[50vw] py-8 my-8 border-y border-border/50 bg-amber-100">
       <div className="container mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6 px-4 md:px-0">
