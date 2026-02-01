@@ -2,6 +2,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import GameFeed from '@/components/GameFeed';
 import TopPlayersOfWeek from '@/components/TopPlayersOfWeek';
+import NHLSverigeCarousel from '@/components/NHLSverigeCarousel';
 import { mockGames } from '@/data/mockData';
 import MaterialIcon from '@/components/ui/material-icon';
 import { useNHLGames, useRecentGamesForStats } from '@/hooks/useNHLData';
@@ -22,7 +23,7 @@ const Index = () => {
         {/* Top 3 of the Week */}
         <TopPlayersOfWeek games={statsGames} />
 
-        {/* Game Feed */}
+        {/* Game Feed with NHL Sverige carousel inserted after 6 cards */}
         <div className="space-y-4 min-h-[800px]">
           <h2 className="text-2xl font-bold text-foreground">Recent Games</h2>
           {gamesLoading ? (
@@ -30,7 +31,13 @@ const Index = () => {
               <MaterialIcon name="progress_activity" size="xl" className="animate-spin text-primary" />
             </div>
           ) : (
-            <GameFeed games={displayGames} />
+            <GameFeed 
+              games={displayGames} 
+              insertAfter={{
+                count: 6,
+                element: <NHLSverigeCarousel />
+              }}
+            />
           )}
         </div>
       </main>

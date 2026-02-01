@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.youtube-search-test]
 verify_jwt = false
+
+[functions.nhl-sverige-videos]
+verify_jwt = false

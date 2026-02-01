@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { ReactNode } from 'react';
 import { Game } from '@/types/nhl';
 import GameCard from './GameCard';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -6,9 +6,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface GameFeedProps {
   games: Game[];
   isLoading?: boolean;
+  insertAfter?: {
+    count: number;
+    element: ReactNode;
+  };
 }
 
-const GameFeed = ({ games, isLoading }: GameFeedProps) => {
+const GameFeed = ({ games, isLoading, insertAfter }: GameFeedProps) => {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -26,6 +30,30 @@ const GameFeed = ({ games, isLoading }: GameFeedProps) => {
         <h3 className="text-lg font-semibold text-foreground">No games found</h3>
         <p className="text-sm text-muted-foreground">Check back later for updates</p>
       </div>
+    );
+  }
+
+  // If we have content to insert, split the games
+  if (insertAfter && games.length > insertAfter.count) {
+    const firstSection = games.slice(0, insertAfter.count);
+    const secondSection = games.slice(insertAfter.count);
+
+    return (
+      <>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {firstSection.map((game) => (
+            <GameCard key={game.id} game={game} />
+          ))}
+        </div>
+        
+        {insertAfter.element}
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {secondSection.map((game) => (
+            <GameCard key={game.id} game={game} />
+          ))}
+        </div>
+      </>
     );
   }
 
