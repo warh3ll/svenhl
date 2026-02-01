@@ -4,7 +4,6 @@ import PlayerHeadshot from './PlayerHeadshot';
 import TeamLogo from './TeamLogo';
 import { Game } from '@/types/nhl';
 import MaterialIcon from '@/components/ui/material-icon';
-
 interface TopPlayer {
   playerId: string;
   playerName: string;
@@ -13,25 +12,24 @@ interface TopPlayer {
   assists: number;
   points: number;
 }
-
 interface TopPlayersOfWeekProps {
   games: Game[];
 }
-
-const TopPlayersOfWeek = ({ games }: TopPlayersOfWeekProps) => {
+const TopPlayersOfWeek = ({
+  games
+}: TopPlayersOfWeekProps) => {
   const topPlayers = useMemo(() => {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
+
     // Filter games from last 7 days
     const recentGames = games.filter(game => {
       const gameDate = new Date(game.date);
       return gameDate >= sevenDaysAgo;
     });
-    
+
     // Aggregate points by player
     const playerStats: Record<string, TopPlayer> = {};
-    
     recentGames.forEach(game => {
       game.swedishPoints.forEach(point => {
         const key = point.playerId;
@@ -42,42 +40,35 @@ const TopPlayersOfWeek = ({ games }: TopPlayersOfWeekProps) => {
             teamAbbr: point.playerTeamAbbr || '',
             goals: 0,
             assists: 0,
-            points: 0,
+            points: 0
           };
         }
-        
         if (point.type === 'goal') {
           playerStats[key].goals += 1;
         } else {
           playerStats[key].assists += 1;
         }
         playerStats[key].points += 1;
-        
+
         // Update team abbr if we get a valid one
         if (point.playerTeamAbbr) {
           playerStats[key].teamAbbr = point.playerTeamAbbr;
         }
       });
     });
-    
-    // Sort by points (desc) and return top 3
-    return Object.values(playerStats)
-      .sort((a, b) => b.points - a.points || b.goals - a.goals)
-      .slice(0, 3);
-  }, [games]);
 
+    // Sort by points (desc) and return top 3
+    return Object.values(playerStats).sort((a, b) => b.points - a.points || b.goals - a.goals).slice(0, 3);
+  }, [games]);
   if (topPlayers.length === 0) {
-    return (
-      <div className="mb-8 min-h-[340px]">
+    return <div className="mb-8 min-h-[340px]">
         <div className="flex items-center justify-center gap-2 mb-6">
           <MaterialIcon name="emoji_events" size="lg" className="text-[hsl(var(--sweden-yellow))]" />
           <h2 className="text-2xl font-bold text-foreground">Top 3 of the Week</h2>
         </div>
         <p className="text-center text-muted-foreground">No points recorded in the last 7 days</p>
-      </div>
-    );
+      </div>;
   }
-
   const getRankStyles = (index: number) => {
     switch (index) {
       case 0:
@@ -90,26 +81,18 @@ const TopPlayersOfWeek = ({ games }: TopPlayersOfWeekProps) => {
         return 'bg-card';
     }
   };
-
   const getRankBadge = (index: number) => {
     const badges = ['🥇', '🥈', '🥉'];
     return badges[index] || '';
   };
-
-  return (
-    <div className="mb-8 min-h-[340px]">
+  return <div className="mb-8 min-h-[340px] rounded-xl mx-0 px-[24px] py-[24px] bg-primary-foreground shadow">
       <div className="flex items-center justify-center gap-2 mb-6">
         <MaterialIcon name="emoji_events" size="lg" className="text-[hsl(var(--sweden-yellow))]" />
         <h2 className="text-2xl font-bold text-foreground">Top 3 of the Week</h2>
       </div>
       
       <div className="grid gap-4 sm:grid-cols-3">
-        {topPlayers.map((player, index) => (
-          <Link 
-            key={player.playerId}
-            to={`/player/${player.playerId}`}
-            className={`group relative rounded-xl p-6 transition-all hover:shadow-lg ${getRankStyles(index)}`}
-          >
+        {topPlayers.map((player, index) => <Link key={player.playerId} to={`/player/${player.playerId}`} className={`group relative rounded-xl p-6 transition-all hover:shadow-lg ${getRankStyles(index)}`}>
             {/* Rank Badge */}
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl">
               {getRankBadge(index)}
@@ -117,14 +100,8 @@ const TopPlayersOfWeek = ({ games }: TopPlayersOfWeekProps) => {
             
             {/* Large Headshot */}
             <div className="flex justify-center mb-4">
-              <PlayerHeadshot
-                playerId={player.playerId}
-                playerName={player.playerName}
-                teamAbbr={player.teamAbbr}
-                size="lg"
-                priority={index === 0} // First player gets priority for LCP
-                className="h-24 w-24 ring-4 ring-border group-hover:ring-primary/20 transition-all"
-              />
+              <PlayerHeadshot playerId={player.playerId} playerName={player.playerName} teamAbbr={player.teamAbbr} size="lg" priority={index === 0} // First player gets priority for LCP
+          className="h-24 w-24 ring-4 ring-border group-hover:ring-primary/20 transition-all" />
             </div>
             
             {/* Player Info */}
@@ -152,11 +129,8 @@ const TopPlayersOfWeek = ({ games }: TopPlayersOfWeekProps) => {
                 </div>
               </div>
             </div>
-          </Link>
-        ))}
+          </Link>)}
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default TopPlayersOfWeek;

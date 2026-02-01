@@ -3,74 +3,54 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import MaterialIcon from "@/components/ui/material-icon";
 import { useSpoiler } from "@/contexts/SpoilerContext";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 import svenhlLogo from "@/assets/svenhl-logo.png";
-
 const Header = () => {
   const location = useLocation();
-  const { spoilerMode, toggleSpoilerMode } = useSpoiler();
+  const {
+    spoilerMode,
+    toggleSpoilerMode
+  } = useSpoiler();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const navItems = [
-    { href: "/", label: "Game Feed" },
-    { href: "/statistics", label: "Statistics" },
-    { href: "/teams", label: "Teams" },
-  ];
-
-  const NavLinks = ({ mobile = false, onNavigate }: { mobile?: boolean; onNavigate?: () => void }) => (
-    <>
-      {navItems.map((item) => (
-        <Link
-          key={item.href}
-          to={item.href}
-          onClick={onNavigate}
-          className={cn(
-            "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
-            mobile && "w-full text-left",
-            location.pathname === item.href
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted",
-          )}
-        >
+  const navItems = [{
+    href: "/",
+    label: "Game Feed"
+  }, {
+    href: "/statistics",
+    label: "Statistics"
+  }, {
+    href: "/teams",
+    label: "Teams"
+  }];
+  const NavLinks = ({
+    mobile = false,
+    onNavigate
+  }: {
+    mobile?: boolean;
+    onNavigate?: () => void;
+  }) => <>
+      {navItems.map(item => <Link key={item.href} to={item.href} onClick={onNavigate} className={cn("px-4 py-2 text-sm font-medium rounded-lg transition-colors", mobile && "w-full text-left", location.pathname === item.href ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted")}>
           {item.label}
-        </Link>
-      ))}
-    </>
-  );
-
-  const ActionButtons = ({ mobile = false }: { mobile?: boolean }) => (
-    <div className={cn("flex items-center gap-2", mobile && "flex-col w-full")}>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={toggleSpoilerMode}
-        className={cn(mobile && "w-full justify-start")}
-      >
-        {spoilerMode ? (
-          <>
+        </Link>)}
+    </>;
+  const ActionButtons = ({
+    mobile = false
+  }: {
+    mobile?: boolean;
+  }) => <div className={cn("flex items-center gap-2", mobile && "flex-col w-full")}>
+      <Button variant="outline" size="sm" onClick={toggleSpoilerMode} className={cn(mobile && "w-full justify-start")}>
+        {spoilerMode ? <>
             <MaterialIcon name="visibility_off" size="sm" className="mr-2" />
             Show Scores
-          </>
-        ) : (
-          <>
+          </> : <>
             <MaterialIcon name="visibility" size="sm" className="mr-2" />
             Hide Scores
-          </>
-        )}
+          </>}
       </Button>
-    </div>
-  );
-
-  return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-      <div className="container flex h-16 items-center justify-between">
+    </div>;
+  return <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+      <div className="container h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
           <img src={svenhlLogo} alt="SVENHL Logo" className="h-10 w-10" />
           <div className="flex flex-col">
@@ -110,8 +90,6 @@ const Header = () => {
           </SheetContent>
         </Sheet>
       </div>
-    </header>
-  );
+    </header>;
 };
-
 export default Header;
