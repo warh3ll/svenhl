@@ -85,7 +85,7 @@ const TopPlayersOfWeek = ({
     const badges = ['🥇', '🥈', '🥉'];
     return badges[index] || '';
   };
-  return <div className="mb-8 min-h-[340px] rounded-xl mx-0 px-[24px] py-[24px] bg-primary-foreground shadow">
+  return <div className="mb-8 min-h-[340px] rounded-xl mx-0 px-[24px] py-[24px] bg-primary-foreground shadow-none">
       <div className="flex items-center justify-center gap-2 mb-6">
         <MaterialIcon name="emoji_events" size="lg" className="text-[hsl(var(--sweden-yellow))]" />
         <h2 className="text-2xl font-bold text-foreground">Top 3 of the Week</h2>
