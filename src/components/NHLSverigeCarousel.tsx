@@ -18,7 +18,7 @@ const VideoCard = ({
   return <div className="group cursor-pointer">
       <AspectRatio ratio={16 / 9} className="overflow-hidden rounded-lg bg-muted">
         {isPlaying ? <iframe src={`https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1`} title={video.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="w-full h-full" /> : <button type="button" onClick={handlePlay} className="relative w-full h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`Play video: ${video.title}`}>
-            <img src={video.thumbnail} alt={video.title} loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+            <img src={video.thumbnail} alt={video.title} width={480} height={270} loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
             {/* Dark overlay */}
             <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors" />
             {/* Play button */}
@@ -65,8 +65,8 @@ const NHLSverigeCarousel = () => {
           <div className="flex items-center gap-3">
             
             <div>
-              <h2 className="text-xl font-bold text-foreground">NHL Sverige</h2>
-              <p className="text-sm text-muted-foreground">Senaste videor från @nhleurope</p>
+              <h2 className="text-xl font-bold text-slate-900">NHL Sverige</h2>
+              <p className="text-sm text-slate-700">Senaste videor från @nhleurope</p>
             </div>
           </div>
           <a href="https://www.youtube.com/playlist?list=PLfsAEO-f92nqOtemyyAvcxpKU6JjiAGqM" target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-1">
@@ -87,7 +87,7 @@ const NHLSverigeCarousel = () => {
             </CarouselContent>
             <CarouselPrevious className="left-2 md:-left-4 bg-background/80 backdrop-blur-sm border-border hover:bg-background" />
             <CarouselNext className="right-2 md:-right-4 bg-background/80 backdrop-blur-sm border-border hover:bg-background" />
-          </Carousel> : <p className="text-center text-muted-foreground py-8">Inga videor tillgängliga</p>}
+          </Carousel> : <p className="text-center text-slate-700 py-8">Inga videor tillgängliga</p>}
       </div>
     </section>;
 };
