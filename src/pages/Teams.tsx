@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useSwedishPlayers, useSwedishGoalies } from '@/hooks/useNHLData';
+import SEO from '@/components/SEO';
 import { mockPlayers, mockGoalies, seasons } from '@/data/mockData';
 import { SwedishPlayer, SwedishGoalie } from '@/types/nhl';
 

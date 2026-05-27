@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import MaterialIcon from '@/components/ui/material-icon';
+import SEO from '@/components/SEO';
 import { useSwedishPlayers, useSwedishGoalies } from '@/hooks/useNHLData';
 
 const Statistics = () => {
@@ -29,7 +30,19 @@ const Statistics = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Swedish NHL Player Statistics — Season Stats | SVENHL"
+        description="Full season statistics for every Swedish skater and goalie in the NHL. Goals, assists, points, save percentage and more, filterable by season."
+        path="/statistics"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'CollectionPage',
+          name: 'Swedish NHL Player Statistics',
+          url: 'https://svenhl.com/statistics',
+        }}
+      />
       <Header />
+      
       
       <main className="container py-8">
         {/* Page Header */}
