@@ -52,7 +52,7 @@ const Header = () => {
   return <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="container h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <img src={svenhlLogo} alt="SVENHL Logo" className="h-10 w-10" />
+          <img src={svenhlLogo} alt="SVENHL Logo" width={40} height={40} className="h-10 w-10 aspect-square" />
           <div className="flex flex-col">
             <span className="text-lg font-bold text-foreground">SVENHL</span>
             <span className="text-xs text-muted-foreground hidden sm:block">Tracking Swedish points in the NHL</span>
