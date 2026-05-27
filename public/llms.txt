@@ -1,0 +1,11 @@
+# SVENHL
+
+> Track Swedish players in the NHL — live game feeds, player statistics, goalie stats, and team breakdowns for every Swede in the National Hockey League.
+
+SVENHL is a fan-built tracker focused exclusively on Swedish hockey players competing in the NHL. The site shows recent games featuring Swedes, weekly top performers, full season statistics, and team-by-team rosters of Swedish players.
+
+## Pages
+
+- [Home](/): Recent NHL games with Swedish players, top 3 performers of the week, and the NHL Sverige video feed.
+- [Statistics](/statistics): Full season statistics for every Swedish skater and goalie in the NHL, filterable by season.
+- [Teams](/teams): NHL teams grouped by the Swedish players on each roster.
