@@ -3,6 +3,7 @@ import Footer from '@/components/Footer';
 import GameFeed from '@/components/GameFeed';
 import TopPlayersOfWeek from '@/components/TopPlayersOfWeek';
 import NHLSverigeCarousel from '@/components/NHLSverigeCarousel';
+import SEO from '@/components/SEO';
 import { mockGames } from '@/data/mockData';
 import MaterialIcon from '@/components/ui/material-icon';
 import { useNHLGames, useRecentGamesForStats } from '@/hooks/useNHLData';
