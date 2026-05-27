@@ -100,7 +100,19 @@ const Teams = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title="NHL Teams With Swedish Players | SVENHL"
+        description="Every NHL team's roster of Swedish players. Browse by team to see which Swedes are skating where this season."
+        path="/teams"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'CollectionPage',
+          name: 'NHL Teams with Swedish Players',
+          url: 'https://svenhl.com/teams',
+        }}
+      />
       <Header />
+      
       
       <main className="flex-1 container py-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
