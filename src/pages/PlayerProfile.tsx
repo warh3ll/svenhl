@@ -53,6 +53,20 @@ const PlayerProfile = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={`${currentPlayer.name} — Swedish NHL Player Stats | SVENHL`}
+        description={`Season statistics, career numbers, and recent games for ${currentPlayer.name} of the ${currentPlayer.team}.`}
+        path={`/player/${playerId}`}
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Person',
+          name: currentPlayer.name,
+          nationality: 'Swedish',
+          jobTitle: isGoalie ? 'Goaltender' : 'Hockey Player',
+          memberOf: { '@type': 'SportsTeam', name: currentPlayer.team },
+          url: `https://svenhl.com/player/${playerId}`,
+        }}
+      />
       <Header />
       <main className="container py-8 space-y-6">
         {/* Back Link */}
