@@ -8,6 +8,7 @@ import MaterialIcon from '@/components/ui/material-icon';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import TeamLogo from '@/components/TeamLogo';
+import SEO from '@/components/SEO';
 
 const PlayerProfile = () => {
   const { playerId } = useParams<{ playerId: string }>();

@@ -20,6 +20,7 @@ import { useSwedishPlayers, useSwedishGoalies, useNHLGames } from '@/hooks/useNH
 import { getTeamColor, getTeamBackgroundColor } from '@/lib/teamColors';
 import { cn } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 // Full team names mapped from abbreviations
 const TEAM_NAMES: Record<string, string> = {
@@ -128,7 +129,13 @@ const TeamDetail = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title={`${teamName} — Swedish Players | SVENHL`}
+        description={`Swedish players currently on the ${teamName} roster, with season stats and recent games.`}
+        path={`/teams/${normalizedAbbr}`}
+      />
       <Header />
+      
       
       <main className="flex-1 container py-8">
         {/* Back button */}
