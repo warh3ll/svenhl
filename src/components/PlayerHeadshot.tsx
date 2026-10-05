@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import MaterialIcon from '@/components/ui/material-icon';
 import { cn } from '@/lib/utils';
+import { CURRENT_SEASON } from '@/lib/season';
 
 interface PlayerHeadshotProps {
   playerId: string;
   playerName: string;
   teamAbbr?: string;
+  season?: string; // Season the headshot should be taken from (defaults to current)
   size?: 'sm' | 'md' | 'lg';
   className?: string;
   priority?: boolean; // For LCP images - disables lazy loading and adds fetchpriority="high"
@@ -23,12 +25,14 @@ const iconSizeClasses = {
   lg: 'h-8 w-8',
 };
 
-const PlayerHeadshot = ({ playerId, playerName, teamAbbr, size = 'md', className, priority = false }: PlayerHeadshotProps) => {
+const PlayerHeadshot = ({ playerId, playerName, teamAbbr, season = CURRENT_SEASON, size = 'md', className, priority = false }: PlayerHeadshotProps) => {
   const [hasError, setHasError] = useState(false);
   
-  // Use the team-specific URL format which is more reliable
-  const headshotUrl = teamAbbr 
-    ? `https://assets.nhle.com/mugs/nhl/20252026/${teamAbbr}/${playerId}.png`
+  // Use the team-specific URL format which is more reliable.
+  // Traded players can have a comma-separated team list; the last entry is the most recent team.
+  const currentTeam = teamAbbr?.split(',').pop()?.trim();
+  const headshotUrl = currentTeam
+    ? `https://assets.nhle.com/mugs/nhl/${season}/${currentTeam}/${playerId}.png`
     : `https://assets.nhle.com/headshots/current/168x168/${playerId}.png`;
 
   if (hasError) {

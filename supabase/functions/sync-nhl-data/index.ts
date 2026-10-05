@@ -93,6 +93,33 @@ const TEAM_NAMES: Record<string, string> = {
   WPG: "Winnipeg Jets",
 };
 
+// Season ID derived from the date: the NHL season rolls over in September (e.g. Oct 2026 -> "20262027")
+function seasonFromDate(date: Date): string {
+  const year = date.getUTCFullYear();
+  const startYear = date.getUTCMonth() >= 8 ? year : year - 1;
+  return `${startYear}${startYear + 1}`;
+}
+
+// Ask the NHL API for the current season (last entry in its season list), falling back to the date
+async function getCurrentSeason(): Promise<string> {
+  try {
+    const response = await fetch("https://api-web.nhle.com/v1/season");
+    if (response.ok) {
+      const seasons: number[] = await response.json();
+      if (seasons.length > 0) return String(seasons[seasons.length - 1]);
+    }
+  } catch (e) {
+    console.error("Failed to fetch current season from NHL API:", e);
+  }
+  return seasonFromDate(new Date());
+}
+
+// Traded players get a comma-separated team list in chronological order ("MIN,VAN"); the last one is the latest team
+const lastTeam = (teamAbbrevs: string | undefined) => teamAbbrevs?.split(",").pop()?.trim() || "UNK";
+
+// Only regular season games (gameTypeId 2) count towards season stats, not playoffs
+const REGULAR_SEASON = 2;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -380,17 +407,21 @@ serve(async (req) => {
       .upsert({ id: "main", sync_status: "syncing", last_synced_at: new Date().toISOString() });
 
     // Parse request body for optional parameters
-    let season = "20252026"; // Current NHL season
+    const currentSeason = await getCurrentSeason();
+    let season = currentSeason;
     try {
       const body = await req.json();
       if (body.season) season = body.season;
     } catch {
       // No body or invalid JSON, use defaults
     }
+    // Only the current season should take players' team from their present roster
+    const isCurrentSeason = season === currentSeason;
+    console.log(`Syncing season ${season} (current NHL season: ${currentSeason})`);
 
     // Fetch Swedish skaters from NHL API using nationalityCode filter
     console.log(`Fetching Swedish skater stats for season ${season}...`);
-    const skaterUrl = `https://api.nhle.com/stats/rest/en/skater/summary?isAggregate=false&isGame=false&sort=%5B%7B%22property%22:%22points%22,%22direction%22:%22DESC%22%7D%5D&start=0&limit=100&cayenneExp=seasonId=${season} and nationalityCode="SWE"`;
+    const skaterUrl = `https://api.nhle.com/stats/rest/en/skater/summary?isAggregate=false&isGame=false&sort=%5B%7B%22property%22:%22points%22,%22direction%22:%22DESC%22%7D%5D&start=0&limit=200&cayenneExp=seasonId=${season} and gameTypeId=${REGULAR_SEASON} and nationalityCode="SWE"`;
     console.log("Skater URL:", skaterUrl);
 
     const skatersResponse = await fetch(skaterUrl);
@@ -411,8 +442,9 @@ serve(async (req) => {
       console.log("Sample skater fields:", JSON.stringify(Object.keys(swedishSkaters[0])));
     }
 
-    // Fetch jersey numbers from player landing endpoint (stats API doesn't include them)
+    // Fetch jersey numbers and current team from player landing endpoint (stats API doesn't include them)
     const playerJerseyNumbers = new Map<string, number>();
+    const playerCurrentTeams = new Map<string, string>();
     console.log("Fetching jersey numbers from player landing endpoints...");
 
     for (const player of swedishSkaters) {
@@ -421,6 +453,7 @@ serve(async (req) => {
         if (playerResponse.ok) {
           const playerData = await playerResponse.json();
           playerJerseyNumbers.set(String(player.playerId), playerData.sweaterNumber || 0);
+          if (playerData.currentTeamAbbrev) playerCurrentTeams.set(String(player.playerId), playerData.currentTeamAbbrev);
         }
       } catch (e) {
         console.error(`Failed to fetch jersey for player ${player.playerId}:`, e);
@@ -429,7 +462,8 @@ serve(async (req) => {
 
     // Upsert Swedish skaters
     for (const player of swedishSkaters) {
-      const teamAbbr = player.teamAbbrevs || "UNK";
+      const teamAbbr =
+        (isCurrentSeason && playerCurrentTeams.get(String(player.playerId))) || lastTeam(player.teamAbbrevs);
       const jerseyNumber = playerJerseyNumbers.get(String(player.playerId)) || 0;
       await supabase.from("swedish_players").upsert({
         id: String(player.playerId),
@@ -461,7 +495,7 @@ serve(async (req) => {
 
     // Fetch Swedish goalies from NHL API using nationalityCode filter
     console.log(`Fetching Swedish goalie stats for season ${season}...`);
-    const goalieUrl = `https://api.nhle.com/stats/rest/en/goalie/summary?isAggregate=false&isGame=false&sort=%5B%7B%22property%22:%22wins%22,%22direction%22:%22DESC%22%7D%5D&start=0&limit=50&cayenneExp=seasonId=${season} and nationalityCode="SWE"`;
+    const goalieUrl = `https://api.nhle.com/stats/rest/en/goalie/summary?isAggregate=false&isGame=false&sort=%5B%7B%22property%22:%22wins%22,%22direction%22:%22DESC%22%7D%5D&start=0&limit=50&cayenneExp=seasonId=${season} and gameTypeId=${REGULAR_SEASON} and nationalityCode="SWE"`;
     console.log("Goalie URL:", goalieUrl);
 
     const goaliesResponse = await fetch(goalieUrl);
@@ -479,6 +513,7 @@ serve(async (req) => {
 
     // Fetch jersey numbers for goalies
     const goalieJerseyNumbers = new Map<string, number>();
+    const goalieCurrentTeams = new Map<string, string>();
     console.log("Fetching jersey numbers for goalies...");
 
     for (const goalie of swedishGoalies) {
@@ -487,6 +522,7 @@ serve(async (req) => {
         if (playerResponse.ok) {
           const playerData = await playerResponse.json();
           goalieJerseyNumbers.set(String(goalie.playerId), playerData.sweaterNumber || 0);
+          if (playerData.currentTeamAbbrev) goalieCurrentTeams.set(String(goalie.playerId), playerData.currentTeamAbbrev);
         }
       } catch (e) {
         console.error(`Failed to fetch jersey for goalie ${goalie.playerId}:`, e);
@@ -495,7 +531,8 @@ serve(async (req) => {
 
     // Upsert Swedish goalies
     for (const goalie of swedishGoalies) {
-      const teamAbbr = goalie.teamAbbrevs || "UNK";
+      const teamAbbr =
+        (isCurrentSeason && goalieCurrentTeams.get(String(goalie.playerId))) || lastTeam(goalie.teamAbbrevs);
       const jerseyNumber = goalieJerseyNumbers.get(String(goalie.playerId)) || 0;
       await supabase.from("swedish_goalies").upsert({
         id: String(goalie.playerId),

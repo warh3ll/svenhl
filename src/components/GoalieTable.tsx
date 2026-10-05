@@ -102,7 +102,7 @@ const GoalieTable = ({ goalies }: GoalieTableProps) => {
                 <TableCell>
                   <Link to={`/player/${goalie.id}`} className="group">
                     <div className="flex items-center gap-3">
-                      <PlayerHeadshot playerId={goalie.id} playerName={goalie.name} teamAbbr={goalie.teamAbbr} size="sm" />
+                      <PlayerHeadshot playerId={goalie.id} playerName={goalie.name} teamAbbr={goalie.teamAbbr} season={goalie.season} size="sm" />
                       <div className="flex flex-col">
                         <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{goalie.name}</span>
                         <span className="text-xs text-muted-foreground">#{goalie.jerseyNumber}</span>

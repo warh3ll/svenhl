@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select';
 import { useSwedishPlayers, useSwedishGoalies } from '@/hooks/useNHLData';
 import SEO from '@/components/SEO';
-import { mockPlayers, mockGoalies, seasons } from '@/data/mockData';
+import { CURRENT_SEASON, seasons } from '@/lib/season';
 import { SwedishPlayer, SwedishGoalie } from '@/types/nhl';
 
 // All NHL team abbreviations for consistent ordering
@@ -82,20 +82,16 @@ const TeamCardSkeleton = () => (
 );
 
 const Teams = () => {
-  const [selectedSeason, setSelectedSeason] = useState('20252026');
+  const [selectedSeason, setSelectedSeason] = useState(CURRENT_SEASON);
   
   const { data: players, isLoading: playersLoading } = useSwedishPlayers(selectedSeason);
   const { data: goalies, isLoading: goaliesLoading } = useSwedishGoalies(selectedSeason);
   
   const isLoading = playersLoading || goaliesLoading;
   
-  // Use fetched data or fall back to mock data
-  const displayPlayers = players?.length ? players : mockPlayers;
-  const displayGoalies = goalies?.length ? goalies : mockGoalies;
-  
   const teamsWithPlayers = useMemo(
-    () => groupByTeam(displayPlayers, displayGoalies),
-    [displayPlayers, displayGoalies]
+    () => groupByTeam(players ?? [], goalies ?? []),
+    [players, goalies]
   );
 
   return (

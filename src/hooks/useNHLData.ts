@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Game, SwedishPlayer, SwedishGoalie, GamePoint, GoaliePerformance, PlayerGameLogEntry, CareerSeasonStats } from '@/types/nhl';
 import { toast } from 'sonner';
+import { CURRENT_SEASON } from '@/lib/season';
 
 // Transform database row to frontend type
 const transformPlayer = (row: any): SwedishPlayer => ({
@@ -23,6 +24,7 @@ const transformPlayer = (row: any): SwedishPlayer => ({
   gameWinningGoals: row.game_winning_goals,
   shots: row.shots,
   shootingPct: Number(row.shooting_pct) || 0,
+  season: row.season,
 });
 
 const transformGoalie = (row: any): SwedishGoalie => ({
@@ -42,6 +44,7 @@ const transformGoalie = (row: any): SwedishGoalie => ({
   saves: row.saves,
   shotsAgainst: row.shots_against,
   timeOnIce: row.time_on_ice || '0:00',
+  season: row.season,
 });
 
 const getOvertimeType = (period: string | null): 'OT' | 'SO' | undefined => {
@@ -69,7 +72,7 @@ const transformGame = (row: any): Game => ({
   overtimeType: getOvertimeType(row.period),
 });
 
-export function useSwedishPlayers(season: string = '20252026') {
+export function useSwedishPlayers(season: string = CURRENT_SEASON) {
   return useQuery({
     queryKey: ['swedish-players', season],
     queryFn: async () => {
@@ -86,7 +89,7 @@ export function useSwedishPlayers(season: string = '20252026') {
   });
 }
 
-export function useSwedishGoalies(season: string = '20252026') {
+export function useSwedishGoalies(season: string = CURRENT_SEASON) {
   return useQuery({
     queryKey: ['swedish-goalies', season],
     queryFn: async () => {
@@ -164,7 +167,7 @@ export function useSyncNHLData() {
   return useMutation({
     mutationFn: async (season?: string) => {
       const { data, error } = await supabase.functions.invoke('sync-nhl-data', {
-        body: { season: season || '20252026' },
+        body: { season: season || CURRENT_SEASON },
       });
 
       if (error) throw error;

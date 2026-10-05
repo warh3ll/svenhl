@@ -17,6 +17,7 @@ export interface SwedishPlayer {
   gameWinningGoals: number;
   shots: number;
   shootingPct: number;
+  season?: string;
 }
 
 export interface SwedishGoalie {
@@ -36,6 +37,7 @@ export interface SwedishGoalie {
   saves: number;
   shotsAgainst: number;
   timeOnIce: string;
+  season?: string;
 }
 
 export interface GamePoint {

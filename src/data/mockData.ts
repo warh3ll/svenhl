@@ -106,9 +106,3 @@ export const mockGoalies: SwedishGoalie[] = [
   { id: '3', name: 'Linus Ullmark', team: 'Ottawa Senators', teamAbbr: 'OTT', jerseyNumber: 35, games: 25, gamesStarted: 23, wins: 12, losses: 9, overtimeLosses: 2, savePercentage: 0.908, goalsAgainstAverage: 2.78, shutouts: 2, saves: 645, shotsAgainst: 710, timeOnIce: '1380:00' },
   { id: '4', name: 'Samuel Ersson', team: 'Philadelphia Flyers', teamAbbr: 'PHI', jerseyNumber: 33, games: 22, gamesStarted: 20, wins: 10, losses: 8, overtimeLosses: 2, savePercentage: 0.905, goalsAgainstAverage: 2.88, shutouts: 1, saves: 578, shotsAgainst: 639, timeOnIce: '1200:00' },
 ];
-
-export const seasons = [
-  { value: '20252026', label: '2025-26' },
-  { value: '20242025', label: '2024-25' },
-  { value: '20232024', label: '2023-24' },
-];
