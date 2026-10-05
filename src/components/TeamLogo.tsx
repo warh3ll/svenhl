@@ -20,9 +20,8 @@ const sizePixels = {
 const LIGHT_MODE_TEAMS = ['TBL', 'TOR'];
 
 const TeamLogo = ({ teamAbbr, size = 'md', className = '' }: TeamLogoProps) => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const logoVariant = LIGHT_MODE_TEAMS.includes(teamAbbr) ? 'light' : 'dark';
-  const logoUrl = `${supabaseUrl}/storage/v1/object/public/teams/${teamAbbr}_${logoVariant}.svg`;
+  const logoUrl = `${import.meta.env.BASE_URL}logos/${teamAbbr}_${logoVariant}.svg`;
   const px = sizePixels[size];
 
   return (
