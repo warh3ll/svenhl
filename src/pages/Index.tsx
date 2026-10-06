@@ -35,6 +35,9 @@ const Index = () => {
       <Header />
       
       <main className="container py-8">
+        {/* Scheduled games, kept out of the results feed */}
+        <UpcomingGamesStrip games={upcomingGames ?? []} />
+
         {/* Top 3 of the Week */}
         <TopPlayersOfWeek games={statsGames} />
 
@@ -55,9 +58,6 @@ const Index = () => {
             />
           )}
         </div>
-
-        {/* Scheduled games, kept out of the results feed */}
-        <UpcomingGamesStrip games={upcomingGames ?? []} />
       </main>
 
       <Footer />
