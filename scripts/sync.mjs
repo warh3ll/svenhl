@@ -236,15 +236,17 @@ function extractDateFromTitle(title) {
   return month >= 0 && day >= 1 && day <= 31 && year >= 2020 ? new Date(year, month, day) : null;
 }
 
-class QuotaExceededError extends Error {}
+// Quota exhausted or key rejected (both HTTP 403): stop calling YouTube for the rest of the run
+class YouTubeUnavailableError extends Error {}
 
 async function youtubeGet(url) {
   const response = await fetch(url);
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const reason = data.error?.errors?.[0]?.reason;
-    if (reason === "quotaExceeded" || response.status === 403) throw new QuotaExceededError(reason || "403");
-    throw new Error(`YouTube API ${response.status}: ${data.error?.message || "unknown error"}`);
+    const message = `YouTube API ${response.status} ${reason || ""}: ${data.error?.message || "unknown error"}`;
+    if (reason === "quotaExceeded" || response.status === 403) throw new YouTubeUnavailableError(message);
+    throw new Error(message);
   }
   return data;
 }
@@ -272,7 +274,7 @@ async function searchHighlightVideo(homeAbbr, awayAbbr, gameDate) {
     );
     for (const video of videos.items || []) durations.set(video.id, parseDuration(video.contentDetails?.duration || ""));
   } catch (e) {
-    if (e instanceof QuotaExceededError) throw e;
+    if (e instanceof YouTubeUnavailableError) throw e;
     console.log("Duration lookup failed, continuing without duration filtering");
   }
 
@@ -399,7 +401,7 @@ async function syncGames({ players, goalies }) {
   const fortyEightHoursAgo = now.getTime() - 48 * 60 * 60 * 1000;
   const fourHoursAgo = now.getTime() - 4 * 60 * 60 * 1000;
   let youtubeSearches = 0;
-  let youtubeQuotaExceeded = !youtubeApiKey;
+  let youtubeUnavailable = !youtubeApiKey;
 
   // Newest games first so the YouTube search budget goes to the most recent ones
   scheduledGames.sort((a, b) => new Date(b.startTimeUTC) - new Date(a.startTimeUTC));
@@ -432,7 +434,7 @@ async function syncGames({ players, goalies }) {
       !highlightVideoId &&
       gameTime > fortyEightHoursAgo &&
       !checkedRecently &&
-      !youtubeQuotaExceeded &&
+      !youtubeUnavailable &&
       youtubeSearches < MAX_YOUTUBE_SEARCHES_PER_SYNC
     ) {
       console.log(`Searching YouTube for game ${id} (${youtubeSearches + 1}/${MAX_YOUTUBE_SEARCHES_PER_SYNC})`);
@@ -441,9 +443,9 @@ async function syncGames({ players, goalies }) {
         highlightVideoId = await searchHighlightVideo(game.homeTeam?.abbrev, game.awayTeam?.abbrev, game.startTimeUTC);
         highlightCheckedAt = now.toISOString();
       } catch (e) {
-        if (e instanceof QuotaExceededError) {
-          console.error("YouTube quota exceeded, skipping remaining searches");
-          youtubeQuotaExceeded = true;
+        if (e instanceof YouTubeUnavailableError) {
+          console.error(`${e.message} (skipping remaining searches)`);
+          youtubeUnavailable = true;
         } else {
           console.error(`YouTube search failed for game ${id}:`, e.message);
         }
