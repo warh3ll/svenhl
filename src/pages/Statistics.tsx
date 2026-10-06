@@ -5,7 +5,7 @@ import PlayerTable from '@/components/PlayerTable';
 import GoalieTable from '@/components/GoalieTable';
 import PlayerTableSkeleton from '@/components/PlayerTableSkeleton';
 import GoalieTableSkeleton from '@/components/GoalieTableSkeleton';
-import { mockPlayers, mockGoalies, seasons } from '@/data/mockData';
+import { CURRENT_SEASON, formatSeason, seasons } from '@/lib/season';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
@@ -19,14 +19,13 @@ import SEO from '@/components/SEO';
 import { useSwedishPlayers, useSwedishGoalies } from '@/hooks/useNHLData';
 
 const Statistics = () => {
-  const [selectedSeason, setSelectedSeason] = useState('20252026');
+  const [selectedSeason, setSelectedSeason] = useState(CURRENT_SEASON);
   
   const { data: players, isLoading: playersLoading } = useSwedishPlayers(selectedSeason);
   const { data: goalies, isLoading: goaliesLoading } = useSwedishGoalies(selectedSeason);
 
-  // Use database data if available, otherwise fall back to mock data
-  const displayPlayers = players && players.length > 0 ? players : mockPlayers;
-  const displayGoalies = goalies && goalies.length > 0 ? goalies : mockGoalies;
+  const displayPlayers = players ?? [];
+  const displayGoalies = goalies ?? [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -88,11 +87,15 @@ const Statistics = () => {
           <TabsContent value="skaters" className="space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Click on column headers to sort. Showing {selectedSeason === '20252026' ? '2025-26' : selectedSeason === '20242025' ? '2024-25' : '2023-24'} season stats.
+                Click on column headers to sort. Showing {formatSeason(selectedSeason)} season stats.
               </p>
             </div>
             {playersLoading ? (
               <PlayerTableSkeleton />
+            ) : displayPlayers.length === 0 ? (
+              <p className="rounded-lg border bg-card py-12 text-center text-muted-foreground">
+                No skater stats for the {formatSeason(selectedSeason)} season yet.
+              </p>
             ) : (
               <PlayerTable players={displayPlayers} />
             )}
@@ -101,11 +104,15 @@ const Statistics = () => {
           <TabsContent value="goalies" className="space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Click on column headers to sort. Showing {selectedSeason === '20252026' ? '2025-26' : selectedSeason === '20242025' ? '2024-25' : '2023-24'} season stats.
+                Click on column headers to sort. Showing {formatSeason(selectedSeason)} season stats.
               </p>
             </div>
             {goaliesLoading ? (
               <GoalieTableSkeleton />
+            ) : displayGoalies.length === 0 ? (
+              <p className="rounded-lg border bg-card py-12 text-center text-muted-foreground">
+                No goalie stats for the {formatSeason(selectedSeason)} season yet.
+              </p>
             ) : (
               <GoalieTable goalies={displayGoalies} />
             )}

@@ -17,6 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useSwedishPlayers, useSwedishGoalies, useNHLGames } from '@/hooks/useNHLData';
+import { CURRENT_SEASON, formatSeason } from '@/lib/season';
 import { getTeamColor, getTeamBackgroundColor } from '@/lib/teamColors';
 import { cn } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
@@ -52,7 +53,7 @@ const TEAM_NAMES: Record<string, string> = {
   STL: 'St. Louis Blues',
   TBL: 'Tampa Bay Lightning',
   TOR: 'Toronto Maple Leafs',
-  UTA: 'Utah Hockey Club',
+  UTA: 'Utah Mammoth',
   VAN: 'Vancouver Canucks',
   VGK: 'Vegas Golden Knights',
   WSH: 'Washington Capitals',
@@ -63,8 +64,8 @@ const TeamDetail = () => {
   const { teamAbbr } = useParams<{ teamAbbr: string }>();
   const normalizedAbbr = teamAbbr?.toUpperCase() || '';
   
-  const { data: allPlayers, isLoading: playersLoading } = useSwedishPlayers('20252026');
-  const { data: allGoalies, isLoading: goaliesLoading } = useSwedishGoalies('20252026');
+  const { data: allPlayers, isLoading: playersLoading } = useSwedishPlayers(CURRENT_SEASON);
+  const { data: allGoalies, isLoading: goaliesLoading } = useSwedishGoalies(CURRENT_SEASON);
   const { data: allGames, isLoading: gamesLoading } = useNHLGames();
   
   const isLoading = playersLoading || goaliesLoading || gamesLoading;
@@ -159,7 +160,7 @@ const TeamDetail = () => {
           <div>
             <h1 className="text-3xl font-bold text-foreground">{teamName}</h1>
             <p className="text-muted-foreground mt-1">
-              {totalPlayers} Swedish player{totalPlayers !== 1 ? 's' : ''} • 2025-26 Season
+              {totalPlayers} Swedish player{totalPlayers !== 1 ? 's' : ''} • {formatSeason(CURRENT_SEASON)} Season
             </p>
           </div>
         </div>
@@ -181,7 +182,7 @@ const TeamDetail = () => {
           </div>
         ) : totalPlayers === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
-            No Swedish players on this team for the 2025-26 season.
+            No Swedish players on this team for the {formatSeason(CURRENT_SEASON)} season.
           </div>
         ) : (
           <div className="space-y-8">

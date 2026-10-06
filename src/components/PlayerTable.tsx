@@ -95,7 +95,7 @@ const PlayerTable = ({ players }: PlayerTableProps) => {
                 <TableCell>
                   <Link to={`/player/${player.id}`} className="group">
                     <div className="flex items-center gap-3">
-                      <PlayerHeadshot playerId={player.id} playerName={player.name} teamAbbr={player.teamAbbr} size="sm" />
+                      <PlayerHeadshot playerId={player.id} playerName={player.name} teamAbbr={player.teamAbbr} season={player.season} size="sm" />
                       <div className="flex flex-col">
                         <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{player.name}</span>
                         <span className="text-xs text-muted-foreground">#{player.jerseyNumber}</span>

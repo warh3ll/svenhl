@@ -1,0 +1,68 @@
+name: Sync data and deploy
+
+on:
+  # Hourly data refresh (GitHub may delay scheduled runs a few minutes)
+  schedule:
+    - cron: "17 * * * *"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never run two syncs/deploys at the same time
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Carry over game state (cached highlight video IDs) from the live site.
+      # Falls back to the committed public/data/games.json if the site is unreachable.
+      - name: Restore game state from live site
+        run: |
+          if curl -fsSL https://svenhl.com/data/games.json -o /tmp/games.json \
+            && node -e 'if (!Array.isArray(JSON.parse(require("fs").readFileSync("/tmp/games.json", "utf8")))) process.exit(1)'; then
+            mv /tmp/games.json public/data/games.json
+            echo "Restored games.json from live site"
+          else
+            echo "Live games.json unavailable, using committed copy"
+          fi
+
+      - name: Sync NHL data
+        run: node scripts/sync.mjs
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+
+      - run: npm run build
+
+      - name: Write route pages
+        run: node scripts/prerender-routes.mjs
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

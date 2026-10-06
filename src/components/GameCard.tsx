@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Game, GamePoint, GoaliePerformance } from '@/types/nhl';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -11,8 +10,6 @@ import PlayerHeadshot from './PlayerHeadshot';
 import LazyYouTubeEmbed from './LazyYouTubeEmbed';
 import { useSpoiler } from '@/contexts/SpoilerContext';
 import { getTeamColor, getTeamBackgroundColor } from '@/lib/teamColors';
-import { useReportVideo } from '@/hooks/useNHLData';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface GameCardProps {
   game: Game;
@@ -22,23 +19,12 @@ const GameCard = ({
   game
 }: GameCardProps) => {
   const { spoilerMode, isGameRevealed, revealGame } = useSpoiler();
-  const reportVideo = useReportVideo();
-  const [isReporting, setIsReporting] = useState(false);
-  const [hasReported, setHasReported] = useState(false);
   
   // Show details if card is revealed (persisted) OR if global spoiler mode is off
   const showDetails = isGameRevealed(game.id) || !spoilerMode;
   const hasSwedishContribution = game.swedishPoints.length > 0 || game.swedishGoalies.length > 0;
   const gameDate = new Date(game.date);
   
-  const handleReportVideo = () => {
-    if (hasReported || isReporting) return;
-    setIsReporting(true);
-    reportVideo.mutate(game.id, {
-      onSuccess: () => setHasReported(true),
-      onSettled: () => setIsReporting(false),
-    });
-  };
   return <Card className={`h-full overflow-hidden transition-all hover:shadow-lg ${hasSwedishContribution ? 'ring-2 ring-accent' : ''}`}>
       <CardHeader className="pb-3">
         <div className="flex flex-col gap-2">
@@ -71,23 +57,6 @@ const GameCard = ({
                 title={`${game.awayTeamAbbr} vs ${game.homeTeamAbbr} Highlights`}
               />
             </div>
-            {/* Report Video Button */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 right-2 h-8 w-8 bg-background/80 hover:bg-background text-muted-foreground hover:text-destructive disabled:opacity-50"
-                  onClick={handleReportVideo}
-                  disabled={isReporting || hasReported}
-                >
-                  <MaterialIcon name={hasReported ? "check" : isReporting ? "hourglass_empty" : "flag"} size="sm" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{hasReported ? "Reported" : isReporting ? "Reporting..." : "Report wrong video"}</p>
-              </TooltipContent>
-            </Tooltip>
           </div>
         )}
 

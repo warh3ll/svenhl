@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { usePlayer, useGoalie, usePlayerGameLog, usePlayerCareerStats } from '@/hooks/useNHLData';
+import { CURRENT_SEASON, formatSeason } from '@/lib/season';
 import Header from '@/components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,8 @@ const PlayerProfile = () => {
   const isLoading = playerLoading && goalieLoading;
   const isGoalie = !player && goalie;
   const currentPlayer = player || goalie;
+  // Season of the stats row shown (the player's most recent season on record)
+  const playerSeason = currentPlayer?.season ?? CURRENT_SEASON;
 
   if (isLoading) {
     return (
@@ -84,7 +87,7 @@ const PlayerProfile = () => {
             <div className="flex items-start gap-6">
               <div className="relative h-24 w-24 overflow-hidden rounded-full bg-primary/10">
                 <img 
-                  src={`https://assets.nhle.com/mugs/nhl/20252026/${currentPlayer.teamAbbr}/${playerId}.png`}
+                  src={`https://assets.nhle.com/mugs/nhl/${playerSeason}/${currentPlayer.teamAbbr.split(',').pop()}/${playerId}.png`}
                   alt={currentPlayer.name}
                   className="h-full w-full object-cover"
                   onError={(e) => {
@@ -123,7 +126,7 @@ const PlayerProfile = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MaterialIcon name="emoji_events" size="md" />
-              2025-26 Season Statistics
+              {formatSeason(playerSeason)} Season Statistics
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -252,7 +255,7 @@ const PlayerProfile = () => {
                     {careerStats.map((season) => (
                       <TableRow key={season.season} className="hover:bg-muted/30">
                         <TableCell className="font-medium">
-                          {season.season.slice(0, 4)}-{season.season.slice(4, 6)}
+                          {formatSeason(season.season)}
                         </TableCell>
                         <TableCell>{season.teamAbbr}</TableCell>
                         <TableCell>{season.games}</TableCell>
