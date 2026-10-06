@@ -60,12 +60,20 @@ const TopPlayersOfWeek = ({
     // Sort by points (desc) and return top 3
     return Object.values(playerStats).sort((a, b) => b.points - a.points || b.goals - a.goals).slice(0, 3);
   }, [games]);
+  // "Elias Pettersson" -> "E. Pettersson", used where space is tight (mobile)
+  const shortName = (name: string) => {
+    const [first, ...rest] = name.split(' ');
+    return rest.length > 0 ? `${first[0]}. ${rest.join(' ')}` : name;
+  };
+
+  const heading = <div className="flex items-center justify-center gap-2 mb-4">
+      <MaterialIcon name="emoji_events" size="md" className="text-[hsl(var(--sweden-yellow))]" />
+      <h2 className="text-xl font-bold text-foreground sm:text-2xl">Top 3 of the Week</h2>
+    </div>;
+
   if (topPlayers.length === 0) {
-    return <div className="mb-8 min-h-[340px]">
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <MaterialIcon name="emoji_events" size="lg" className="text-[hsl(var(--sweden-yellow))]" />
-          <h2 className="text-2xl font-bold text-foreground">Top 3 of the Week</h2>
-        </div>
+    return <div className="mb-8">
+        {heading}
         <p className="text-center text-muted-foreground">No points recorded in the last 7 days</p>
       </div>;
   }
@@ -85,49 +93,41 @@ const TopPlayersOfWeek = ({
     const badges = ['🥇', '🥈', '🥉'];
     return badges[index] || '';
   };
-  return <div className="mb-8 min-h-[340px] rounded-xl mx-0 px-[24px] py-[24px] bg-primary-foreground shadow-none">
-      <div className="flex items-center justify-center gap-2 mb-6">
-        <MaterialIcon name="emoji_events" size="lg" className="text-[hsl(var(--sweden-yellow))]" />
-        <h2 className="text-2xl font-bold text-foreground">Top 3 of the Week</h2>
-      </div>
-      
-      <div className="grid gap-4 sm:grid-cols-3">
-        {topPlayers.map((player, index) => <Link key={player.playerId} to={`/player/${player.playerId}`} className={`group relative rounded-xl p-6 transition-all hover:shadow-lg ${getRankStyles(index)}`}>
-            {/* Rank Badge */}
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl">
-              {getRankBadge(index)}
-            </div>
-            
-            {/* Large Headshot */}
-            <div className="flex justify-center mb-4">
+  return <div className="mb-8 rounded-xl bg-primary-foreground p-3 sm:p-5">
+      {heading}
+
+      {/* Always three columns, so all three players fit side by side on mobile */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        {topPlayers.map((player, index) => <Link key={player.playerId} to={`/player/${player.playerId}`} className={`group flex min-w-0 flex-col items-center rounded-xl px-1 py-3 text-center transition-all hover:shadow-lg sm:px-4 sm:py-4 ${getRankStyles(index)}`}>
+            {/* Headshot with rank medal on its corner */}
+            <div className="relative">
               <PlayerHeadshot playerId={player.playerId} playerName={player.playerName} teamAbbr={player.teamAbbr} size="lg" priority={index === 0} // First player gets priority for LCP
-          className="h-24 w-24 ring-4 ring-border group-hover:ring-primary/20 transition-all" />
+          className="h-14 w-14 ring-2 ring-border transition-all group-hover:ring-primary/20 sm:h-20 sm:w-20 sm:ring-4" />
+              <span className="absolute -left-1 -top-1 text-lg leading-none sm:text-2xl">{getRankBadge(index)}</span>
             </div>
-            
-            {/* Player Info */}
-            <div className="text-center">
-              <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">
-                {player.playerName}
-              </h3>
-              
-              {/* Team Logo + Name */}
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <TeamLogo teamAbbr={player.teamAbbr} size="sm" className="h-6 w-6" />
-                <span className="text-sm text-muted-foreground">{player.teamAbbr}</span>
-              </div>
-              
-              {/* Points Display */}
-              <div className="mt-4 flex items-center justify-center gap-4">
-                <div className="text-center">
-                  <span className="block text-3xl font-bold text-primary">{player.points}</span>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Points</span>
-                </div>
-                <div className="h-8 w-px bg-border" />
-                <div className="text-center">
-                  <span className="block text-lg font-semibold text-[hsl(var(--goal))]">{player.goals}G</span>
-                  <span className="block text-lg font-semibold text-[hsl(var(--assist))]">{player.assists}A</span>
-                </div>
-              </div>
+
+            {/* Name: initial + last name on mobile, full name from sm up */}
+            <h3 className="mt-2 line-clamp-2 w-full break-words text-xs font-bold leading-tight text-foreground transition-colors group-hover:text-primary sm:text-base">
+              <span className="sm:hidden">{shortName(player.playerName)}</span>
+              <span className="hidden sm:inline">{player.playerName}</span>
+            </h3>
+
+            {/* Team */}
+            <div className="mt-1 flex items-center justify-center gap-1">
+              <TeamLogo teamAbbr={player.teamAbbr} size="sm" className="!h-4 !w-4 sm:!h-5 sm:!w-5" />
+              <span className="text-xs text-muted-foreground">{player.teamAbbr}</span>
+            </div>
+
+            {/* Points, then goals/assists */}
+            <div className="mt-2 flex flex-col items-center sm:flex-row sm:items-baseline sm:gap-3">
+              <span className="text-2xl font-bold leading-none text-primary sm:text-3xl">
+                {player.points}
+                <span className="ml-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">pts</span>
+              </span>
+              <span className="mt-1 text-xs font-semibold sm:mt-0 sm:text-sm">
+                <span className="text-[hsl(var(--goal))]">{player.goals}G</span>{' '}
+                <span className="text-[hsl(var(--assist))]">{player.assists}A</span>
+              </span>
             </div>
           </Link>)}
       </div>
