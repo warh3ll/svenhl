@@ -16,7 +16,6 @@ export const mockGames: Game[] = [
       { playerId: '2', playerName: 'William Karlsson', type: 'assist', period: 2, time: '08:21', description: 'Karlsson (22) - Secondary assist' },
     ],
     swedishGoalies: [],
-    highlightUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
   },
   {
     id: '2',
@@ -33,7 +32,6 @@ export const mockGames: Game[] = [
       { playerId: '3', playerName: 'Lucas Raymond', type: 'assist', period: 2, time: '14:33', description: 'Raymond (32) - Primary assist' },
     ],
     swedishGoalies: [],
-    highlightUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
   },
   {
     id: '3',
@@ -49,7 +47,6 @@ export const mockGames: Game[] = [
     swedishGoalies: [
       { goalieId: '10', goalieName: 'Filip Gustavsson', team: 'MIN', teamAbbr: 'MIN', saves: 28, shotsAgainst: 30, savePercentage: 0.933, result: 'W' }
     ],
-    highlightUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
   },
   {
     id: '4',
@@ -69,7 +66,6 @@ export const mockGames: Game[] = [
     swedishGoalies: [
       { goalieId: '11', goalieName: 'Jacob Markström', team: 'NJD', teamAbbr: 'NJD', saves: 35, shotsAgainst: 40, savePercentage: 0.875, result: 'L' }
     ],
-    highlightUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
   },
   {
     id: '5',
@@ -83,7 +79,6 @@ export const mockGames: Game[] = [
     status: 'final',
     swedishPoints: [],
     swedishGoalies: [],
-    highlightUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
   },
 ];
 
