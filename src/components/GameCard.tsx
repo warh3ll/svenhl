@@ -36,14 +36,6 @@ const GameCard = ({
               {format(gameDate, 'MMM d, yyyy • h:mm a')}
             </span>
           </div>
-          {/* Show fallback link only if no embedded video */}
-          {!game.highlightVideoId && game.highlightUrl && (
-            <a href={game.highlightUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors text-primary bg-primary-foreground w-fit">
-              <MaterialIcon name="play_arrow" size="sm" />
-              Search Highlights
-              <MaterialIcon name="open_in_new" size="sm" />
-            </a>
-          )}
         </div>
       </CardHeader>
 

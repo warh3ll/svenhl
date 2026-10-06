@@ -73,7 +73,6 @@ export interface Game {
   status: 'final' | 'live' | 'scheduled';
   swedishPoints: GamePoint[];
   swedishGoalies: GoaliePerformance[];
-  highlightUrl?: string;
   highlightVideoId?: string;
   period?: string;
   timeRemaining?: string;

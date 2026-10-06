@@ -467,7 +467,6 @@ async function syncGames({ players, goalies }) {
       status: isFinal ? "final" : game.gameState === "LIVE" || game.gameState === "CRIT" ? "live" : "scheduled",
       swedish_points: swedishPoints,
       swedish_goalies: swedishGoaliePerformances,
-      highlight_url: `https://www.youtube.com/results?search_query=NHL+${game.homeTeam?.abbrev}+vs+${game.awayTeam?.abbrev}+${game.startTimeUTC?.split("T")[0] || ""}+highlights`,
       highlight_video_id: highlightVideoId && /^[a-zA-Z0-9_-]{11}$/.test(highlightVideoId) ? highlightVideoId : null,
       highlight_checked_at: highlightCheckedAt,
       period: game.periodDescriptor?.number ? `P${game.periodDescriptor.number}` : null,
