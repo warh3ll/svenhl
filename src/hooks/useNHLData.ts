@@ -133,8 +133,30 @@ export function useSwedishGoalies(season: string = CURRENT_SEASON) {
 export function useNHLGames() {
   return useQuery({
     queryKey: ['nhl-games'],
-    queryFn: async () => (await fetchGames()).slice(0, 20).map(transformGame),
+    // Finished and live games only; scheduled games are shown separately (useUpcomingGames)
+    queryFn: async () =>
+      (await fetchGames())
+        .filter((game) => game.status !== 'scheduled')
+        .slice(0, 20)
+        .map(transformGame),
     staleTime: 1000 * 60 * 5, // 5 minutes for games (more frequent updates)
+  });
+}
+
+// Games that haven't started yet, soonest first
+export function useUpcomingGames() {
+  return useQuery({
+    queryKey: ['upcoming-games'],
+    queryFn: async () => {
+      // Skip "scheduled" games that should have started hours ago (postponed, or data not yet refreshed)
+      const cutoff = Date.now() - 1000 * 60 * 60 * 6;
+
+      return (await fetchGames())
+        .filter((game) => game.status === 'scheduled' && new Date(game.game_date).getTime() >= cutoff)
+        .sort((a, b) => new Date(a.game_date).getTime() - new Date(b.game_date).getTime())
+        .map(transformGame);
+    },
+    staleTime: 1000 * 60 * 5,
   });
 }
 

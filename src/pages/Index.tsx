@@ -3,14 +3,16 @@ import Footer from '@/components/Footer';
 import GameFeed from '@/components/GameFeed';
 import TopPlayersOfWeek from '@/components/TopPlayersOfWeek';
 import NHLSverigeCarousel from '@/components/NHLSverigeCarousel';
+import UpcomingGamesStrip from '@/components/UpcomingGamesStrip';
 import SEO from '@/components/SEO';
 import { mockGames } from '@/data/mockData';
 import MaterialIcon from '@/components/ui/material-icon';
-import { useNHLGames, useRecentGamesForStats } from '@/hooks/useNHLData';
+import { useNHLGames, useRecentGamesForStats, useUpcomingGames } from '@/hooks/useNHLData';
 
 const Index = () => {
   const { data: games, isLoading: gamesLoading } = useNHLGames();
   const { data: recentGames } = useRecentGamesForStats();
+  const { data: upcomingGames } = useUpcomingGames();
 
   // Use database games if available, otherwise fall back to mock data
   const displayGames = games && games.length > 0 ? games : mockGames;
@@ -33,6 +35,9 @@ const Index = () => {
       <Header />
       
       <main className="container py-8">
+        {/* Scheduled games, kept out of the results feed */}
+        <UpcomingGamesStrip games={upcomingGames ?? []} />
+
         {/* Top 3 of the Week */}
         <TopPlayersOfWeek games={statsGames} />
 
