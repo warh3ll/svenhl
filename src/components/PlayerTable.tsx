@@ -114,7 +114,7 @@ const PlayerTable = ({ players }: PlayerTableProps) => {
                 <TableCell className="font-semibold">{player.goals}</TableCell>
                 <TableCell className="font-semibold">{player.assists}</TableCell>
                 <TableCell className="font-bold text-primary">{player.points}</TableCell>
-                <TableCell className={player.plusMinus >= 0 ? 'text-[hsl(var(--goal))]' : 'text-destructive'}>
+                <TableCell className={player.plusMinus >= 0 ? 'text-[hsl(var(--positive))]' : 'text-destructive'}>
                   {player.plusMinus > 0 ? '+' : ''}{player.plusMinus}
                 </TableCell>
                 <TableCell>{player.penaltyMinutes}</TableCell>

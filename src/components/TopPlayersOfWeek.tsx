@@ -123,9 +123,9 @@ const TopPlayersOfWeek = ({
                   <span className="text-xs text-muted-foreground uppercase tracking-wide">Points</span>
                 </div>
                 <div className="h-8 w-px bg-border" />
-                <div className="text-center">
-                  <span className="block text-lg font-semibold text-[hsl(var(--goal))]">{player.goals}G</span>
-                  <span className="block text-lg font-semibold text-[hsl(var(--assist))]">{player.assists}A</span>
+                <div className="flex flex-col items-center gap-1">
+                  <span className="rounded-full bg-[hsl(var(--goal))] px-2 text-sm font-semibold text-[hsl(var(--goal-foreground))]">{player.goals}G</span>
+                  <span className="rounded-full bg-[hsl(var(--assist))] px-2 text-sm font-semibold text-[hsl(var(--assist-foreground))]">{player.assists}A</span>
                 </div>
               </div>
             </div>

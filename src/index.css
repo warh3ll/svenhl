@@ -36,8 +36,11 @@ All colors MUST be HSL.
     --sweden-blue: 210 100% 45%;
     --sweden-yellow: 45 100% 50%;
     --ice: 200 40% 96%;
-    --goal: 120 60% 30%;
-    --assist: 210 100% 40%;
+    --goal: 210 100% 45%;
+    --goal-foreground: 0 0% 100%;
+    --assist: 45 100% 50%;
+    --assist-foreground: 265 4% 12.9%;
+    --positive: 120 60% 30%;
 
     --destructive: 27 24.5% 57.7%;
     --destructive-foreground: 0 0% 100%;

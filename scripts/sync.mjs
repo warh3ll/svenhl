@@ -325,7 +325,7 @@ async function fetchSwedishGameStats(game, swedishPlayers, swedishGoalies) {
   const goalies = [];
   // Goals + assists by everyone vs. by Swedes, for the impact meter.
   // Shootout goals count on the scoreboard but are not points, so they are left out.
-  const impact = { swedish: 0, total: 0 };
+  const impact = { goals: 0, assists: 0, total: 0 };
 
   const landing = await fetchJson(`https://api-web.nhle.com/v1/gamecenter/${game.id}/landing`);
   for (const period of landing.summary?.scoring || []) {
@@ -333,10 +333,9 @@ async function fetchSwedishGameStats(game, swedishPlayers, swedishGoalies) {
     const isShootout = period.periodDescriptor?.periodType === "SO";
     for (const goal of period.goals || []) {
       if (!isShootout) {
-        for (const id of [goal.playerId, ...(goal.assists || []).map((a) => a.playerId)]) {
-          impact.total++;
-          if (swedishPlayers.has(String(id))) impact.swedish++;
-        }
+        impact.total += 1 + (goal.assists || []).length;
+        if (swedishPlayers.has(String(goal.playerId))) impact.goals++;
+        impact.assists += (goal.assists || []).filter((a) => swedishPlayers.has(String(a.playerId))).length;
       }
       const scorer = swedishPlayers.get(String(goal.playerId));
       if (scorer) {
@@ -493,7 +492,10 @@ async function syncGames({ players, goalies }) {
     if (row.status !== "final" || row.impact || new Date(row.game_date).getTime() < cutoff) continue;
     try {
       const game = { id: row.id, homeTeam: { abbrev: row.home_team_abbr }, awayTeam: { abbrev: row.away_team_abbr } };
-      row.impact = (await fetchSwedishGameStats(game, swedishPlayers, swedishGoalies)).impact;
+      // Swedes saved on the game also count (e.g. preseason scorers not yet in this season's stats)
+      const players = new Map(swedishPlayers);
+      for (const point of row.swedish_points || []) players.set(point.playerId, { name: point.playerName });
+      row.impact = (await fetchSwedishGameStats(game, players, swedishGoalies)).impact;
     } catch (e) {
       console.error(`Failed to backfill impact for game ${row.id}:`, e.message);
     }

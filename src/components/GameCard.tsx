@@ -134,34 +134,35 @@ const GameCard = ({
       </CardContent>
     </Card>;
 };
-// Share of the game's points (goals + assists, both teams) made by Swedish players
+// Share of the game's points (goals + assists, both teams) made by Swedish players,
+// split into Swedish goals (blue) and assists (yellow)
 const ImpactMeter = ({
   impact
 }: {
-  impact: { swedish: number; total: number };
+  impact: NonNullable<Game['impact']>;
 }) => {
-  const percent = Math.round((impact.swedish / impact.total) * 100);
+  const swedish = impact.goals + impact.assists;
+  const percent = Math.round((swedish / impact.total) * 100);
+  const width = (count: number) => `${(count / impact.total) * 100}%`;
 
   return (
     <div className="space-y-1.5">
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-sm font-semibold text-foreground">Swedish impact</span>
+        <span className="text-sm font-semibold text-foreground">Impact</span>
         <span className="text-sm text-muted-foreground">
-          {impact.swedish} of {impact.total} points · <span className="font-semibold text-foreground">{percent}%</span>
+          {swedish} of {impact.total} points · <span className="font-semibold text-foreground">{percent}%</span>
         </span>
       </div>
       <div
         role="meter"
-        aria-label="Share of points made by Swedish players"
+        aria-label={`Swedish players made ${impact.goals} goals and ${impact.assists} assists`}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={percent}
-        className="h-2.5 w-full overflow-hidden rounded-full bg-muted"
+        className="flex h-2.5 w-full overflow-hidden rounded-full bg-muted"
       >
-        {percent > 0 && <div
-          className="h-full rounded-full bg-[hsl(var(--sweden-blue))] border-r-4 border-[hsl(var(--sweden-yellow))] transition-[width] duration-500"
-          style={{ width: `${percent}%` }}
-        />}
+        <div className="h-full bg-[hsl(var(--goal))]" style={{ width: width(impact.goals) }} />
+        <div className="h-full bg-[hsl(var(--assist))]" style={{ width: width(impact.assists) }} />
       </div>
     </div>
   );
@@ -184,7 +185,7 @@ const PointItem = ({
         className="absolute left-0 top-0 bottom-0 w-1.5"
         style={{ backgroundColor: teamColor.primary }}
       />
-      <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shrink-0 leading-none ${isGoal ? 'bg-[hsl(var(--goal))] text-primary-foreground' : 'bg-[hsl(var(--assist))] text-primary-foreground'}`}>
+      <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shrink-0 leading-none ${isGoal ? 'bg-[hsl(var(--goal))] text-[hsl(var(--goal-foreground))]' : 'bg-[hsl(var(--assist))] text-[hsl(var(--assist-foreground))]'}`}>
         {isGoal ? 'G' : 'A'}
       </div>
       <PlayerHeadshot playerId={point.playerId} playerName={point.playerName} teamAbbr={point.playerTeamAbbr} size="sm" />

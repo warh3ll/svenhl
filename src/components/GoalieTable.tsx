@@ -118,7 +118,7 @@ const GoalieTable = ({ goalies }: GoalieTableProps) => {
                 </TableCell>
                 <TableCell>{goalie.games}</TableCell>
                 <TableCell>{goalie.gamesStarted}</TableCell>
-                <TableCell className="font-semibold text-[hsl(var(--goal))]">{goalie.wins}</TableCell>
+                <TableCell className="font-semibold text-[hsl(var(--positive))]">{goalie.wins}</TableCell>
                 <TableCell>{goalie.losses}</TableCell>
                 <TableCell>{goalie.overtimeLosses}</TableCell>
                 <TableCell className="font-bold text-primary">{(goalie.savePercentage * 100).toFixed(1)}%</TableCell>
