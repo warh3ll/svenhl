@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 
 // GoatCounter site code: the "xxx" in https://xxx.goatcounter.com.
 // Leave empty to turn tracking off.
-const GOATCOUNTER_CODE = "";
+const GOATCOUNTER_CODE = "svenhl";
 
 declare global {
   interface Window {
