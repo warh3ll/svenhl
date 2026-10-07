@@ -100,6 +100,8 @@ const GameCard = ({
           </div>
         ) : (
           <>
+            {game.status === 'final' && game.impact && game.impact.total > 0 && <ImpactMeter impact={game.impact} />}
+
             {/* Swedish Points */}
             {game.swedishPoints.length > 0 && <div className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -132,6 +134,39 @@ const GameCard = ({
       </CardContent>
     </Card>;
 };
+// Share of the game's points (goals + assists, both teams) made by Swedish players,
+// split into Swedish goals (blue) and assists (yellow)
+const ImpactMeter = ({
+  impact
+}: {
+  impact: NonNullable<Game['impact']>;
+}) => {
+  const swedish = impact.goals + impact.assists;
+  const percent = Math.round((swedish / impact.total) * 100);
+  const width = (count: number) => `${(count / impact.total) * 100}%`;
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-sm font-semibold text-foreground">Impact</span>
+        <span className="text-sm text-muted-foreground">
+          {swedish} of {impact.total} points · <span className="font-semibold text-foreground">{percent}%</span>
+        </span>
+      </div>
+      <div
+        role="meter"
+        aria-label={`Swedish players made ${impact.goals} goals and ${impact.assists} assists`}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+        className="flex h-2.5 w-full overflow-hidden rounded-full bg-muted"
+      >
+        <div className="h-full bg-[hsl(var(--goal))]" style={{ width: width(impact.goals) }} />
+        <div className="h-full bg-[hsl(var(--assist))]" style={{ width: width(impact.assists) }} />
+      </div>
+    </div>
+  );
+};
 const PointItem = ({
   point
 }: {
@@ -150,7 +185,7 @@ const PointItem = ({
         className="absolute left-0 top-0 bottom-0 w-1.5"
         style={{ backgroundColor: teamColor.primary }}
       />
-      <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shrink-0 leading-none ${isGoal ? 'bg-[hsl(var(--goal))] text-primary-foreground' : 'bg-[hsl(var(--assist))] text-primary-foreground'}`}>
+      <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shrink-0 leading-none ${isGoal ? 'bg-[hsl(var(--goal))] text-[hsl(var(--goal-foreground))]' : 'bg-[hsl(var(--assist))] text-[hsl(var(--assist-foreground))]'}`}>
         {isGoal ? 'G' : 'A'}
       </div>
       <PlayerHeadshot playerId={point.playerId} playerName={point.playerName} teamAbbr={point.playerTeamAbbr} size="sm" />
@@ -184,25 +219,21 @@ const GoalieItem = ({
         className="absolute left-0 top-0 bottom-0 w-1.5"
         style={{ backgroundColor: teamColor.primary }}
       />
-      <div className="flex items-center gap-3">
-        <Badge variant={isWin ? 'default' : 'secondary'}>{goalie.result}</Badge>
+      <div className="flex items-center gap-2 min-w-0">
+        <Badge variant={isWin ? 'default' : 'secondary'} className="shrink-0">{goalie.result}</Badge>
         <PlayerHeadshot playerId={goalie.goalieId} playerName={goalie.goalieName} teamAbbr={goalie.teamAbbr} size="sm" />
-        <div className="flex flex-col">
-          <Link to={`/player/${goalie.goalieId}`} className="font-semibold text-foreground hover:text-primary transition-colors">
+        <div className="flex flex-col min-w-0">
+          <Link to={`/player/${goalie.goalieId}`} className="font-semibold text-foreground hover:text-primary transition-colors leading-tight">
             {goalie.goalieName}
           </Link>
-          <span className="text-xs text-muted-foreground">{goalie.team}</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            {goalie.saves}/{goalie.shotsAgainst} saves
+          </span>
         </div>
       </div>
-      <div className="flex items-center gap-4 text-right">
-        <div className="flex flex-col">
-          <span className="text-lg font-bold text-foreground">{svPct}%</span>
-          <span className="text-xs text-muted-foreground">SV%</span>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-sm font-medium text-foreground">{goalie.saves}/{goalie.shotsAgainst}</span>
-          <span className="text-xs text-muted-foreground">Saves</span>
-        </div>
+      <div className="flex flex-col shrink-0 pl-2 text-right">
+        <span className="text-lg font-bold text-foreground">{svPct}%</span>
+        <span className="text-xs text-muted-foreground">SV%</span>
       </div>
     </div>
   );

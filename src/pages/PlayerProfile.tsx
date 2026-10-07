@@ -196,7 +196,7 @@ const PlayerProfile = () => {
                           {entry.awayTeamAbbr} @ {entry.homeTeamAbbr}
                         </TableCell>
                         <TableCell>
-                          <Badge className={entry.type === 'goal' ? 'bg-[hsl(var(--goal))]' : 'bg-[hsl(var(--assist))]'}>
+                          <Badge className={entry.type === 'goal' ? 'bg-[hsl(var(--goal))] text-[hsl(var(--goal-foreground))] hover:bg-[hsl(var(--goal))]' : 'bg-[hsl(var(--assist))] text-[hsl(var(--assist-foreground))] hover:bg-[hsl(var(--assist))]'}>
                             {entry.type}
                           </Badge>
                         </TableCell>
@@ -261,7 +261,7 @@ const PlayerProfile = () => {
                         <TableCell>{season.games}</TableCell>
                         {isGoalie ? (
                           <>
-                            <TableCell className="text-[hsl(var(--goal))]">{season.wins}</TableCell>
+                            <TableCell className="text-[hsl(var(--positive))]">{season.wins}</TableCell>
                             <TableCell>{season.losses}</TableCell>
                             <TableCell className="font-bold text-primary">
                               {((season.savePercentage || 0) * 100).toFixed(1)}%
@@ -274,7 +274,7 @@ const PlayerProfile = () => {
                             <TableCell>{season.goals}</TableCell>
                             <TableCell>{season.assists}</TableCell>
                             <TableCell className="font-bold text-primary">{season.points}</TableCell>
-                            <TableCell className={season.plusMinus >= 0 ? 'text-[hsl(var(--goal))]' : 'text-destructive'}>
+                            <TableCell className={season.plusMinus >= 0 ? 'text-[hsl(var(--positive))]' : 'text-destructive'}>
                               {season.plusMinus > 0 ? '+' : ''}{season.plusMinus}
                             </TableCell>
                             <TableCell>{season.penaltyMinutes}</TableCell>

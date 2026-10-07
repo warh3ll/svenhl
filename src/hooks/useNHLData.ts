@@ -102,6 +102,7 @@ const transformGame = (row: any): Game => ({
   status: row.status as 'final' | 'live' | 'scheduled',
   swedishPoints: (row.swedish_points as GamePoint[]) || [],
   swedishGoalies: (row.swedish_goalies as GoaliePerformance[]) || [],
+  impact: row.impact || undefined,
   highlightVideoId: row.highlight_video_id || undefined,
   period: row.period,
   timeRemaining: row.time_remaining,

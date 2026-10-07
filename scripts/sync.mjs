@@ -323,11 +323,20 @@ async function syncNHLSverigeVideos() {
 async function fetchSwedishGameStats(game, swedishPlayers, swedishGoalies) {
   const points = [];
   const goalies = [];
+  // Goals + assists by everyone vs. by Swedes, for the impact meter.
+  // Shootout goals count on the scoreboard but are not points, so they are left out.
+  const impact = { goals: 0, assists: 0, total: 0 };
 
   const landing = await fetchJson(`https://api-web.nhle.com/v1/gamecenter/${game.id}/landing`);
   for (const period of landing.summary?.scoring || []) {
     const periodNumber = period.periodDescriptor?.number || 0;
+    const isShootout = period.periodDescriptor?.periodType === "SO";
     for (const goal of period.goals || []) {
+      if (!isShootout) {
+        impact.total += 1 + (goal.assists || []).length;
+        if (swedishPlayers.has(String(goal.playerId))) impact.goals++;
+        impact.assists += (goal.assists || []).filter((a) => swedishPlayers.has(String(a.playerId))).length;
+      }
       const scorer = swedishPlayers.get(String(goal.playerId));
       if (scorer) {
         points.push({
@@ -381,7 +390,7 @@ async function fetchSwedishGameStats(game, swedishPlayers, swedishGoalies) {
     }
   }
 
-  return { points, goalies };
+  return { points, goalies, impact };
 }
 
 async function syncGames({ players, goalies }) {
@@ -413,9 +422,10 @@ async function syncGames({ players, goalies }) {
 
     let swedishPoints = previous?.swedish_points || [];
     let swedishGoaliePerformances = previous?.swedish_goalies || [];
+    let impact = previous?.impact || null;
     if (isFinal) {
       try {
-        ({ points: swedishPoints, goalies: swedishGoaliePerformances } = await fetchSwedishGameStats(
+        ({ points: swedishPoints, goalies: swedishGoaliePerformances, impact } = await fetchSwedishGameStats(
           game,
           swedishPlayers,
           swedishGoalies,
@@ -467,6 +477,7 @@ async function syncGames({ players, goalies }) {
       status: isFinal ? "final" : game.gameState === "LIVE" || game.gameState === "CRIT" ? "live" : "scheduled",
       swedish_points: swedishPoints,
       swedish_goalies: swedishGoaliePerformances,
+      impact,
       highlight_video_id: highlightVideoId && /^[a-zA-Z0-9_-]{11}$/.test(highlightVideoId) ? highlightVideoId : null,
       highlight_checked_at: highlightCheckedAt,
       period: game.periodDescriptor?.number ? `P${game.periodDescriptor.number}` : null,
@@ -475,6 +486,21 @@ async function syncGames({ players, goalies }) {
   }
 
   const cutoff = now.getTime() - GAME_HISTORY_DAYS * 24 * 60 * 60 * 1000;
+
+  // One-time backfill: finished games older than this week's schedule, saved before impact was tracked
+  for (const row of existing.values()) {
+    if (row.status !== "final" || row.impact || new Date(row.game_date).getTime() < cutoff) continue;
+    try {
+      const game = { id: row.id, homeTeam: { abbrev: row.home_team_abbr }, awayTeam: { abbrev: row.away_team_abbr } };
+      // Swedes saved on the game also count (e.g. preseason scorers not yet in this season's stats)
+      const players = new Map(swedishPlayers);
+      for (const point of row.swedish_points || []) players.set(point.playerId, { name: point.playerName });
+      row.impact = (await fetchSwedishGameStats(game, players, swedishGoalies)).impact;
+    } catch (e) {
+      console.error(`Failed to backfill impact for game ${row.id}:`, e.message);
+    }
+  }
+
   const games = [...existing.values()]
     .filter((g) => new Date(g.game_date).getTime() >= cutoff)
     .sort((a, b) => new Date(b.game_date) - new Date(a.game_date));
