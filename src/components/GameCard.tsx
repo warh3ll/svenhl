@@ -100,6 +100,8 @@ const GameCard = ({
           </div>
         ) : (
           <>
+            {game.status === 'final' && game.impact && game.impact.total > 0 && <ImpactMeter impact={game.impact} />}
+
             {/* Swedish Points */}
             {game.swedishPoints.length > 0 && <div className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -131,6 +133,38 @@ const GameCard = ({
         )}
       </CardContent>
     </Card>;
+};
+// Share of the game's points (goals + assists, both teams) made by Swedish players
+const ImpactMeter = ({
+  impact
+}: {
+  impact: { swedish: number; total: number };
+}) => {
+  const percent = Math.round((impact.swedish / impact.total) * 100);
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-sm font-semibold text-foreground">Swedish impact</span>
+        <span className="text-sm text-muted-foreground">
+          {impact.swedish} of {impact.total} points · <span className="font-semibold text-foreground">{percent}%</span>
+        </span>
+      </div>
+      <div
+        role="meter"
+        aria-label="Share of points made by Swedish players"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+        className="h-2.5 w-full overflow-hidden rounded-full bg-muted"
+      >
+        {percent > 0 && <div
+          className="h-full rounded-full bg-[hsl(var(--sweden-blue))] border-r-4 border-[hsl(var(--sweden-yellow))] transition-[width] duration-500"
+          style={{ width: `${percent}%` }}
+        />}
+      </div>
+    </div>
+  );
 };
 const PointItem = ({
   point

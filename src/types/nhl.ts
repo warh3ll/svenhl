@@ -73,6 +73,8 @@ export interface Game {
   status: 'final' | 'live' | 'scheduled';
   swedishPoints: GamePoint[];
   swedishGoalies: GoaliePerformance[];
+  // Goals + assists by Swedes vs. by everyone in the game (shootouts excluded); missing on older games
+  impact?: { swedish: number; total: number };
   highlightVideoId?: string;
   period?: string;
   timeRemaining?: string;
