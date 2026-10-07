@@ -219,25 +219,21 @@ const GoalieItem = ({
         className="absolute left-0 top-0 bottom-0 w-1.5"
         style={{ backgroundColor: teamColor.primary }}
       />
-      <div className="flex items-center gap-3">
-        <Badge variant={isWin ? 'default' : 'secondary'}>{goalie.result}</Badge>
+      <div className="flex items-center gap-2 min-w-0">
+        <Badge variant={isWin ? 'default' : 'secondary'} className="shrink-0">{goalie.result}</Badge>
         <PlayerHeadshot playerId={goalie.goalieId} playerName={goalie.goalieName} teamAbbr={goalie.teamAbbr} size="sm" />
-        <div className="flex flex-col">
-          <Link to={`/player/${goalie.goalieId}`} className="font-semibold text-foreground hover:text-primary transition-colors">
+        <div className="flex flex-col min-w-0">
+          <Link to={`/player/${goalie.goalieId}`} className="font-semibold text-foreground hover:text-primary transition-colors leading-tight">
             {goalie.goalieName}
           </Link>
-          <span className="text-xs text-muted-foreground">{goalie.team}</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            {goalie.saves}/{goalie.shotsAgainst} saves
+          </span>
         </div>
       </div>
-      <div className="flex items-center gap-4 text-right">
-        <div className="flex flex-col">
-          <span className="text-lg font-bold text-foreground">{svPct}%</span>
-          <span className="text-xs text-muted-foreground">SV%</span>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-sm font-medium text-foreground">{goalie.saves}/{goalie.shotsAgainst}</span>
-          <span className="text-xs text-muted-foreground">Saves</span>
-        </div>
+      <div className="flex flex-col shrink-0 pl-2 text-right">
+        <span className="text-lg font-bold text-foreground">{svPct}%</span>
+        <span className="text-xs text-muted-foreground">SV%</span>
       </div>
     </div>
   );
