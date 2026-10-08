@@ -110,7 +110,7 @@ const Teams = () => {
       <Header />
       
       
-      <main className="flex-1 container py-8">
+      <main id="main" tabIndex={-1} className="outline-none flex-1 container py-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Teams</h1>
@@ -120,7 +120,7 @@ const Teams = () => {
           </div>
           
           <Select value={selectedSeason} onValueChange={setSelectedSeason}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px]" aria-label="Season">
               <SelectValue placeholder="Select season" />
             </SelectTrigger>
             <SelectContent>

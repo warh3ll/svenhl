@@ -66,10 +66,10 @@ const NHLSverigeCarousel = () => {
             
             <div>
               <h2 className="text-xl font-bold text-slate-900">NHL Sverige</h2>
-              <p className="text-sm text-slate-700">Senaste videor från @nhleurope</p>
+              <p lang="sv" className="text-sm text-slate-700">Senaste videor från @nhleurope</p>
             </div>
           </div>
-          <a href="https://www.youtube.com/playlist?list=PLfsAEO-f92nqOtemyyAvcxpKU6JjiAGqM" target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-1">
+          <a href="https://www.youtube.com/playlist?list=PLfsAEO-f92nqOtemyyAvcxpKU6JjiAGqM" target="_blank" rel="noopener noreferrer" lang="sv" className="text-sm text-primary hover:underline flex items-center gap-1">
             Visa alla
             <MaterialIcon name="open_in_new" size="sm" />
           </a>
@@ -87,7 +87,7 @@ const NHLSverigeCarousel = () => {
             </CarouselContent>
             <CarouselPrevious className="left-2 md:-left-4 bg-background/80 backdrop-blur-sm border-border hover:bg-background" />
             <CarouselNext className="right-2 md:-right-4 bg-background/80 backdrop-blur-sm border-border hover:bg-background" />
-          </Carousel> : <p className="text-center text-slate-700 py-8">Inga videor tillgängliga</p>}
+          </Carousel> : <p lang="sv" className="text-center text-slate-700 py-8">Inga videor tillgängliga</p>}
       </div>
     </section>;
 };

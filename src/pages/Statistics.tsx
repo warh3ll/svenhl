@@ -43,7 +43,7 @@ const Statistics = () => {
       <Header />
       
       
-      <main className="container py-8">
+      <main id="main" tabIndex={-1} className="outline-none container py-8">
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="mb-2 text-4xl font-bold tracking-tight text-foreground">
@@ -56,9 +56,9 @@ const Statistics = () => {
 
         {/* Season Filter */}
         <div className="mb-6 flex items-center gap-4">
-          <label className="text-sm font-medium text-foreground">Season:</label>
+          <label htmlFor="season-select" className="text-sm font-medium text-foreground">Season:</label>
           <Select value={selectedSeason} onValueChange={setSelectedSeason}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger id="season-select" className="w-[140px]">
               <SelectValue placeholder="Select season" />
             </SelectTrigger>
             <SelectContent>
@@ -121,7 +121,7 @@ const Statistics = () => {
 
         {/* Legend */}
         <div className="mt-8 rounded-lg border bg-card p-4">
-          <h3 className="mb-2 font-semibold text-foreground">Statistics Legend</h3>
+          <h2 className="mb-2 font-semibold text-foreground">Statistics Legend</h2>
           <div className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2 lg:grid-cols-4">
             <div><strong>GP:</strong> Games Played</div>
             <div><strong>G:</strong> Goals</div>

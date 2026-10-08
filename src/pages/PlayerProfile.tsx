@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { format } from 'date-fns';
 import TeamLogo from '@/components/TeamLogo';
 import SEO from '@/components/SEO';
+import { Helmet } from 'react-helmet-async';
 
 const PlayerProfile = () => {
   const { playerId } = useParams<{ playerId: string }>();
@@ -28,8 +29,9 @@ const PlayerProfile = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
+        <Helmet><title>Loading player | SVENHL</title></Helmet>
         <Header />
-        <main className="container py-8 space-y-6">
+        <main id="main" tabIndex={-1} className="outline-none container py-8 space-y-6">
           <Skeleton className="h-40 w-full" />
           <Skeleton className="h-60 w-full" />
         </main>
@@ -40,8 +42,9 @@ const PlayerProfile = () => {
   if (!currentPlayer) {
     return (
       <div className="min-h-screen bg-background">
+        <Helmet><title>Player Not Found | SVENHL</title></Helmet>
         <Header />
-        <main className="container py-8">
+        <main id="main" tabIndex={-1} className="outline-none container py-8">
           <div className="text-center py-12">
             <h1 className="text-2xl font-bold text-foreground mb-2">Player Not Found</h1>
             <p className="text-muted-foreground mb-4">The player you're looking for doesn't exist.</p>
@@ -71,7 +74,7 @@ const PlayerProfile = () => {
         }}
       />
       <Header />
-      <main className="container py-8 space-y-6">
+      <main id="main" tabIndex={-1} className="outline-none container py-8 space-y-6">
         {/* Back Link */}
         <Link 
           to="/statistics" 
@@ -88,7 +91,7 @@ const PlayerProfile = () => {
               <div className="relative h-24 w-24 overflow-hidden rounded-full bg-primary/10">
                 <img 
                   src={`https://assets.nhle.com/mugs/nhl/${playerSeason}/${currentPlayer.teamAbbr.split(',').pop()}/${playerId}.png`}
-                  alt={currentPlayer.name}
+                  alt=""
                   className="h-full w-full object-cover"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
