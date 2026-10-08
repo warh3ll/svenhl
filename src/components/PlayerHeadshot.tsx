@@ -25,7 +25,9 @@ const iconSizeClasses = {
   lg: 'h-8 w-8',
 };
 
-const PlayerHeadshot = ({ playerId, playerName, teamAbbr, season = CURRENT_SEASON, size = 'md', className, priority = false }: PlayerHeadshotProps) => {
+// The player's name is always shown next to the headshot, so the image is decorative (alt="")
+// and screen readers don't hear the name twice. playerName is kept for callers' readability.
+const PlayerHeadshot = ({ playerId, teamAbbr, season = CURRENT_SEASON, size = 'md', className, priority = false }: PlayerHeadshotProps) => {
   const [hasError, setHasError] = useState(false);
   
   // Use the team-specific URL format which is more reliable.
@@ -51,7 +53,7 @@ const PlayerHeadshot = ({ playerId, playerName, teamAbbr, season = CURRENT_SEASO
   return (
     <img
       src={headshotUrl}
-      alt={playerName}
+      alt=""
       width={size === 'lg' ? 96 : size === 'md' ? 48 : 32}
       height={size === 'lg' ? 96 : size === 'md' ? 48 : 32}
       loading={priority ? "eager" : "lazy"}

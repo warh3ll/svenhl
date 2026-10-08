@@ -55,15 +55,21 @@ const PlayerTable = ({ players }: PlayerTableProps) => {
       : <MaterialIcon name="arrow_downward" size="sm" />;
   };
 
+  // The sort control is a real button so it can be reached and used with the keyboard,
+  // and aria-sort tells screen readers which column is sorted and in which direction
   const SortableHeader = ({ field, children, className }: { field: SortField; children: React.ReactNode; className?: string }) => (
-    <TableHead 
-      className={cn("cursor-pointer select-none hover:bg-muted/50 transition-colors", className)}
-      onClick={() => handleSort(field)}
+    <TableHead
+      className={cn("p-0", className)}
+      aria-sort={sortField !== field ? 'none' : sortDirection === 'asc' ? 'ascending' : 'descending'}
     >
-      <div className="flex items-center gap-1">
+      <button
+        type="button"
+        onClick={() => handleSort(field)}
+        className="flex h-12 w-full select-none items-center gap-1 px-4 font-medium transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+      >
         {children}
         <SortIcon field={field} />
-      </div>
+      </button>
     </TableHead>
   );
 

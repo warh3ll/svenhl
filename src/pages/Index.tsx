@@ -34,7 +34,9 @@ const Index = () => {
       />
       <Header />
       
-      <main className="container py-8">
+      <main id="main" tabIndex={-1} className="outline-none container py-8">
+        <h1 className="sr-only">Swedish NHL players: games and stats</h1>
+
         {/* Scheduled games, kept out of the results feed */}
         <UpcomingGamesStrip games={upcomingGames ?? []} />
 

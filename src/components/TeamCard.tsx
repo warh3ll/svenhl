@@ -70,7 +70,7 @@ const TeamCard = ({ teamAbbr, players, goalies }: TeamCardProps) => {
         >
           <TeamLogo teamAbbr={teamAbbr} size="lg" />
           <div className="flex flex-col">
-            <h3 className="text-lg font-bold text-foreground">{teamName}</h3>
+            <h2 className="text-lg font-bold text-foreground">{teamName}</h2>
             <span className="text-sm text-muted-foreground">
               {sortedPlayers.length + sortedGoalies.length} Swedish player{sortedPlayers.length + sortedGoalies.length !== 1 ? 's' : ''}
             </span>

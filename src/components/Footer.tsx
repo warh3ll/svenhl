@@ -6,7 +6,7 @@ const Footer = () => {
           <p>Data updated every several times per day. Stats provided for informational purposes.</p>
           <p className="mt-1">🇸🇪 Celebrating Swedish excellence in the NHL</p>
         </div>
-        <Button variant="outline" size="sm" asChild className="bg-[#FF5E5B] hover:bg-[#FF5E5B]/90 text-white border-[#FF5E5B] hover:border-[#FF5E5B]/90">
+        <Button variant="outline" size="sm" asChild className="bg-[#C9302C] hover:bg-[#C9302C]/90 text-white hover:text-white border-[#C9302C] hover:border-[#C9302C]/90">
           <a href="https://ko-fi.com/svenhl" target="_blank" rel="noopener noreferrer">
             <img src="https://storage.ko-fi.com/cdn/cup-border.png" alt="" className="h-4 w-4 mr-2" />
             Support Us

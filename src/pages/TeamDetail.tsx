@@ -22,6 +22,7 @@ import { getTeamColor, getTeamBackgroundColor } from '@/lib/teamColors';
 import { cn } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
 import SEO from '@/components/SEO';
+import { Helmet } from 'react-helmet-async';
 
 // Full team names mapped from abbreviations
 const TEAM_NAMES: Record<string, string> = {
@@ -108,8 +109,9 @@ const TeamDetail = () => {
   if (!normalizedAbbr || !TEAM_NAMES[normalizedAbbr]) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
+        <Helmet><title>Team Not Found | SVENHL</title></Helmet>
         <Header />
-        <main className="flex-1 container py-8">
+        <main id="main" tabIndex={-1} className="outline-none flex-1 container py-8">
           <div className="text-center py-12">
             <h1 className="text-2xl font-bold text-foreground mb-4">Team Not Found</h1>
             <p className="text-muted-foreground mb-6">
@@ -138,7 +140,7 @@ const TeamDetail = () => {
       <Header />
       
       
-      <main className="flex-1 container py-8">
+      <main id="main" tabIndex={-1} className="outline-none flex-1 container py-8">
         {/* Back button */}
         <Link 
           to="/teams" 
@@ -243,8 +245,8 @@ const TeamDetail = () => {
                             <TableCell className="text-center font-bold">{player.points}</TableCell>
                             <TableCell className={cn(
                               "text-center",
-                              player.plusMinus > 0 && "text-green-600",
-                              player.plusMinus < 0 && "text-red-600"
+                              player.plusMinus > 0 && "text-[hsl(var(--positive))]",
+                              player.plusMinus < 0 && "text-destructive"
                             )}>
                               {player.plusMinus > 0 ? '+' : ''}{player.plusMinus}
                             </TableCell>

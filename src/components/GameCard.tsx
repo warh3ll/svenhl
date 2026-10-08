@@ -59,12 +59,14 @@ const GameCard = ({
               <TeamLogo teamAbbr={game.awayTeamAbbr} size="lg" />
               <span className="text-lg font-bold text-foreground">{game.awayTeamAbbr}</span>
             </div>
+            {/* While hidden, the blurred score is kept away from screen readers so it isn't read out */}
             <div className="flex items-center gap-3">
-              <span className={`text-4xl font-bold text-foreground ${!showDetails ? 'blur-md select-none' : ''}`}>
+              {!showDetails && <span className="sr-only">Score hidden</span>}
+              <span aria-hidden={!showDetails || undefined} className={`text-4xl font-bold text-foreground ${!showDetails ? 'blur-md select-none' : ''}`}>
                 {game.awayScore}
               </span>
-              <span className="text-2xl text-muted-foreground">-</span>
-              <span className={`text-4xl font-bold text-foreground ${!showDetails ? 'blur-md select-none' : ''}`}>
+              <span aria-hidden={!showDetails || undefined} className="text-2xl text-muted-foreground">-</span>
+              <span aria-hidden={!showDetails || undefined} className={`text-4xl font-bold text-foreground ${!showDetails ? 'blur-md select-none' : ''}`}>
                 {game.homeScore}
               </span>
             </div>
@@ -75,7 +77,7 @@ const GameCard = ({
           </div>
           {/* Overtime/Shootout indicator */}
           {game.overtimeType && (
-            <span className={`mt-1 text-sm font-medium text-muted-foreground ${!showDetails ? 'blur-md select-none' : ''}`}>
+            <span aria-hidden={!showDetails || undefined} className={`mt-1 text-sm font-medium text-muted-foreground ${!showDetails ? 'blur-md select-none' : ''}`}>
               {game.overtimeType}
             </span>
           )}
@@ -93,6 +95,7 @@ const GameCard = ({
               size="sm"
               onClick={() => revealGame(game.id)}
               className="flex items-center gap-2"
+              aria-label={`Reveal score: ${game.awayTeamAbbr} at ${game.homeTeamAbbr}`}
             >
               <MaterialIcon name="visibility" size="sm" />
               Reveal Score
@@ -103,15 +106,9 @@ const GameCard = ({
             {game.status === 'final' && game.impact && game.impact.total > 0 && <ImpactMeter impact={game.impact} />}
 
             {/* Swedish Points */}
-            {game.swedishPoints.length > 0 && <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <MaterialIcon name="sports_hockey" size="sm" className="text-accent-foreground" />
-                  <span className="text-sm font-semibold text-foreground">Swedish Points</span>
-                  <Badge className="bg-accent text-accent-foreground">{game.swedishPoints.length}</Badge>
-                </div>
-                <div className="space-y-2">
-                  {game.swedishPoints.map((point, index) => <PointItem key={index} point={point} />)}
-                </div>
+            {/* The Impact bar above already sums these up, so the list has no heading of its own */}
+            {game.swedishPoints.length > 0 && <div className="space-y-2" role="group" aria-label="Swedish points">
+                {game.swedishPoints.map((point, index) => <PointItem key={index} point={point} />)}
               </div>}
 
             {/* Swedish Goalies - only show goalies who actually played (have saves) */}
@@ -135,7 +132,8 @@ const GameCard = ({
     </Card>;
 };
 // Share of the game's points (goals + assists, both teams) made by Swedish players,
-// split into Swedish goals (blue) and assists (yellow)
+// split into Swedish goals (blue) and assists (yellow). The split is also written out
+// under the bar, so it doesn't rely on color alone.
 const ImpactMeter = ({
   impact
 }: {
@@ -144,6 +142,7 @@ const ImpactMeter = ({
   const swedish = impact.goals + impact.assists;
   const percent = Math.round((swedish / impact.total) * 100);
   const width = (count: number) => `${(count / impact.total) * 100}%`;
+  const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
   return (
     <div className="space-y-1.5">
@@ -155,7 +154,7 @@ const ImpactMeter = ({
       </div>
       <div
         role="meter"
-        aria-label={`Swedish players made ${impact.goals} goals and ${impact.assists} assists`}
+        aria-label="Swedish share of the game's points"
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={percent}
@@ -163,6 +162,16 @@ const ImpactMeter = ({
       >
         <div className="h-full bg-[hsl(var(--goal))]" style={{ width: width(impact.goals) }} />
         <div className="h-full bg-[hsl(var(--assist))]" style={{ width: width(impact.assists) }} />
+      </div>
+      <div className="flex gap-4 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.5">
+          <span aria-hidden="true" className="h-2 w-2 rounded-full bg-[hsl(var(--goal))]" />
+          {plural(impact.goals, 'goal')}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span aria-hidden="true" className="h-2 w-2 rounded-full bg-[hsl(var(--assist))]" />
+          {plural(impact.assists, 'assist')}
+        </span>
       </div>
     </div>
   );
