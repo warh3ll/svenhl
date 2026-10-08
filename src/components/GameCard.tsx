@@ -106,15 +106,9 @@ const GameCard = ({
             {game.status === 'final' && game.impact && game.impact.total > 0 && <ImpactMeter impact={game.impact} />}
 
             {/* Swedish Points */}
-            {game.swedishPoints.length > 0 && <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <MaterialIcon name="sports_hockey" size="sm" className="text-accent-foreground" />
-                  <span className="text-sm font-semibold text-foreground">Swedish Points</span>
-                  <Badge className="bg-accent text-accent-foreground">{game.swedishPoints.length}</Badge>
-                </div>
-                <div className="space-y-2">
-                  {game.swedishPoints.map((point, index) => <PointItem key={index} point={point} />)}
-                </div>
+            {/* The Impact bar above already sums these up, so the list has no heading of its own */}
+            {game.swedishPoints.length > 0 && <div className="space-y-2" role="group" aria-label="Swedish points">
+                {game.swedishPoints.map((point, index) => <PointItem key={index} point={point} />)}
               </div>}
 
             {/* Swedish Goalies - only show goalies who actually played (have saves) */}
