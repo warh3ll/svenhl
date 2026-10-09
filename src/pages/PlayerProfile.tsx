@@ -1,4 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
+import type { PlayerGameLogEntry } from '@/types/nhl';
 import { usePlayer, useGoalie, usePlayerGameLog, usePlayerCareerStats } from '@/hooks/useNHLData';
 import { CURRENT_SEASON, formatSeason } from '@/lib/season';
 import Header from '@/components/Header';
@@ -177,40 +178,7 @@ const PlayerProfile = () => {
             {gameLogLoading ? (
               <Skeleton className="h-40 w-full" />
             ) : gameLog && gameLog.length > 0 ? (
-              <div className="rounded-lg border overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/30">
-                      <TableHead>Date</TableHead>
-                      <TableHead>Matchup</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Period</TableHead>
-                      <TableHead>Time</TableHead>
-                      <TableHead className="min-w-[200px]">Description</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {gameLog.map((entry, index) => (
-                      <TableRow key={index} className="hover:bg-muted/30">
-                        <TableCell className="text-muted-foreground">
-                          {format(new Date(entry.gameDate), 'MMM d')}
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {entry.awayTeamAbbr} @ {entry.homeTeamAbbr}
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={entry.type === 'goal' ? 'bg-[hsl(var(--goal))] text-[hsl(var(--goal-foreground))] hover:bg-[hsl(var(--goal))]' : 'bg-[hsl(var(--assist))] text-[hsl(var(--assist-foreground))] hover:bg-[hsl(var(--assist))]'}>
-                            {entry.type}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>P{entry.period}</TableCell>
-                        <TableCell>{entry.time}</TableCell>
-                        <TableCell className="text-muted-foreground">{entry.description}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <PointsByGame entries={gameLog} />
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 No recorded points this season yet.
@@ -308,5 +276,77 @@ const StatBox = ({ label, value, highlight }: { label: string; value: string | n
     <div className="text-xs text-muted-foreground mt-1">{label}</div>
   </div>
 );
+
+// Recent points grouped into one row per game: date, matchup, a chip per point and a G/A summary.
+// Goal/assist is spelled out for screen readers and shown as a G/A letter, not by color alone.
+const periodLabel = (period: number) => (period >= 4 ? 'OT' : `P${period}`);
+const periodName = (period: number) => (period >= 4 ? 'overtime' : `period ${period}`);
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
+const PointsByGame = ({ entries }: { entries: PlayerGameLogEntry[] }) => {
+  const games: { gameId: string; entries: PlayerGameLogEntry[] }[] = [];
+  for (const entry of entries) {
+    const game = games.find((g) => g.gameId === entry.gameId);
+    if (game) game.entries.push(entry);
+    else games.push({ gameId: entry.gameId, entries: [entry] });
+  }
+
+  return (
+    <ol className="rounded-lg border divide-y" aria-label="Points by game">
+      {games.map(({ gameId, entries: points }) => {
+        const first = points[0];
+        const sorted = [...points].sort((a, b) => a.period - b.period || a.time.localeCompare(b.time));
+        const goals = points.filter((p) => p.type === 'goal').length;
+        const assists = points.length - goals;
+        return (
+          <li
+            key={gameId}
+            className="grid grid-cols-[auto_1fr_auto] items-center gap-x-4 gap-y-2 px-4 py-3 sm:grid-cols-[4rem_7.5rem_1fr_auto]"
+          >
+            <time dateTime={first.gameDate} className="text-sm text-muted-foreground">
+              {format(new Date(first.gameDate), 'MMM d')}
+            </time>
+            <span className="font-medium">
+              {first.awayTeamAbbr} @ {first.homeTeamAbbr}
+            </span>
+            <ul className="order-last col-span-full flex flex-wrap gap-2 sm:order-none sm:col-span-1" aria-label="Points">
+              {sorted.map((point, i) => (
+                <PointChip key={i} point={point} />
+              ))}
+            </ul>
+            <span className="text-right text-sm font-semibold tabular-nums whitespace-nowrap">
+              <span aria-hidden="true">
+                {[goals > 0 && `${goals} G`, assists > 0 && `${assists} A`].filter(Boolean).join(' · ')}
+              </span>
+              <span className="sr-only">
+                {[goals > 0 && plural(goals, 'goal'), assists > 0 && plural(assists, 'assist')].filter(Boolean).join(', ')}
+              </span>
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+};
+
+const PointChip = ({ point }: { point: PlayerGameLogEntry }) => {
+  const isGoal = point.type === 'goal';
+  return (
+    <li className="inline-flex items-center gap-1.5 rounded-full border bg-muted/40 py-0.5 pl-0.5 pr-2.5 text-sm">
+      <span
+        aria-hidden="true"
+        className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold leading-none ${isGoal ? 'bg-[hsl(var(--goal))] text-[hsl(var(--goal-foreground))]' : 'bg-[hsl(var(--assist))] text-[hsl(var(--assist-foreground))]'}`}
+      >
+        {isGoal ? 'G' : 'A'}
+      </span>
+      <span aria-hidden="true" className="tabular-nums">
+        {periodLabel(point.period)} <span className="text-muted-foreground">{point.time}</span>
+      </span>
+      <span className="sr-only">
+        {isGoal ? 'Goal' : 'Assist'}, {periodName(point.period)}, {point.time}
+      </span>
+    </li>
+  );
+};
 
 export default PlayerProfile;
