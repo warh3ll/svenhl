@@ -5,6 +5,7 @@ import PlayerHeadshot from '@/components/PlayerHeadshot';
 import { getTeamColor, getTeamBackgroundColor } from '@/lib/teamColors';
 import { SwedishPlayer, SwedishGoalie } from '@/types/nhl';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/i18n';
 
 // Full team names mapped from abbreviations
 const TEAM_NAMES: Record<string, string> = {
@@ -50,6 +51,7 @@ interface TeamCardProps {
 }
 
 const TeamCard = ({ teamAbbr, players, goalies }: TeamCardProps) => {
+  const { t, path, position, percent } = useI18n();
   const teamColor = getTeamColor(teamAbbr);
   const teamName = TEAM_NAMES[teamAbbr] || teamAbbr;
   const bgColor = getTeamBackgroundColor(teamAbbr, 0.08);
@@ -63,7 +65,7 @@ const TeamCard = ({ teamAbbr, players, goalies }: TeamCardProps) => {
       className="overflow-hidden transition-shadow hover:shadow-lg"
       style={{ borderLeftWidth: '4px', borderLeftColor: teamColor.primary }}
     >
-      <Link to={`/teams/${teamAbbr}`}>
+      <Link to={path(`/teams/${teamAbbr}`)}>
         <CardHeader 
           className="flex flex-row items-center gap-4 py-4 cursor-pointer hover:bg-muted/30 transition-colors"
           style={{ backgroundColor: bgColor }}
@@ -72,7 +74,7 @@ const TeamCard = ({ teamAbbr, players, goalies }: TeamCardProps) => {
           <div className="flex flex-col">
             <h2 className="text-lg font-bold text-foreground">{teamName}</h2>
             <span className="text-sm text-muted-foreground">
-              {sortedPlayers.length + sortedGoalies.length} Swedish player{sortedPlayers.length + sortedGoalies.length !== 1 ? 's' : ''}
+              {t('teams.swedishPlayers', { count: sortedPlayers.length + sortedGoalies.length })}
             </span>
           </div>
         </CardHeader>
@@ -82,14 +84,14 @@ const TeamCard = ({ teamAbbr, players, goalies }: TeamCardProps) => {
           {sortedPlayers.map((player) => (
             <Link
               key={player.id}
-              to={`/player/${player.id}`}
+              to={path(`/player/${player.id}`)}
               className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
             >
               <span className={cn(
                 "w-8 text-center text-xs font-semibold rounded px-1.5 py-0.5",
                 "bg-muted text-muted-foreground"
               )}>
-                {player.position}
+                {position(player.position)}
               </span>
               <PlayerHeadshot 
                 playerId={player.id} 
@@ -102,21 +104,21 @@ const TeamCard = ({ teamAbbr, players, goalies }: TeamCardProps) => {
                 {player.name}
               </span>
               <span className="text-sm font-semibold text-foreground">
-                {player.points} pts
+                {t('teams.points', { count: player.points })}
               </span>
             </Link>
           ))}
           {sortedGoalies.map((goalie) => (
             <Link
               key={goalie.id}
-              to={`/player/${goalie.id}`}
+              to={path(`/player/${goalie.id}`)}
               className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
             >
               <span className={cn(
                 "w-8 text-center text-xs font-semibold rounded px-1.5 py-0.5",
                 "bg-primary/20 text-primary"
               )}>
-                G
+                {position('G')}
               </span>
               <PlayerHeadshot 
                 playerId={goalie.id} 
@@ -129,7 +131,7 @@ const TeamCard = ({ teamAbbr, players, goalies }: TeamCardProps) => {
                 {goalie.name}
               </span>
               <span className="text-sm font-semibold text-foreground">
-                {(goalie.savePercentage * 100).toFixed(1)}%
+                {percent(goalie.savePercentage)}
               </span>
             </Link>
           ))}

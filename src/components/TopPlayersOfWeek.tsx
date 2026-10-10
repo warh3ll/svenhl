@@ -4,6 +4,7 @@ import PlayerHeadshot from './PlayerHeadshot';
 import TeamLogo from './TeamLogo';
 import { Game } from '@/types/nhl';
 import MaterialIcon from '@/components/ui/material-icon';
+import { useI18n } from '@/i18n';
 interface TopPlayer {
   playerId: string;
   playerName: string;
@@ -18,6 +19,7 @@ interface TopPlayersOfWeekProps {
 const TopPlayersOfWeek = ({
   games
 }: TopPlayersOfWeekProps) => {
+  const { t, path } = useI18n();
   const topPlayers = useMemo(() => {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -64,9 +66,9 @@ const TopPlayersOfWeek = ({
     return <div className="mb-8 min-h-[340px]">
         <div className="flex items-center justify-center gap-2 mb-6">
           <MaterialIcon name="emoji_events" size="lg" className="text-[hsl(var(--sweden-yellow))]" />
-          <h2 className="text-2xl font-bold text-foreground">Top 3 of the Week</h2>
+          <h2 className="text-2xl font-bold text-foreground">{t('topWeek.heading')}</h2>
         </div>
-        <p className="text-center text-muted-foreground">No points recorded in the last 7 days</p>
+        <p className="text-center text-muted-foreground">{t('topWeek.empty')}</p>
       </div>;
   }
   const getRankStyles = (index: number) => {
@@ -88,11 +90,11 @@ const TopPlayersOfWeek = ({
   return <div className="mb-8 min-h-[340px] rounded-xl mx-0 px-[24px] py-[24px] bg-primary-foreground shadow-none">
       <div className="flex items-center justify-center gap-2 mb-6">
         <MaterialIcon name="emoji_events" size="lg" className="text-[hsl(var(--sweden-yellow))]" />
-        <h2 className="text-2xl font-bold text-foreground">Top 3 of the Week</h2>
+        <h2 className="text-2xl font-bold text-foreground">{t('topWeek.heading')}</h2>
       </div>
       
       <div className="grid gap-4 sm:grid-cols-3">
-        {topPlayers.map((player, index) => <Link key={player.playerId} to={`/player/${player.playerId}`} className={`group relative rounded-xl p-6 transition-all hover:shadow-lg ${getRankStyles(index)}`}>
+        {topPlayers.map((player, index) => <Link key={player.playerId} to={path(`/player/${player.playerId}`)} className={`group relative rounded-xl p-6 transition-all hover:shadow-lg ${getRankStyles(index)}`}>
             {/* Rank Badge */}
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl">
               {getRankBadge(index)}
@@ -120,12 +122,12 @@ const TopPlayersOfWeek = ({
               <div className="mt-4 flex items-center justify-center gap-4">
                 <div className="text-center">
                   <span className="block text-3xl font-bold text-primary">{player.points}</span>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wide">Points</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">{t('topWeek.points')}</span>
                 </div>
                 <div className="h-8 w-px bg-border" />
                 <div className="flex flex-col items-center gap-1">
-                  <span className="rounded-full bg-[hsl(var(--goal))] px-2 text-sm font-semibold text-[hsl(var(--goal-foreground))]">{player.goals}G</span>
-                  <span className="rounded-full bg-[hsl(var(--assist))] px-2 text-sm font-semibold text-[hsl(var(--assist-foreground))]">{player.assists}A</span>
+                  <span className="rounded-full bg-[hsl(var(--goal))] px-2 text-sm font-semibold text-[hsl(var(--goal-foreground))]">{player.goals}{t('game.goalLetter')}</span>
+                  <span className="rounded-full bg-[hsl(var(--assist))] px-2 text-sm font-semibold text-[hsl(var(--assist-foreground))]">{player.assists}{t('game.assistLetter')}</span>
                 </div>
               </div>
             </div>

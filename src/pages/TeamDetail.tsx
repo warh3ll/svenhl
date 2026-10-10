@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { Helmet } from 'react-helmet-async';
+import { listNames, useI18n } from '@/i18n';
 
 // Full team names mapped from abbreviations
 const TEAM_NAMES: Record<string, string> = {
@@ -61,16 +62,11 @@ const TEAM_NAMES: Record<string, string> = {
   WPG: 'Winnipeg Jets',
 };
 
-// Same wording as teamDescription in scripts/prerender-routes.mjs
-const teamDescription = (teamName: string, names: string[]) => {
-  if (!names.length) return `Swedish players on the ${teamName} roster, with season stats and recent games.`;
-  const list = names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
-  return `Swedish players on the ${teamName} this season: ${list}. Season stats and recent games.`;
-};
-
 const TeamDetail = () => {
   const { teamAbbr } = useParams<{ teamAbbr: string }>();
   const normalizedAbbr = teamAbbr?.toUpperCase() || '';
+  const { lang, t, path, position, decimal, percent } = useI18n();
+  const season = formatSeason(CURRENT_SEASON);
   
   const { data: allPlayers, isLoading: playersLoading } = useSwedishPlayers(CURRENT_SEASON);
   const { data: allGoalies, isLoading: goaliesLoading } = useSwedishGoalies(CURRENT_SEASON);
@@ -116,18 +112,18 @@ const TeamDetail = () => {
   if (!normalizedAbbr || !TEAM_NAMES[normalizedAbbr]) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
-        <Helmet><title>Team Not Found | SVENHL</title></Helmet>
+        <Helmet><title>{`${t('team.notFoundTitle')} | SVENHL`}</title></Helmet>
         <Header />
         <main id="main" tabIndex={-1} className="outline-none flex-1 container py-8">
           <div className="text-center py-12">
-            <h1 className="text-2xl font-bold text-foreground mb-4">Team Not Found</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-4">{t('team.notFoundTitle')}</h1>
             <p className="text-muted-foreground mb-6">
-              The team "{teamAbbr}" could not be found.
+              {t('team.notFoundText', { team: teamAbbr })}
             </p>
             <Button asChild>
-              <Link to="/teams">
+              <Link to={path('/teams')}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Teams
+                {t('team.back')}
               </Link>
             </Button>
           </div>
@@ -140,8 +136,12 @@ const TeamDetail = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEO
-        title={`${teamName} — Swedish Players | SVENHL`}
-        description={teamDescription(teamName, [...teamPlayers, ...teamGoalies].map(p => p.name))}
+        title={t('seo.team.title', { team: teamName })}
+        description={
+          totalPlayers
+            ? t('seo.team.description', { team: teamName, names: listNames(lang, [...teamPlayers, ...teamGoalies].map(p => p.name)) })
+            : t('seo.team.descriptionEmpty', { team: teamName })
+        }
         path={`/teams/${normalizedAbbr}`}
       />
       <Header />
@@ -150,11 +150,11 @@ const TeamDetail = () => {
       <main id="main" tabIndex={-1} className="outline-none flex-1 container py-8">
         {/* Back button */}
         <Link 
-          to="/teams" 
+          to={path('/teams')}
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Teams
+          {t('team.back')}
         </Link>
         
         {/* Team Header */}
@@ -169,7 +169,7 @@ const TeamDetail = () => {
           <div>
             <h1 className="text-3xl font-bold text-foreground">{teamName}</h1>
             <p className="text-muted-foreground mt-1">
-              {totalPlayers} Swedish player{totalPlayers !== 1 ? 's' : ''} • {formatSeason(CURRENT_SEASON)} Season
+              {t('teams.swedishPlayers', { count: totalPlayers })} • {t('team.season', { season })}
             </p>
           </div>
         </div>
@@ -191,7 +191,7 @@ const TeamDetail = () => {
           </div>
         ) : totalPlayers === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
-            No Swedish players on this team for the {formatSeason(CURRENT_SEASON)} season.
+            {t('team.empty', { season })}
           </div>
         ) : (
           <div className="space-y-8">
@@ -199,26 +199,26 @@ const TeamDetail = () => {
             {teamPlayers.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-xl">Skaters ({teamPlayers.length})</CardTitle>
+                  <CardTitle className="text-xl">{t('team.skaters', { count: teamPlayers.length })}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-[250px]">Player</TableHead>
-                          <TableHead className="text-center">Pos</TableHead>
-                          <TableHead className="text-center">GP</TableHead>
-                          <TableHead className="text-center">G</TableHead>
-                          <TableHead className="text-center">A</TableHead>
-                          <TableHead className="text-center">P</TableHead>
-                          <TableHead className="text-center">+/-</TableHead>
-                          <TableHead className="text-center">PIM</TableHead>
-                          <TableHead className="text-center">PPG</TableHead>
-                          <TableHead className="text-center">PPP</TableHead>
-                          <TableHead className="text-center">GWG</TableHead>
-                          <TableHead className="text-center">S</TableHead>
-                          <TableHead className="text-center">S%</TableHead>
+                          <TableHead className="w-[250px]">{t('table.player')}</TableHead>
+                          <TableHead className="text-center">{t('stat.pos')}</TableHead>
+                          <TableHead className="text-center">{t('stat.gp')}</TableHead>
+                          <TableHead className="text-center">{t('stat.g')}</TableHead>
+                          <TableHead className="text-center">{t('stat.a')}</TableHead>
+                          <TableHead className="text-center">{t('stat.p')}</TableHead>
+                          <TableHead className="text-center">{t('stat.plusMinus')}</TableHead>
+                          <TableHead className="text-center">{t('stat.pim')}</TableHead>
+                          <TableHead className="text-center">{t('stat.ppg')}</TableHead>
+                          <TableHead className="text-center">{t('stat.ppp')}</TableHead>
+                          <TableHead className="text-center">{t('stat.gwg')}</TableHead>
+                          <TableHead className="text-center">{t('stat.s')}</TableHead>
+                          <TableHead className="text-center">{t('stat.sPct')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -226,7 +226,7 @@ const TeamDetail = () => {
                           <TableRow key={player.id} className="hover:bg-muted/50">
                             <TableCell>
                               <Link 
-                                to={`/player/${player.id}`}
+                                to={path(`/player/${player.id}`)}
                                 className="flex items-center gap-3 hover:text-primary transition-colors"
                               >
                                 <PlayerHeadshot 
@@ -243,7 +243,7 @@ const TeamDetail = () => {
                             </TableCell>
                             <TableCell className="text-center">
                               <span className="bg-muted text-muted-foreground text-xs font-semibold px-2 py-0.5 rounded">
-                                {player.position}
+                                {position(player.position)}
                               </span>
                             </TableCell>
                             <TableCell className="text-center">{player.games}</TableCell>
@@ -262,7 +262,7 @@ const TeamDetail = () => {
                             <TableCell className="text-center">{player.powerPlayPoints}</TableCell>
                             <TableCell className="text-center">{player.gameWinningGoals}</TableCell>
                             <TableCell className="text-center">{player.shots}</TableCell>
-                            <TableCell className="text-center">{player.shootingPct.toFixed(1)}%</TableCell>
+                            <TableCell className="text-center">{percent(player.shootingPct / 100)}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -276,24 +276,24 @@ const TeamDetail = () => {
             {teamGoalies.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-xl">Goalies ({teamGoalies.length})</CardTitle>
+                  <CardTitle className="text-xl">{t('team.goalies', { count: teamGoalies.length })}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-[250px]">Player</TableHead>
-                          <TableHead className="text-center">GP</TableHead>
-                          <TableHead className="text-center">GS</TableHead>
-                          <TableHead className="text-center">W</TableHead>
-                          <TableHead className="text-center">L</TableHead>
-                          <TableHead className="text-center">OT</TableHead>
-                          <TableHead className="text-center">SV%</TableHead>
-                          <TableHead className="text-center">GAA</TableHead>
-                          <TableHead className="text-center">SO</TableHead>
-                          <TableHead className="text-center">SV</TableHead>
-                          <TableHead className="text-center">SA</TableHead>
+                          <TableHead className="w-[250px]">{t('table.player')}</TableHead>
+                          <TableHead className="text-center">{t('stat.gp')}</TableHead>
+                          <TableHead className="text-center">{t('stat.gs')}</TableHead>
+                          <TableHead className="text-center">{t('stat.w')}</TableHead>
+                          <TableHead className="text-center">{t('stat.l')}</TableHead>
+                          <TableHead className="text-center">{t('stat.ot')}</TableHead>
+                          <TableHead className="text-center">{t('stat.svPct')}</TableHead>
+                          <TableHead className="text-center">{t('stat.gaa')}</TableHead>
+                          <TableHead className="text-center">{t('stat.so')}</TableHead>
+                          <TableHead className="text-center">{t('stat.sv')}</TableHead>
+                          <TableHead className="text-center">{t('stat.sa')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -301,7 +301,7 @@ const TeamDetail = () => {
                           <TableRow key={goalie.id} className="hover:bg-muted/50">
                             <TableCell>
                               <Link 
-                                to={`/player/${goalie.id}`}
+                                to={path(`/player/${goalie.id}`)}
                                 className="flex items-center gap-3 hover:text-primary transition-colors"
                               >
                                 <PlayerHeadshot 
@@ -322,9 +322,9 @@ const TeamDetail = () => {
                             <TableCell className="text-center">{goalie.losses}</TableCell>
                             <TableCell className="text-center">{goalie.overtimeLosses}</TableCell>
                             <TableCell className="text-center font-bold">
-                              {(goalie.savePercentage * 100).toFixed(1)}%
+                              {percent(goalie.savePercentage)}
                             </TableCell>
-                            <TableCell className="text-center">{goalie.goalsAgainstAverage.toFixed(2)}</TableCell>
+                            <TableCell className="text-center">{decimal(goalie.goalsAgainstAverage, 2)}</TableCell>
                             <TableCell className="text-center">{goalie.shutouts}</TableCell>
                             <TableCell className="text-center">{goalie.saves}</TableCell>
                             <TableCell className="text-center">{goalie.shotsAgainst}</TableCell>
@@ -341,7 +341,7 @@ const TeamDetail = () => {
             {teamGames.length > 0 && (
               <div className="space-y-4">
                 <h2 className="text-xl font-bold text-foreground">
-                  Recent Games ({teamGames.length})
+                  {t('team.recentGames', { count: teamGames.length })}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {teamGames.map((game) => (

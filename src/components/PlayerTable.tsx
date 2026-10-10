@@ -13,12 +13,14 @@ import MaterialIcon from '@/components/ui/material-icon';
 import { cn } from '@/lib/utils';
 import TeamLogo from '@/components/TeamLogo';
 import PlayerHeadshot from '@/components/PlayerHeadshot';
+import { useI18n } from '@/i18n';
 
 interface PlayerTableProps {
   players: SwedishPlayer[];
 }
 
 const PlayerTable = ({ players }: PlayerTableProps) => {
+  const { t, path, position, percent } = useI18n();
   const [sortField, setSortField] = useState<SortField>('points');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
@@ -80,18 +82,18 @@ const PlayerTable = ({ players }: PlayerTableProps) => {
           <TableHeader>
             <TableRow className="bg-muted/30">
               <TableHead className="w-12">#</TableHead>
-              <SortableHeader field="name" className="min-w-[180px]">Player</SortableHeader>
-              <SortableHeader field="team">Team</SortableHeader>
-              <TableHead>Pos</TableHead>
-              <SortableHeader field="games">GP</SortableHeader>
-              <SortableHeader field="goals">G</SortableHeader>
-              <SortableHeader field="assists">A</SortableHeader>
-              <SortableHeader field="points">PTS</SortableHeader>
-              <SortableHeader field="plusMinus">+/-</SortableHeader>
-              <SortableHeader field="penaltyMinutes">PIM</SortableHeader>
-              <TableHead>PPG</TableHead>
-              <TableHead>GWG</TableHead>
-              <TableHead>S%</TableHead>
+              <SortableHeader field="name" className="min-w-[180px]">{t('table.player')}</SortableHeader>
+              <SortableHeader field="team">{t('table.team')}</SortableHeader>
+              <TableHead>{t('stat.pos')}</TableHead>
+              <SortableHeader field="games">{t('stat.gp')}</SortableHeader>
+              <SortableHeader field="goals">{t('stat.g')}</SortableHeader>
+              <SortableHeader field="assists">{t('stat.a')}</SortableHeader>
+              <SortableHeader field="points">{t('stat.pts')}</SortableHeader>
+              <SortableHeader field="plusMinus">{t('stat.plusMinus')}</SortableHeader>
+              <SortableHeader field="penaltyMinutes">{t('stat.pim')}</SortableHeader>
+              <TableHead>{t('stat.ppg')}</TableHead>
+              <TableHead>{t('stat.gwg')}</TableHead>
+              <TableHead>{t('stat.sPct')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -99,7 +101,7 @@ const PlayerTable = ({ players }: PlayerTableProps) => {
               <TableRow key={player.id} className="hover:bg-muted/30 transition-colors">
                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
                 <TableCell>
-                  <Link to={`/player/${player.id}`} className="group">
+                  <Link to={path(`/player/${player.id}`)} className="group">
                     <div className="flex items-center gap-3">
                       <PlayerHeadshot playerId={player.id} playerName={player.name} teamAbbr={player.teamAbbr} season={player.season} size="sm" />
                       <div className="flex flex-col">
@@ -115,7 +117,7 @@ const PlayerTable = ({ players }: PlayerTableProps) => {
                     <span className="font-medium">{player.teamAbbr}</span>
                   </div>
                 </TableCell>
-                <TableCell>{player.position}</TableCell>
+                <TableCell>{position(player.position)}</TableCell>
                 <TableCell>{player.games}</TableCell>
                 <TableCell className="font-semibold">{player.goals}</TableCell>
                 <TableCell className="font-semibold">{player.assists}</TableCell>
@@ -126,7 +128,7 @@ const PlayerTable = ({ players }: PlayerTableProps) => {
                 <TableCell>{player.penaltyMinutes}</TableCell>
                 <TableCell>{player.powerPlayGoals}</TableCell>
                 <TableCell>{player.gameWinningGoals}</TableCell>
-                <TableCell>{player.shootingPct.toFixed(1)}%</TableCell>
+                <TableCell>{percent(player.shootingPct / 100)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

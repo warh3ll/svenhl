@@ -9,7 +9,8 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "sync": "node scripts/sync.mjs"
+    "sync": "node scripts/sync.mjs",
+    "i18n:check": "node scripts/check-translations.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

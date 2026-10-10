@@ -13,12 +13,14 @@ import MaterialIcon from '@/components/ui/material-icon';
 import { cn } from '@/lib/utils';
 import TeamLogo from '@/components/TeamLogo';
 import PlayerHeadshot from '@/components/PlayerHeadshot';
+import { useI18n } from '@/i18n';
 
 interface GoalieTableProps {
   goalies: SwedishGoalie[];
 }
 
 const GoalieTable = ({ goalies }: GoalieTableProps) => {
+  const { t, path, decimal, percent } = useI18n();
   const [sortField, setSortField] = useState<GoalieSortField>('savePercentage');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
@@ -87,18 +89,18 @@ const GoalieTable = ({ goalies }: GoalieTableProps) => {
           <TableHeader>
             <TableRow className="bg-muted/30">
               <TableHead className="w-12">#</TableHead>
-              <SortableHeader field="name" className="min-w-[180px]">Player</SortableHeader>
-              <SortableHeader field="team">Team</SortableHeader>
-              <SortableHeader field="games">GP</SortableHeader>
-              <TableHead>GS</TableHead>
-              <SortableHeader field="wins">W</SortableHeader>
-              <SortableHeader field="losses">L</SortableHeader>
-              <TableHead>OT</TableHead>
-              <SortableHeader field="savePercentage">SV%</SortableHeader>
-              <SortableHeader field="goalsAgainstAverage">GAA</SortableHeader>
-              <SortableHeader field="shutouts">SO</SortableHeader>
-              <TableHead>SV</TableHead>
-              <TableHead>SA</TableHead>
+              <SortableHeader field="name" className="min-w-[180px]">{t('table.player')}</SortableHeader>
+              <SortableHeader field="team">{t('table.team')}</SortableHeader>
+              <SortableHeader field="games">{t('stat.gp')}</SortableHeader>
+              <TableHead>{t('stat.gs')}</TableHead>
+              <SortableHeader field="wins">{t('stat.w')}</SortableHeader>
+              <SortableHeader field="losses">{t('stat.l')}</SortableHeader>
+              <TableHead>{t('stat.ot')}</TableHead>
+              <SortableHeader field="savePercentage">{t('stat.svPct')}</SortableHeader>
+              <SortableHeader field="goalsAgainstAverage">{t('stat.gaa')}</SortableHeader>
+              <SortableHeader field="shutouts">{t('stat.so')}</SortableHeader>
+              <TableHead>{t('stat.sv')}</TableHead>
+              <TableHead>{t('stat.sa')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -106,7 +108,7 @@ const GoalieTable = ({ goalies }: GoalieTableProps) => {
               <TableRow key={goalie.id} className="hover:bg-muted/30 transition-colors">
                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
                 <TableCell>
-                  <Link to={`/player/${goalie.id}`} className="group">
+                  <Link to={path(`/player/${goalie.id}`)} className="group">
                     <div className="flex items-center gap-3">
                       <PlayerHeadshot playerId={goalie.id} playerName={goalie.name} teamAbbr={goalie.teamAbbr} season={goalie.season} size="sm" />
                       <div className="flex flex-col">
@@ -127,8 +129,8 @@ const GoalieTable = ({ goalies }: GoalieTableProps) => {
                 <TableCell className="font-semibold text-[hsl(var(--positive))]">{goalie.wins}</TableCell>
                 <TableCell>{goalie.losses}</TableCell>
                 <TableCell>{goalie.overtimeLosses}</TableCell>
-                <TableCell className="font-bold text-primary">{(goalie.savePercentage * 100).toFixed(1)}%</TableCell>
-                <TableCell className="font-semibold">{goalie.goalsAgainstAverage.toFixed(2)}</TableCell>
+                <TableCell className="font-bold text-primary">{percent(goalie.savePercentage)}</TableCell>
+                <TableCell className="font-semibold">{decimal(goalie.goalsAgainstAverage, 2)}</TableCell>
                 <TableCell>{goalie.shutouts}</TableCell>
                 <TableCell>{goalie.saves}</TableCell>
                 <TableCell>{goalie.shotsAgainst}</TableCell>

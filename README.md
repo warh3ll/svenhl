@@ -25,6 +25,14 @@ npm run dev    # http://localhost:8080
 
 Resync stats for a past season with `node scripts/sync.mjs --season 20252026`.
 
+## Texts and translations
+
+The site is in English and Swedish (Swedish pages live under `/sv`, e.g. `/sv/lag/VAN`).
+All text is in `src/i18n/en.json` and `src/i18n/sv.json`, one `"key": "text"` line per string.
+To change wording, edit the text after the colon; leave the key and any `{placeholder}` as they are.
+Keys ending in `_one` / `_other` are the singular and plural forms. Swedish URL slugs are in
+`src/i18n/routes.json`. `npm run i18n:check` lists English texts that have no Swedish version.
+
 ## New season
 
 Bump `CURRENT_SEASON` in `src/lib/season.ts`. The sync script detects the current season from

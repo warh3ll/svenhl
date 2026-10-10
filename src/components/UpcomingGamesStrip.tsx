@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import TeamLogo from './TeamLogo';
 import PlayerHeadshot from './PlayerHeadshot';
 import { useSwedishPlayers, useSwedishGoalies } from '@/hooks/useNHLData';
+import { LOCALES, useI18n, type Lang } from '@/i18n';
 
 interface UpcomingGamesStripProps {
   games: Game[];
@@ -22,39 +23,44 @@ interface Swede {
 // Game times are shown in Swedish time, since that's where the site's readers are
 const TIME_ZONE = 'Europe/Stockholm';
 const timeFormat = new Intl.DateTimeFormat('sv-SE', { timeZone: TIME_ZONE, hour: '2-digit', minute: '2-digit' });
-const dayFormat = new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, weekday: 'short' });
+const dayFormats: Record<Lang, Intl.DateTimeFormat> = {
+  en: new Intl.DateTimeFormat('en-GB', { timeZone: TIME_ZONE, weekday: 'short' }),
+  sv: new Intl.DateTimeFormat(LOCALES.sv, { timeZone: TIME_ZONE, weekday: 'short' }),
+};
 const dateKey = new Intl.DateTimeFormat('sv-SE', { timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' });
 
-// "02:00", or "Thu 02:00" when the game isn't today in Sweden
-const formatStartTime = (date: Date) => {
+// "02:00", or "Thu 02:00" ("tors 02:00") when the game isn't today in Sweden
+const formatStartTime = (date: Date, lang: Lang) => {
   const time = timeFormat.format(date);
-  return dateKey.format(date) === dateKey.format(new Date()) ? time : `${dayFormat.format(date)} ${time}`;
+  return dateKey.format(date) === dateKey.format(new Date()) ? time : `${dayFormats[lang].format(date)} ${time}`;
 };
 
 // Forwards first, then defense, then goalies
 const POSITION_ORDER: Record<string, number> = { C: 0, L: 0, R: 0, D: 1, G: 2 };
 const byPosition = (a: Swede, b: Swede) => (POSITION_ORDER[a.position] ?? 0) - (POSITION_ORDER[b.position] ?? 0);
 
-const TeamSwedes = ({ teamAbbr, swedes }: { teamAbbr: string; swedes: Swede[] }) => (
+const TeamSwedes = ({ teamAbbr, swedes }: { teamAbbr: string; swedes: Swede[] }) => {
+  const { t, path, position } = useI18n();
+  return (
   <div className="space-y-2">
     <div className="flex items-center gap-2">
       <TeamLogo teamAbbr={teamAbbr} size="sm" className="!h-6 !w-6" />
       <span className="text-sm font-semibold text-foreground">{teamAbbr}</span>
     </div>
     {swedes.length === 0 ? (
-      <p className="text-sm text-muted-foreground">No Swedish players</p>
+      <p className="text-sm text-muted-foreground">{t('upcoming.noSwedes')}</p>
     ) : (
       <ul className="space-y-1">
         {swedes.map((swede) => (
           <li key={swede.id}>
             <Link
-              to={`/player/${swede.id}`}
+              to={path(`/player/${swede.id}`)}
               className="flex items-center gap-2 rounded-md px-1 py-1 transition-colors hover:bg-muted"
             >
               <PlayerHeadshot playerId={swede.id} playerName={swede.name} teamAbbr={teamAbbr} size="sm" />
               <span className="flex-1 truncate text-sm font-medium text-foreground">{swede.name}</span>
               <span className="text-xs text-muted-foreground">
-                {swede.position} #{swede.jerseyNumber}
+                {position(swede.position)} #{swede.jerseyNumber}
               </span>
             </Link>
           </li>
@@ -62,11 +68,13 @@ const TeamSwedes = ({ teamAbbr, swedes }: { teamAbbr: string; swedes: Swede[] })
       </ul>
     )}
   </div>
-);
+  );
+};
 
 const UpcomingGamesStrip = ({ games }: UpcomingGamesStripProps) => {
   const { data: players } = useSwedishPlayers();
   const { data: goalies } = useSwedishGoalies();
+  const { lang, t } = useI18n();
 
   // Swedish players per team for the current season
   const swedesByTeam = useMemo(() => {
@@ -85,7 +93,7 @@ const UpcomingGamesStrip = ({ games }: UpcomingGamesStripProps) => {
 
   return (
     <section className="mb-8 space-y-4">
-      <h2 className="text-2xl font-bold text-foreground">Tonight</h2>
+      <h2 className="text-2xl font-bold text-foreground">{t('home.tonight')}</h2>
       <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2">
         {games.map((game) => {
           const awaySwedes = swedesByTeam[game.awayTeamAbbr] ?? [];
@@ -98,7 +106,7 @@ const UpcomingGamesStrip = ({ games }: UpcomingGamesStripProps) => {
                 <button
                   type="button"
                   className="shrink-0 snap-start rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  aria-label={`${game.awayTeamAbbr} at ${game.homeTeamAbbr}: show Swedish players`}
+                  aria-label={t('upcoming.showSwedes', { away: game.awayTeamAbbr, home: game.homeTeamAbbr })}
                 >
                   <Card className="flex h-full flex-col items-center gap-2 px-4 py-3 transition-shadow hover:shadow-md">
                     <div className="flex items-center gap-2">
@@ -112,10 +120,10 @@ const UpcomingGamesStrip = ({ games }: UpcomingGamesStripProps) => {
                         <span className="text-xs font-semibold text-foreground">{game.homeTeamAbbr}</span>
                       </div>
                     </div>
-                    <span className="text-sm font-medium text-foreground">{formatStartTime(new Date(game.date))}</span>
+                    <span className="text-sm font-medium text-foreground">{formatStartTime(new Date(game.date), lang)}</span>
                     {swedeCount > 0 && (
                       <Badge variant="secondary" className="text-xs">
-                        {swedeCount} Swede{swedeCount !== 1 ? 's' : ''}
+                        {t('upcoming.swedes', { count: swedeCount })}
                       </Badge>
                     )}
                   </Card>
