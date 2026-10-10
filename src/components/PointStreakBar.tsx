@@ -2,20 +2,16 @@ import { Link } from 'react-router-dom';
 import MaterialIcon from '@/components/ui/material-icon';
 import TeamLogo from './TeamLogo';
 import { useSwedishPlayers } from '@/hooks/useNHLData';
-import { useSpoiler } from '@/contexts/SpoilerContext';
 import { useI18n } from '@/i18n';
 
 // Shortest streak worth showing
 const MIN_STREAK = 2;
 
-// One-line band of Swedes with a point in each of their latest games, longest streak first
+// One-line band of Swedes with a point in each of their latest games, longest streak first.
+// Shown in spoiler mode too, since a streak isn't treated as a spoiler.
 const PointStreakBar = () => {
   const { data: players } = useSwedishPlayers();
-  const { spoilerMode } = useSpoiler();
   const { t, path } = useI18n();
-
-  // A streak gives away whether a player scored in the latest games
-  if (spoilerMode) return null;
 
   const streaks = (players ?? [])
     .filter((player) => (player.pointStreak ?? 0) >= MIN_STREAK)
