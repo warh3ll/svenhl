@@ -53,8 +53,8 @@ const Header = () => {
     mobile?: boolean;
     onNavigate?: () => void;
   }) => <>
-      {/* Tabs share the plain button style: the current page gets the grey fill, the others only on hover */}
-      {navItems.map(item => <Button key={item.href} size="sm" asChild className={cn("px-4", mobile && "w-full justify-start", location.pathname !== item.href && "bg-transparent text-muted-foreground hover:bg-button hover:text-foreground")}>
+      {/* Tabs share the plain button shape: the current page is goal blue, the others get the grey fill only on hover */}
+      {navItems.map(item => <Button key={item.href} size="sm" asChild className={cn("px-4", mobile && "w-full justify-start", location.pathname === item.href ? "bg-[hsl(var(--goal))] text-[hsl(var(--goal-foreground))] hover:bg-[hsl(var(--goal))]" : "bg-transparent text-muted-foreground hover:bg-button hover:text-foreground")}>
           <Link to={item.href} onClick={onNavigate} aria-current={location.pathname === item.href ? "page" : undefined}>
             {item.label}
           </Link>
