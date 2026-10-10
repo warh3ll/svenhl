@@ -42,6 +42,8 @@
   "home.recentGames": "Recent Games",
   "home.noGames": "No games found",
   "home.checkBack": "Check back later for updates",
+  "home.showingGames": "Showing {shown} of {total} games",
+  "home.loadMoreGames": "Load more games",
 
   "topWeek.heading": "Top 3 of the Week",
   "topWeek.empty": "No points recorded in the last 7 days",
