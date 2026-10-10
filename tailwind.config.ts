@@ -47,6 +47,10 @@ export default {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
   			},
+  			streak: {
+  				DEFAULT: 'hsl(var(--streak))',
+  				foreground: 'hsl(var(--streak-foreground))'
+  			},
   			sidebar: {
   				DEFAULT: 'hsl(var(--sidebar-background))',
   				foreground: 'hsl(var(--sidebar-foreground))',

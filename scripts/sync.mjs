@@ -135,13 +135,42 @@ async function fetchPlayerDetails(playerIds) {
   for (const id of playerIds) {
     try {
       const player = await fetchJson(`https://api-web.nhle.com/v1/player/${id}/landing`);
-      details.set(String(id), { sweaterNumber: player.sweaterNumber || 0, currentTeam: player.currentTeamAbbrev });
+      details.set(String(id), {
+        sweaterNumber: player.sweaterNumber || 0,
+        currentTeam: player.currentTeamAbbrev,
+        last5Games: player.last5Games || [],
+      });
     } catch (e) {
       console.error(`Failed to fetch details for player ${id}:`, e.message);
     }
     await sleep(100); // stay under the NHL API rate limit
   }
   return details;
+}
+
+// Games in a row with at least one point, counting back from the player's latest regular season game
+// this season. The landing endpoint only has the last 5 games, so longer streaks need the full game log.
+async function fetchPointStreak(id, last5Games, season) {
+  const countStreak = (games) => {
+    let streak = 0;
+    for (const game of games) {
+      const thisSeason = game.gameTypeId === REGULAR_SEASON && String(game.gameId).startsWith(season.slice(0, 4));
+      if (!thisSeason || !(game.points > 0)) break;
+      streak++;
+    }
+    return streak;
+  };
+
+  const streak = countStreak(last5Games);
+  if (streak < 5) return streak;
+  try {
+    const log = await fetchJson(`https://api-web.nhle.com/v1/player/${id}/game-log/${season}/${REGULAR_SEASON}`);
+    await sleep(100);
+    return Math.max(streak, countStreak(log.gameLog || []));
+  } catch (e) {
+    console.error(`Failed to fetch game log for player ${id}:`, e.message);
+    return streak;
+  }
 }
 
 // ---------- season stats ----------
@@ -157,6 +186,15 @@ async function syncSeasonStats(season, isCurrentSeason) {
   const teamFor = (p) => (isCurrentSeason && details.get(String(p.playerId))?.currentTeam) || lastTeam(p.teamAbbrevs);
   const jerseyFor = (p) => details.get(String(p.playerId))?.sweaterNumber || 0;
   const updatedAt = new Date().toISOString();
+
+  // Point streaks only make sense for the season being played
+  const pointStreaks = new Map();
+  if (isCurrentSeason) {
+    for (const p of skaters) {
+      const id = String(p.playerId);
+      pointStreaks.set(id, await fetchPointStreak(id, details.get(id)?.last5Games || [], season));
+    }
+  }
 
   const players = skaters.map((p) => {
     const team = teamFor(p);
@@ -179,6 +217,7 @@ async function syncSeasonStats(season, isCurrentSeason) {
       game_winning_goals: p.gameWinningGoals || 0,
       shots: p.shots || 0,
       shooting_pct: p.shootingPct ? Number((p.shootingPct * 100).toFixed(1)) : 0,
+      point_streak: pointStreaks.get(String(p.playerId)) || 0,
       season,
       updated_at: updatedAt,
     };

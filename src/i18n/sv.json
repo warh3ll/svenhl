@@ -50,6 +50,10 @@
   "upcoming.showSwedes": "{away} mot {home}: visa svenska spelare",
   "upcoming.swedes_one": "{count} svensk",
   "upcoming.swedes_other": "{count} svenskar",
+  "streak.label": "Poängsviter",
+  "streak.games_one": "{count} match",
+  "streak.games_other": "{count} matcher",
+  "streak.player": "{name}: poäng i {count} matcher i rad",
   "upcoming.noSwedes": "Inga svenska spelare",
 
   "game.status.final": "Slut",
