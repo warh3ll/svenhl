@@ -5,7 +5,7 @@ import MaterialIcon from "@/components/ui/material-icon";
 import { useSpoiler } from "@/contexts/SpoilerContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useEffect, useState } from "react";
-import svenhlLogo from "@/assets/svenhl-logo.png";
+import svenhlLogo from "@/assets/svenhl-logo.svg";
 import { englishPath, localizePath, useI18n } from "@/i18n";
 
 // The first page a visitor lands on keeps the browser's normal focus. After that, every
