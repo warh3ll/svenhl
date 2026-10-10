@@ -61,6 +61,7 @@ const transformPlayer = (row: any): SwedishPlayer => ({
   gameWinningGoals: row.game_winning_goals,
   shots: row.shots,
   shootingPct: Number(row.shooting_pct) || 0,
+  pointStreak: row.point_streak || 0,
   season: row.season,
 });
 

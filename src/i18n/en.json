@@ -50,6 +50,10 @@
   "upcoming.showSwedes": "{away} at {home}: show Swedish players",
   "upcoming.swedes_one": "{count} Swede",
   "upcoming.swedes_other": "{count} Swedes",
+  "streak.label": "Point streaks",
+  "streak.games_one": "{count} game",
+  "streak.games_other": "{count} games",
+  "streak.player": "{name}: points in {count} games in a row",
   "upcoming.noSwedes": "No Swedish players",
 
   "game.status.final": "Final",

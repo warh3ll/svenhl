@@ -17,6 +17,8 @@ export interface SwedishPlayer {
   gameWinningGoals: number;
   shots: number;
   shootingPct: number;
+  // Games in a row with a point, up to the latest game (current season only)
+  pointStreak?: number;
   season?: string;
 }
 

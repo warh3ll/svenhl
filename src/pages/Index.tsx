@@ -4,6 +4,7 @@ import GameFeed from '@/components/GameFeed';
 import TopPlayersOfWeek from '@/components/TopPlayersOfWeek';
 import NHLSverigeCarousel from '@/components/NHLSverigeCarousel';
 import UpcomingGamesStrip from '@/components/UpcomingGamesStrip';
+import PointStreakBar from '@/components/PointStreakBar';
 import SEO from '@/components/SEO';
 import { mockGames } from '@/data/mockData';
 import MaterialIcon from '@/components/ui/material-icon';
@@ -40,6 +41,9 @@ const Index = () => {
 
         {/* Scheduled games, kept out of the results feed */}
         <UpcomingGamesStrip games={upcomingGames ?? []} />
+
+        {/* Swedes with a point in each of their latest games */}
+        <PointStreakBar />
 
         {/* Top 3 of the Week */}
         <TopPlayersOfWeek games={statsGames} />
