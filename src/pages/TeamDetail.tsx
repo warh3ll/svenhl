@@ -61,6 +61,13 @@ const TEAM_NAMES: Record<string, string> = {
   WPG: 'Winnipeg Jets',
 };
 
+// Same wording as teamDescription in scripts/prerender-routes.mjs
+const teamDescription = (teamName: string, names: string[]) => {
+  if (!names.length) return `Swedish players on the ${teamName} roster, with season stats and recent games.`;
+  const list = names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+  return `Swedish players on the ${teamName} this season: ${list}. Season stats and recent games.`;
+};
+
 const TeamDetail = () => {
   const { teamAbbr } = useParams<{ teamAbbr: string }>();
   const normalizedAbbr = teamAbbr?.toUpperCase() || '';
@@ -134,7 +141,7 @@ const TeamDetail = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <SEO
         title={`${teamName} — Swedish Players | SVENHL`}
-        description={`Swedish players currently on the ${teamName} roster, with season stats and recent games.`}
+        description={teamDescription(teamName, [...teamPlayers, ...teamGoalies].map(p => p.name))}
         path={`/teams/${normalizedAbbr}`}
       />
       <Header />

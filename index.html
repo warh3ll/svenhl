@@ -3,9 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SVENHL — Track Swedish NHL Players, Stats & Games</title>
-    <meta name="description" content="Live game feeds and full season statistics for every Swedish player in the NHL. Skaters, goalies, top weekly performers, and team rosters in one place." />
+    <!-- Tags marked data-rh are owned by react-helmet-async (src/components/SEO.tsx), which replaces them per page.
+         scripts/prerender-routes.mjs fills in each route's real values at build time for crawlers that skip JavaScript. -->
+    <title>SVENHL — Swedish NHL Players: Live Games & Stats</title>
+    <meta name="description" content="Track every Swedish player in the NHL. Recent games, weekly top performers, and full season statistics for skaters and goalies." data-rh="true" />
+    <link rel="canonical" href="https://svenhl.com/" data-rh="true" />
     <meta name="author" content="SVENHL" />
+    <meta name="theme-color" content="#262626" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <!-- Preconnect to critical origins for faster resource loading -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -39,14 +44,18 @@
       })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
     </script>
 
-    <meta property="og:title" content="SVENHL — Track Swedish NHL Players, Stats & Games" />
-    <meta
-      property="og:description"
-      content="Live game feeds and full season statistics for every Swedish player in the NHL."
-    />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://svenhl.com/" />
-    <meta property="og:site_name" content="SVENHL" />
+    <meta property="og:title" content="SVENHL — Swedish NHL Players: Live Games & Stats" data-rh="true" />
+    <meta property="og:description" content="Track every Swedish player in the NHL. Recent games, weekly top performers, and full season statistics for skaters and goalies." data-rh="true" />
+    <meta property="og:type" content="website" data-rh="true" />
+    <meta property="og:url" content="https://svenhl.com/" data-rh="true" />
+    <meta property="og:site_name" content="SVENHL" data-rh="true" />
+    <meta property="og:image" content="https://svenhl.com/og-image.png" data-rh="true" />
+    <meta property="og:image:width" content="1200" data-rh="true" />
+    <meta property="og:image:height" content="630" data-rh="true" />
+    <meta name="twitter:card" content="summary_large_image" data-rh="true" />
+    <meta name="twitter:title" content="SVENHL — Swedish NHL Players: Live Games & Stats" data-rh="true" />
+    <meta name="twitter:description" content="Track every Swedish player in the NHL. Recent games, weekly top performers, and full season statistics for skaters and goalies." data-rh="true" />
+    <meta name="twitter:image" content="https://svenhl.com/og-image.png" data-rh="true" />
 
     <script type="application/ld+json">
       {
@@ -62,7 +71,8 @@
         "@context": "https://schema.org",
         "@type": "Organization",
         "name": "SVENHL",
-        "url": "https://svenhl.com/"
+        "url": "https://svenhl.com/",
+        "logo": "https://svenhl.com/logo.png"
       }
     </script>
   </head>
