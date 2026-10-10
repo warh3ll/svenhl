@@ -63,7 +63,7 @@ const TopPlayersOfWeek = ({
     return Object.values(playerStats).sort((a, b) => b.points - a.points || b.goals - a.goals).slice(0, 3);
   }, [games]);
   if (topPlayers.length === 0) {
-    return <div className="mb-8 min-h-[340px]">
+    return <div className="mb-8 min-h-[344px] lg:min-h-[192px]">
         <div className="flex items-center justify-center gap-2 mb-6">
           <MaterialIcon name="emoji_events" size="lg" className="text-[hsl(var(--sweden-yellow))]" />
           <h2 className="text-2xl font-bold text-foreground">{t('topWeek.heading')}</h2>
@@ -87,48 +87,43 @@ const TopPlayersOfWeek = ({
     const badges = ['🥇', '🥈', '🥉'];
     return badges[index] || '';
   };
-  return <div className="mb-8 min-h-[340px] rounded-xl mx-0 px-[24px] py-[24px] bg-primary-foreground shadow-none">
-      <div className="flex items-center justify-center gap-2 mb-6">
+  return <div className="mb-8 rounded-xl p-4 sm:p-6 bg-primary-foreground shadow-none">
+      <div className="flex items-center justify-center gap-2 mb-4">
         <MaterialIcon name="emoji_events" size="lg" className="text-[hsl(var(--sweden-yellow))]" />
         <h2 className="text-2xl font-bold text-foreground">{t('topWeek.heading')}</h2>
       </div>
       
-      <div className="grid gap-4 sm:grid-cols-3">
-        {topPlayers.map((player, index) => <Link key={player.playerId} to={path(`/player/${player.playerId}`)} className={`group relative rounded-xl p-6 transition-all hover:shadow-lg ${getRankStyles(index)}`}>
-            {/* Rank Badge */}
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-2xl">
-              {getRankBadge(index)}
-            </div>
-            
-            {/* Large Headshot */}
-            <div className="flex justify-center mb-4">
+      <div className="grid gap-2 lg:grid-cols-3 lg:gap-4">
+        {topPlayers.map((player, index) => <Link key={player.playerId} to={path(`/player/${player.playerId}`)} className={`group flex items-center gap-3 rounded-xl p-3 transition-all hover:shadow-lg sm:gap-4 sm:p-4 ${getRankStyles(index)}`}>
+            {/* Headshot with rank medal */}
+            <div className="relative shrink-0">
               <PlayerHeadshot playerId={player.playerId} playerName={player.playerName} teamAbbr={player.teamAbbr} size="lg" priority={index === 0} // First player gets priority for LCP
-          className="h-24 w-24 ring-4 ring-border group-hover:ring-primary/20 transition-all" />
+          className="h-14 w-14 ring-2 ring-border group-hover:ring-primary/20 transition-all sm:h-16 sm:w-16" />
+              <span className="absolute -bottom-1 -left-1 text-lg leading-none" aria-hidden="true">
+                {getRankBadge(index)}
+              </span>
             </div>
             
-            {/* Player Info */}
-            <div className="text-center">
-              <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">
+            {/* Name + team */}
+            <div className="min-w-0 flex-1">
+              <h3 className="font-bold text-base leading-tight text-foreground group-hover:text-primary transition-colors sm:text-lg">
                 {player.playerName}
               </h3>
-              
-              {/* Team Logo + Name */}
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <TeamLogo teamAbbr={player.teamAbbr} size="sm" className="h-6 w-6" />
+              <div className="flex items-center gap-1.5 mt-1">
+                <TeamLogo teamAbbr={player.teamAbbr} size="sm" className="h-5 w-5" />
                 <span className="text-sm text-muted-foreground">{player.teamAbbr}</span>
               </div>
-              
-              {/* Points Display */}
-              <div className="mt-4 flex items-center justify-center gap-4">
-                <div className="text-center">
-                  <span className="block text-3xl font-bold text-primary">{player.points}</span>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wide">{t('topWeek.points')}</span>
-                </div>
-                <div className="h-8 w-px bg-border" />
-                <div className="flex flex-col items-center gap-1">
-                  <span className="rounded-full bg-[hsl(var(--goal))] px-2 text-sm font-semibold text-[hsl(var(--goal-foreground))]">{player.goals}{t('game.goalLetter')}</span>
-                  <span className="rounded-full bg-[hsl(var(--assist))] px-2 text-sm font-semibold text-[hsl(var(--assist-foreground))]">{player.assists}{t('game.assistLetter')}</span>
-                </div>
+            </div>
+            
+            {/* Points + goals/assists */}
+            <div className="flex shrink-0 items-center gap-3">
+              <div className="text-center">
+                <span className="block text-2xl font-bold leading-none text-primary sm:text-3xl">{player.points}</span>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wide sm:text-xs">{t('topWeek.points')}</span>
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <span className="rounded-full bg-[hsl(var(--goal))] px-2 text-sm font-semibold text-[hsl(var(--goal-foreground))]">{player.goals}{t('game.goalLetter')}</span>
+                <span className="rounded-full bg-[hsl(var(--assist))] px-2 text-sm font-semibold text-[hsl(var(--assist-foreground))]">{player.assists}{t('game.assistLetter')}</span>
               </div>
             </div>
           </Link>)}
