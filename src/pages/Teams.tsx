@@ -14,6 +14,7 @@ import { useSwedishPlayers, useSwedishGoalies } from '@/hooks/useNHLData';
 import SEO from '@/components/SEO';
 import { CURRENT_SEASON, seasons } from '@/lib/season';
 import { SwedishPlayer, SwedishGoalie } from '@/types/nhl';
+import { useI18n } from '@/i18n';
 
 // All NHL team abbreviations for consistent ordering
 const ALL_TEAMS = [
@@ -83,6 +84,7 @@ const TeamCardSkeleton = () => (
 
 const Teams = () => {
   const [selectedSeason, setSelectedSeason] = useState(CURRENT_SEASON);
+  const { t } = useI18n();
   
   const { data: players, isLoading: playersLoading } = useSwedishPlayers(selectedSeason);
   const { data: goalies, isLoading: goaliesLoading } = useSwedishGoalies(selectedSeason);
@@ -97,14 +99,13 @@ const Teams = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEO
-        title="NHL Teams With Swedish Players | SVENHL"
-        description="Every NHL team's roster of Swedish players. Browse by team to see which Swedes are skating where this season."
+        title={t('seo.teams.title')}
+        description={t('seo.teams.description')}
         path="/teams"
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'CollectionPage',
-          name: 'NHL Teams with Swedish Players',
-          url: 'https://svenhl.com/teams',
+          name: t('seo.teams.name'),
         }}
       />
       <Header />
@@ -113,15 +114,15 @@ const Teams = () => {
       <main id="main" tabIndex={-1} className="outline-none flex-1 container py-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Teams</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t('teams.heading')}</h1>
             <p className="text-muted-foreground mt-1">
-              Swedish players by NHL team
+              {t('teams.intro')}
             </p>
           </div>
           
           <Select value={selectedSeason} onValueChange={setSelectedSeason}>
-            <SelectTrigger className="w-[180px]" aria-label="Season">
-              <SelectValue placeholder="Select season" />
+            <SelectTrigger className="w-[180px]" aria-label={t('teams.season')}>
+              <SelectValue placeholder={t('statistics.selectSeason')} />
             </SelectTrigger>
             <SelectContent>
               {seasons.map((season) => (
@@ -141,7 +142,7 @@ const Teams = () => {
           </div>
         ) : teamsWithPlayers.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
-            No Swedish players found for this season.
+            {t('teams.empty')}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

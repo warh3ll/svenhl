@@ -4,12 +4,12 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import MaterialIcon from '@/components/ui/material-icon';
-import { format } from 'date-fns';
 import TeamLogo from './TeamLogo';
 import PlayerHeadshot from './PlayerHeadshot';
 import LazyYouTubeEmbed from './LazyYouTubeEmbed';
 import { useSpoiler } from '@/contexts/SpoilerContext';
 import { getTeamColor, getTeamBackgroundColor } from '@/lib/teamColors';
+import { useI18n } from '@/i18n';
 
 interface GameCardProps {
   game: Game;
@@ -19,6 +19,7 @@ const GameCard = ({
   game
 }: GameCardProps) => {
   const { spoilerMode, isGameRevealed, revealGame } = useSpoiler();
+  const { t, locale } = useI18n();
   
   // Show details if card is revealed (persisted) OR if global spoiler mode is off
   const showDetails = isGameRevealed(game.id) || !spoilerMode;
@@ -30,10 +31,10 @@ const GameCard = ({
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <Badge variant={game.status === 'final' ? 'secondary' : 'default'} className="uppercase text-xs">
-              {game.status}
+              {t(`game.status.${game.status}`)}
             </Badge>
             <span className="text-sm text-muted-foreground">
-              {format(gameDate, 'MMM d, yyyy • h:mm a')}
+              {gameDate.toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}
             </span>
           </div>
         </div>
@@ -46,7 +47,7 @@ const GameCard = ({
             <div className="aspect-video rounded-lg overflow-hidden bg-muted">
               <LazyYouTubeEmbed
                 videoId={game.highlightVideoId}
-                title={`${game.awayTeamAbbr} vs ${game.homeTeamAbbr} Highlights`}
+                title={t('game.highlights', { away: game.awayTeamAbbr, home: game.homeTeamAbbr })}
               />
             </div>
           </div>
@@ -61,7 +62,7 @@ const GameCard = ({
             </div>
             {/* While hidden, the blurred score is kept away from screen readers so it isn't read out */}
             <div className="flex items-center gap-3">
-              {!showDetails && <span className="sr-only">Score hidden</span>}
+              {!showDetails && <span className="sr-only">{t('game.scoreHidden')}</span>}
               <span aria-hidden={!showDetails || undefined} className={`text-4xl font-bold text-foreground ${!showDetails ? 'blur-md select-none' : ''}`}>
                 {game.awayScore}
               </span>
@@ -78,7 +79,7 @@ const GameCard = ({
           {/* Overtime/Shootout indicator */}
           {game.overtimeType && (
             <span aria-hidden={!showDetails || undefined} className={`mt-1 text-sm font-medium text-muted-foreground ${!showDetails ? 'blur-md select-none' : ''}`}>
-              {game.overtimeType}
+              {t(`game.overtime.${game.overtimeType}`)}
             </span>
           )}
         </div>
@@ -88,17 +89,17 @@ const GameCard = ({
           <div className="rounded-lg bg-muted/30 py-4 text-center space-y-3">
             <div className="flex items-center justify-center gap-2 text-muted-foreground">
               <MaterialIcon name="visibility_off" size="sm" />
-              <span className="text-sm">Spoiler mode enabled - details hidden</span>
+              <span className="text-sm">{t('game.spoilerOn')}</span>
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => revealGame(game.id)}
               className="flex items-center gap-2"
-              aria-label={`Reveal score: ${game.awayTeamAbbr} at ${game.homeTeamAbbr}`}
+              aria-label={t('game.revealLabel', { away: game.awayTeamAbbr, home: game.homeTeamAbbr })}
             >
               <MaterialIcon name="visibility" size="sm" />
-              Reveal Score
+              {t('game.reveal')}
             </Button>
           </div>
         ) : (
@@ -107,7 +108,7 @@ const GameCard = ({
 
             {/* Swedish Points */}
             {/* The Impact bar above already sums these up, so the list has no heading of its own */}
-            {game.swedishPoints.length > 0 && <div className="space-y-2" role="group" aria-label="Swedish points">
+            {game.swedishPoints.length > 0 && <div className="space-y-2" role="group" aria-label={t('game.swedishPoints')}>
                 {game.swedishPoints.map((point, index) => <PointItem key={index} point={point} />)}
               </div>}
 
@@ -115,7 +116,7 @@ const GameCard = ({
             {game.swedishGoalies.filter(g => g.saves > 0).length > 0 && <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <MaterialIcon name="sports" size="sm" className="text-accent-foreground" />
-                  <span className="text-sm font-semibold text-foreground">Swedish Goalies</span>
+                  <span className="text-sm font-semibold text-foreground">{t('game.swedishGoalies')}</span>
                 </div>
                 <div className="space-y-2">
                   {game.swedishGoalies.filter(g => g.saves > 0).map((goalie, index) => <GoalieItem key={index} goalie={goalie} />)}
@@ -124,7 +125,7 @@ const GameCard = ({
 
             {/* No Swedish Contribution */}
             {!hasSwedishContribution && <div className="rounded-lg bg-muted/30 py-3 text-center">
-                <span className="text-sm text-muted-foreground">No Swedish players scored in this game</span>
+                <span className="text-sm text-muted-foreground">{t('game.noSwedishPoints')}</span>
               </div>}
           </>
         )}
@@ -139,22 +140,22 @@ const ImpactMeter = ({
 }: {
   impact: NonNullable<Game['impact']>;
 }) => {
+  const { t } = useI18n();
   const swedish = impact.goals + impact.assists;
   const percent = Math.round((swedish / impact.total) * 100);
   const width = (count: number) => `${(count / impact.total) * 100}%`;
-  const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
   return (
     <div className="space-y-1.5">
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-sm font-semibold text-foreground">Impact</span>
+        <span className="text-sm font-semibold text-foreground">{t('game.impact')}</span>
         <span className="text-sm text-muted-foreground">
-          {swedish} of {impact.total} points · <span className="font-semibold text-foreground">{percent}%</span>
+          {t('game.impactSummary', { swedish, total: impact.total })} · <span className="font-semibold text-foreground">{percent}%</span>
         </span>
       </div>
       <div
         role="meter"
-        aria-label="Swedish share of the game's points"
+        aria-label={t('game.impactLabel')}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={percent}
@@ -166,11 +167,11 @@ const ImpactMeter = ({
       <div className="flex gap-4 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
           <span aria-hidden="true" className="h-2 w-2 rounded-full bg-[hsl(var(--goal))]" />
-          {plural(impact.goals, 'goal')}
+          {t('count.goals', { count: impact.goals })}
         </span>
         <span className="flex items-center gap-1.5">
           <span aria-hidden="true" className="h-2 w-2 rounded-full bg-[hsl(var(--assist))]" />
-          {plural(impact.assists, 'assist')}
+          {t('count.assists', { count: impact.assists })}
         </span>
       </div>
     </div>
@@ -181,6 +182,7 @@ const PointItem = ({
 }: {
   point: GamePoint;
 }) => {
+  const { t, path } = useI18n();
   const isGoal = point.type === 'goal';
   const teamColor = getTeamColor(point.playerTeamAbbr || '');
   const bgColor = getTeamBackgroundColor(point.playerTeamAbbr || '', 0.1);
@@ -195,15 +197,15 @@ const PointItem = ({
         style={{ backgroundColor: teamColor.primary }}
       />
       <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shrink-0 leading-none ${isGoal ? 'bg-[hsl(var(--goal))] text-[hsl(var(--goal-foreground))]' : 'bg-[hsl(var(--assist))] text-[hsl(var(--assist-foreground))]'}`}>
-        {isGoal ? 'G' : 'A'}
+        {isGoal ? t('game.goalLetter') : t('game.assistLetter')}
       </div>
       <PlayerHeadshot playerId={point.playerId} playerName={point.playerName} teamAbbr={point.playerTeamAbbr} size="sm" />
       <div className="flex flex-col min-w-0">
-        <Link to={`/player/${point.playerId}`} className="font-semibold text-foreground hover:text-primary transition-colors truncate">
+        <Link to={path(`/player/${point.playerId}`)} className="font-semibold text-foreground hover:text-primary transition-colors truncate">
           {point.playerName}
         </Link>
         <span className="text-xs text-muted-foreground whitespace-nowrap">
-          P{point.period} • {point.time}
+          {point.period >= 4 ? t('period.overtimeShort') : t('period.short', { period: point.period })} • {point.time}
         </span>
       </div>
     </div>
@@ -214,7 +216,7 @@ const GoalieItem = ({
 }: {
   goalie: GoaliePerformance;
 }) => {
-  const svPct = (goalie.savePercentage * 100).toFixed(1);
+  const { t, path, percent } = useI18n();
   const isWin = goalie.result === 'W';
   const teamColor = getTeamColor(goalie.teamAbbr);
   const bgColor = getTeamBackgroundColor(goalie.teamAbbr, 0.1);
@@ -229,20 +231,20 @@ const GoalieItem = ({
         style={{ backgroundColor: teamColor.primary }}
       />
       <div className="flex items-center gap-2 min-w-0">
-        <Badge variant={isWin ? 'default' : 'secondary'} className="shrink-0">{goalie.result}</Badge>
+        <Badge variant={isWin ? 'default' : 'secondary'} className="shrink-0">{t(`game.result.${goalie.result}`)}</Badge>
         <PlayerHeadshot playerId={goalie.goalieId} playerName={goalie.goalieName} teamAbbr={goalie.teamAbbr} size="sm" />
         <div className="flex flex-col min-w-0">
-          <Link to={`/player/${goalie.goalieId}`} className="font-semibold text-foreground hover:text-primary transition-colors leading-tight">
+          <Link to={path(`/player/${goalie.goalieId}`)} className="font-semibold text-foreground hover:text-primary transition-colors leading-tight">
             {goalie.goalieName}
           </Link>
           <span className="text-xs text-muted-foreground whitespace-nowrap">
-            {goalie.saves}/{goalie.shotsAgainst} saves
+            {t('game.saves', { saves: goalie.saves, shots: goalie.shotsAgainst })}
           </span>
         </div>
       </div>
       <div className="flex flex-col shrink-0 pl-2 text-right">
-        <span className="text-lg font-bold text-foreground">{svPct}%</span>
-        <span className="text-xs text-muted-foreground">SV%</span>
+        <span className="text-lg font-bold text-foreground">{percent(goalie.savePercentage)}</span>
+        <span className="text-xs text-muted-foreground">{t('stat.svPct')}</span>
       </div>
     </div>
   );

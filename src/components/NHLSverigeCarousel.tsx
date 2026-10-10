@@ -5,19 +5,22 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { Skeleton } from '@/components/ui/skeleton';
 import MaterialIcon from '@/components/ui/material-icon';
 import { formatDistanceToNow } from 'date-fns';
+import { sv } from 'date-fns/locale';
+import { useI18n } from '@/i18n';
 interface VideoCardProps {
   video: NHLSverigeVideo;
 }
 const VideoCard = ({
   video
 }: VideoCardProps) => {
+  const { lang, t } = useI18n();
   const [isPlaying, setIsPlaying] = useState(false);
   const handlePlay = () => {
     setIsPlaying(true);
   };
   return <div className="group cursor-pointer">
       <AspectRatio ratio={16 / 9} className="overflow-hidden rounded-lg bg-muted">
-        {isPlaying ? <iframe src={`https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1`} title={video.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="w-full h-full" /> : <button type="button" onClick={handlePlay} className="relative w-full h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`Play video: ${video.title}`}>
+        {isPlaying ? <iframe src={`https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1`} title={video.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="w-full h-full" /> : <button type="button" onClick={handlePlay} className="relative w-full h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={t('video.play', { title: video.title })}>
             <img src={video.thumbnail} alt={video.title} width={480} height={270} loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
             {/* Dark overlay */}
             <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors" />
@@ -35,7 +38,8 @@ const VideoCard = ({
         </h3>
         <p className="text-xs text-muted-foreground">
           {formatDistanceToNow(new Date(video.publishedAt), {
-          addSuffix: true
+          addSuffix: true,
+          locale: lang === 'sv' ? sv : undefined
         })}
         </p>
       </div>

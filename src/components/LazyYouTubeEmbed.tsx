@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import MaterialIcon from '@/components/ui/material-icon';
+import { useI18n } from '@/i18n';
 
 interface LazyYouTubeEmbedProps {
   videoId: string;
@@ -13,6 +14,7 @@ const isValidYouTubeId = (id: string): boolean => {
 
 const LazyYouTubeEmbed = ({ videoId, title }: LazyYouTubeEmbedProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const { t } = useI18n();
 
   // Validate video ID format before rendering
   if (!isValidYouTubeId(videoId)) {
@@ -40,7 +42,7 @@ const LazyYouTubeEmbed = ({ videoId, title }: LazyYouTubeEmbedProps) => {
       type="button"
       onClick={() => setIsLoaded(true)}
       className="relative w-full h-full group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-      aria-label={`Play video: ${title}`}
+      aria-label={t('video.play', { title })}
     >
       <img
         src={thumbnailUrl}

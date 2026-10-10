@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { Game } from '@/types/nhl';
 import GameCard from './GameCard';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useI18n } from '@/i18n';
 
 interface GameFeedProps {
   games: Game[];
@@ -13,6 +14,8 @@ interface GameFeedProps {
 }
 
 const GameFeed = ({ games, isLoading, insertAfter }: GameFeedProps) => {
+  const { t } = useI18n();
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -27,8 +30,8 @@ const GameFeed = ({ games, isLoading, insertAfter }: GameFeedProps) => {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <div className="text-4xl mb-4">🏒</div>
-        <h3 className="text-lg font-semibold text-foreground">No games found</h3>
-        <p className="text-sm text-muted-foreground">Check back later for updates</p>
+        <h3 className="text-lg font-semibold text-foreground">{t('home.noGames')}</h3>
+        <p className="text-sm text-muted-foreground">{t('home.checkBack')}</p>
       </div>
     );
   }

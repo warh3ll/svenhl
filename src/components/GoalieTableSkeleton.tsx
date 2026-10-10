@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton';
+import { useI18n } from '@/i18n';
 import {
   Table,
   TableBody,
@@ -9,6 +10,7 @@ import {
 } from '@/components/ui/table';
 
 const GoalieTableSkeleton = () => {
+  const { t } = useI18n();
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
       <div className="overflow-x-auto">
@@ -16,18 +18,18 @@ const GoalieTableSkeleton = () => {
           <TableHeader>
             <TableRow className="bg-muted/30">
               <TableHead className="w-12">#</TableHead>
-              <TableHead className="min-w-[180px]">Player</TableHead>
-              <TableHead>Team</TableHead>
-              <TableHead>GP</TableHead>
-              <TableHead>GS</TableHead>
-              <TableHead>W</TableHead>
-              <TableHead>L</TableHead>
+              <TableHead className="min-w-[180px]">{t('table.player')}</TableHead>
+              <TableHead>{t('table.team')}</TableHead>
+              <TableHead>{t('stat.gp')}</TableHead>
+              <TableHead>{t('stat.gs')}</TableHead>
+              <TableHead>{t('stat.w')}</TableHead>
+              <TableHead>{t('stat.l')}</TableHead>
               <TableHead>OTL</TableHead>
-              <TableHead>SV%</TableHead>
-              <TableHead>GAA</TableHead>
-              <TableHead>SO</TableHead>
-              <TableHead>SA</TableHead>
-              <TableHead>SV</TableHead>
+              <TableHead>{t('stat.svPct')}</TableHead>
+              <TableHead>{t('stat.gaa')}</TableHead>
+              <TableHead>{t('stat.so')}</TableHead>
+              <TableHead>{t('stat.sa')}</TableHead>
+              <TableHead>{t('stat.sv')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

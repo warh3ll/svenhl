@@ -8,11 +8,13 @@ import SEO from '@/components/SEO';
 import { mockGames } from '@/data/mockData';
 import MaterialIcon from '@/components/ui/material-icon';
 import { useNHLGames, useRecentGamesForStats, useUpcomingGames } from '@/hooks/useNHLData';
+import { useI18n } from '@/i18n';
 
 const Index = () => {
   const { data: games, isLoading: gamesLoading } = useNHLGames();
   const { data: recentGames } = useRecentGamesForStats();
   const { data: upcomingGames } = useUpcomingGames();
+  const { t } = useI18n();
 
   // Use database games if available, otherwise fall back to mock data
   const displayGames = games && games.length > 0 ? games : mockGames;
@@ -21,21 +23,20 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="SVENHL — Swedish NHL Players: Live Games & Stats"
-        description="Track every Swedish player in the NHL. Recent games, weekly top performers, and full season statistics for skaters and goalies."
+        title={t('seo.home.title')}
+        description={t('seo.home.description')}
         path="/"
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'CollectionPage',
-          name: 'Swedish NHL Players',
-          url: 'https://svenhl.com/',
-          description: 'Live NHL games featuring Swedish players and top weekly performers.',
+          name: t('seo.home.name'),
+          description: t('seo.home.description'),
         }}
       />
       <Header />
       
       <main id="main" tabIndex={-1} className="outline-none container py-8">
-        <h1 className="sr-only">Swedish NHL players: games and stats</h1>
+        <h1 className="sr-only">{t('home.heading')}</h1>
 
         {/* Scheduled games, kept out of the results feed */}
         <UpcomingGamesStrip games={upcomingGames ?? []} />
@@ -45,7 +46,7 @@ const Index = () => {
 
         {/* Game Feed with NHL Sverige carousel inserted after 6 cards */}
         <div className="space-y-4 min-h-[800px]">
-          <h2 className="text-2xl font-bold text-foreground">Recent Games</h2>
+          <h2 className="text-2xl font-bold text-foreground">{t('home.recentGames')}</h2>
           {gamesLoading ? (
             <div className="flex items-center justify-center py-12 min-h-[700px]">
               <MaterialIcon name="progress_activity" size="xl" className="animate-spin text-primary" />

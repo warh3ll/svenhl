@@ -17,9 +17,15 @@ import {
 import MaterialIcon from '@/components/ui/material-icon';
 import SEO from '@/components/SEO';
 import { useSwedishPlayers, useSwedishGoalies } from '@/hooks/useNHLData';
+import { useI18n } from '@/i18n';
+
+// Abbreviations explained under the tables
+const LEGEND = ['gp', 'g', 'a', 'pts', 'plusMinus', 'pim', 'ppg', 'gwg', 'sPct', 'svPct', 'gaa', 'so'];
 
 const Statistics = () => {
   const [selectedSeason, setSelectedSeason] = useState(CURRENT_SEASON);
+  const { t } = useI18n();
+  const season = formatSeason(selectedSeason);
   
   const { data: players, isLoading: playersLoading } = useSwedishPlayers(selectedSeason);
   const { data: goalies, isLoading: goaliesLoading } = useSwedishGoalies(selectedSeason);
@@ -30,14 +36,13 @@ const Statistics = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO
-        title="Swedish NHL Player Statistics — Season Stats | SVENHL"
-        description="Full season statistics for every Swedish skater and goalie in the NHL. Goals, assists, points, save percentage and more, filterable by season."
+        title={t('seo.statistics.title')}
+        description={t('seo.statistics.description')}
         path="/statistics"
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'CollectionPage',
-          name: 'Swedish NHL Player Statistics',
-          url: 'https://svenhl.com/statistics',
+          name: t('seo.statistics.name'),
         }}
       />
       <Header />
@@ -47,19 +52,19 @@ const Statistics = () => {
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="mb-2 text-4xl font-bold tracking-tight text-foreground">
-            Swedish Player Statistics
+            {t('statistics.heading')}
           </h1>
           <p className="text-lg text-muted-foreground">
-            Complete statistics for all Swedish players in the NHL
+            {t('statistics.intro')}
           </p>
         </div>
 
         {/* Season Filter */}
         <div className="mb-6 flex items-center gap-4">
-          <label htmlFor="season-select" className="text-sm font-medium text-foreground">Season:</label>
+          <label htmlFor="season-select" className="text-sm font-medium text-foreground">{t('statistics.seasonLabel')}</label>
           <Select value={selectedSeason} onValueChange={setSelectedSeason}>
             <SelectTrigger id="season-select" className="w-[140px]">
-              <SelectValue placeholder="Select season" />
+              <SelectValue placeholder={t('statistics.selectSeason')} />
             </SelectTrigger>
             <SelectContent>
               {seasons.map((season) => (
@@ -76,25 +81,25 @@ const Statistics = () => {
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="skaters" className="flex items-center gap-2">
               <MaterialIcon name="group" size="sm" />
-              Skaters ({displayPlayers.length})
+              {t('statistics.skaters', { count: displayPlayers.length })}
             </TabsTrigger>
             <TabsTrigger value="goalies" className="flex items-center gap-2">
               <MaterialIcon name="sports" size="sm" />
-              Goalies ({displayGoalies.length})
+              {t('statistics.goalies', { count: displayGoalies.length })}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="skaters" className="space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Click on column headers to sort. Showing {formatSeason(selectedSeason)} season stats.
+                {t('statistics.sortHint', { season })}
               </p>
             </div>
             {playersLoading ? (
               <PlayerTableSkeleton />
             ) : displayPlayers.length === 0 ? (
               <p className="rounded-lg border bg-card py-12 text-center text-muted-foreground">
-                No skater stats for the {formatSeason(selectedSeason)} season yet.
+                {t('statistics.noSkaters', { season })}
               </p>
             ) : (
               <PlayerTable players={displayPlayers} />
@@ -104,14 +109,14 @@ const Statistics = () => {
           <TabsContent value="goalies" className="space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Click on column headers to sort. Showing {formatSeason(selectedSeason)} season stats.
+                {t('statistics.sortHint', { season })}
               </p>
             </div>
             {goaliesLoading ? (
               <GoalieTableSkeleton />
             ) : displayGoalies.length === 0 ? (
               <p className="rounded-lg border bg-card py-12 text-center text-muted-foreground">
-                No goalie stats for the {formatSeason(selectedSeason)} season yet.
+                {t('statistics.noGoalies', { season })}
               </p>
             ) : (
               <GoalieTable goalies={displayGoalies} />
@@ -121,20 +126,11 @@ const Statistics = () => {
 
         {/* Legend */}
         <div className="mt-8 rounded-lg border bg-card p-4">
-          <h2 className="mb-2 font-semibold text-foreground">Statistics Legend</h2>
+          <h2 className="mb-2 font-semibold text-foreground">{t('legend.heading')}</h2>
           <div className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2 lg:grid-cols-4">
-            <div><strong>GP:</strong> Games Played</div>
-            <div><strong>G:</strong> Goals</div>
-            <div><strong>A:</strong> Assists</div>
-            <div><strong>PTS:</strong> Points</div>
-            <div><strong>+/-:</strong> Plus/Minus</div>
-            <div><strong>PIM:</strong> Penalty Minutes</div>
-            <div><strong>PPG:</strong> Power Play Goals</div>
-            <div><strong>GWG:</strong> Game Winning Goals</div>
-            <div><strong>S%:</strong> Shooting Percentage</div>
-            <div><strong>SV%:</strong> Save Percentage</div>
-            <div><strong>GAA:</strong> Goals Against Average</div>
-            <div><strong>SO:</strong> Shutouts</div>
+            {LEGEND.map((key) => (
+              <div key={key}><strong>{t(`stat.${key}`)}:</strong> {t(`legend.${key}`)}</div>
+            ))}
           </div>
         </div>
       </main>

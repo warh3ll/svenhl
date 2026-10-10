@@ -2,9 +2,10 @@
 // to an .html file for every route (Pages serves /statistics from statistics.html with status 200).
 // Anything else falls through to 404.html, which is also the app and renders the NotFound page.
 //
-// Each route file gets its own <title>, description, canonical URL and social tags, so crawlers and
-// link previews that don't run JavaScript still see the right page. Keep the texts in sync with the
-// <SEO> props in src/pages. The script also writes dist/sitemap.xml listing every page.
+// Every page exists in English and in Swedish (under /sv, slugs from src/i18n/routes.json). Each file
+// gets its own language, <title>, description, canonical URL, language alternates and social tags, so
+// crawlers and link previews that don't run JavaScript still see the right page. The texts come from
+// the same src/i18n/*.json files the app uses. The script also writes dist/sitemap.xml.
 
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -14,6 +15,7 @@ const SITE_URL = "https://svenhl.com";
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dist = path.join(root, "dist");
 const dataDir = path.join(root, "public", "data");
+const i18nDir = path.join(root, "src", "i18n");
 
 const TEAM_NAMES = {
   ANA: "Anaheim Ducks", BOS: "Boston Bruins", BUF: "Buffalo Sabres", CGY: "Calgary Flames",
@@ -26,11 +28,28 @@ const TEAM_NAMES = {
   VAN: "Vancouver Canucks", VGK: "Vegas Golden Knights", WSH: "Washington Capitals", WPG: "Winnipeg Jets",
 };
 
-const readJson = async (file) => JSON.parse(await readFile(path.join(dataDir, file), "utf8"));
-const lastTeam = (abbr) => abbr.split(",").pop().trim();
-const listNames = (names) => (names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`);
+const readJson = async (file) => JSON.parse(await readFile(file, "utf8"));
+const LANGS = ["en", "sv"];
+const OG_LOCALES = { en: "en_US", sv: "sv_SE" };
+const texts = { en: await readJson(path.join(i18nDir, "en.json")), sv: await readJson(path.join(i18nDir, "sv.json")) };
+const svSlugs = await readJson(path.join(i18nDir, "routes.json"));
 
-const { seasons, currentSeason, lastSyncedAt } = await readJson("manifest.json");
+// Same lookup as translate() in src/i18n/index.tsx
+const t = (lang, key, vars = {}) =>
+  (texts[lang][key] ?? texts.en[key] ?? key).replace(/\{(\w+)\}/g, (match, name) => (name in vars ? String(vars[name]) : match));
+const listNames = (lang, names) =>
+  names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} ${t(lang, "list.and")} ${names.at(-1)}`;
+
+// "teams/VAN" -> "teams/VAN" (en) or "sv/lag/VAN" (sv)
+const localizeRoute = (route, lang) => {
+  if (lang === "en") return route;
+  const [first, ...rest] = route.split("/");
+  return ["sv", svSlugs[first] ?? first, ...rest].filter(Boolean).join("/");
+};
+
+const lastTeam = (abbr) => abbr.split(",").pop().trim();
+
+const { seasons, currentSeason, lastSyncedAt } = await readJson(path.join(dataDir, "manifest.json"));
 const lastmod = (lastSyncedAt ?? new Date().toISOString()).slice(0, 10);
 
 // Latest season row per player (seasons are listed newest first), skaters before goalies like the player page
@@ -38,59 +57,48 @@ const latestRow = new Map();
 const currentRows = { players: [], goalies: [] };
 for (const kind of ["players", "goalies"]) {
   for (const season of seasons) {
-    const rows = await readJson(`${kind}-${season}.json`);
+    const rows = await readJson(path.join(dataDir, `${kind}-${season}.json`));
     if (season === currentSeason) currentRows[kind] = rows;
-    for (const row of rows) if (!latestRow.has(row.id)) latestRow.set(row.id, { ...row, isGoalie: kind === "goalies" });
+    for (const row of rows) if (!latestRow.has(row.id)) latestRow.set(row.id, row);
   }
 }
 
+// Each page: its English route, and title/description per language
 const pages = [
-  {
-    route: "",
-    title: "SVENHL — Swedish NHL Players: Live Games & Stats",
-    description: "Track every Swedish player in the NHL. Recent games, weekly top performers, and full season statistics for skaters and goalies.",
-    priority: "1.0",
-  },
-  {
-    route: "statistics",
-    title: "Swedish NHL Player Statistics — Season Stats | SVENHL",
-    description: "Full season statistics for every Swedish skater and goalie in the NHL. Goals, assists, points, save percentage and more, filterable by season.",
-    priority: "0.9",
-  },
-  {
-    route: "teams",
-    title: "NHL Teams With Swedish Players | SVENHL",
-    description: "Every NHL team's roster of Swedish players. Browse by team to see which Swedes are skating where this season.",
-    priority: "0.8",
-  },
-];
+  { route: "", seo: "home", priority: "1.0" },
+  { route: "statistics", seo: "statistics", priority: "0.9" },
+  { route: "teams", seo: "teams", priority: "0.8" },
+].map(({ route, seo, priority }) => ({
+  route,
+  priority,
+  title: (lang) => t(lang, `seo.${seo}.title`),
+  description: (lang) => t(lang, `seo.${seo}.description`),
+}));
 
-for (const [abbr, teamName] of Object.entries(TEAM_NAMES)) {
-  const swedes = [...currentRows.players, ...currentRows.goalies].filter((row) => lastTeam(row.team_abbr) === abbr);
+for (const [abbr, team] of Object.entries(TEAM_NAMES)) {
+  const names = [...currentRows.players, ...currentRows.goalies]
+    .filter((row) => lastTeam(row.team_abbr) === abbr)
+    .map((row) => row.name);
   pages.push({
     route: `teams/${abbr}`,
-    title: `${teamName} — Swedish Players | SVENHL`,
-    description: teamDescription(teamName, swedes.map((row) => row.name)),
+    title: (lang) => t(lang, "seo.team.title", { team }),
+    // Same wording as the <SEO> description in src/pages/TeamDetail.tsx
+    description: (lang) =>
+      names.length
+        ? t(lang, "seo.team.description", { team, names: listNames(lang, names) })
+        : t(lang, "seo.team.descriptionEmpty", { team }),
     // Teams without a Swede this season are still reachable, but not worth pointing search engines at
-    priority: swedes.length ? "0.7" : null,
+    priority: names.length ? "0.7" : null,
   });
 }
 
 for (const [id, row] of latestRow) {
   pages.push({
     route: `player/${id}`,
-    title: `${row.name} — Swedish NHL Player Stats | SVENHL`,
-    description: `Season statistics, career numbers, and recent games for ${row.name} of the ${row.team}.`,
+    title: (lang) => t(lang, "seo.player.title", { name: row.name }),
+    description: (lang) => t(lang, "seo.player.description", { name: row.name, team: row.team }),
     priority: row.season === currentSeason ? "0.8" : "0.5",
   });
-}
-
-pages.push({ route: "404", title: "Page Not Found | SVENHL", noindex: true, priority: null });
-
-// Same wording as the description in src/pages/TeamDetail.tsx
-function teamDescription(teamName, names) {
-  if (!names.length) return `Swedish players on the ${teamName} roster, with season stats and recent games.`;
-  return `Swedish players on the ${teamName} this season: ${listNames(names)}. Season stats and recent games.`;
 }
 
 const escapeAttr = (text) => text.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -102,41 +110,70 @@ function setTag(html, pattern, replacement) {
 }
 
 const template = await readFile(path.join(dist, "index.html"), "utf8");
+const urlFor = (route, lang) => `${SITE_URL}/${localizeRoute(route, lang)}`;
 
-function renderPage({ route, title, description, noindex }) {
-  const url = `${SITE_URL}/${route}`;
-  let html = setTag(template, /<title>[^<]*<\/title>/, `<title>${escapeText(title)}</title>`);
-  html = setTag(html, /<meta property="og:title" content="[^"]*"/, `<meta property="og:title" content="${escapeAttr(title)}"`);
-  html = setTag(html, /<meta name="twitter:title" content="[^"]*"/, `<meta name="twitter:title" content="${escapeAttr(title)}"`);
-  if (noindex) {
-    // The 404 page answers for unknown URLs, so it must not claim a canonical URL of its own
-    html = setTag(html, /\s*<link rel="canonical"[^>]*>/, "");
-    html = setTag(html, /\s*<meta property="og:url"[^>]*>/, "");
-    return html.replace("</head>", `  <meta name="robots" content="noindex" data-rh="true" />\n  </head>`);
-  }
-  html = setTag(html, /<link rel="canonical" href="[^"]*"/, `<link rel="canonical" href="${url}"`);
+function renderPage(page, lang) {
+  const title = page.title(lang);
+  const description = page.description(lang);
+  const url = urlFor(page.route, lang);
+  const alternates = [
+    ...LANGS.map((l) => `<link rel="alternate" hreflang="${l}" href="${urlFor(page.route, l)}" data-rh="true" />`),
+    `<link rel="alternate" hreflang="x-default" href="${urlFor(page.route, "en")}" data-rh="true" />`,
+  ];
+
+  let html = setTag(template, /<html lang="[^"]*"/, `<html lang="${lang}"`);
+  html = setTag(html, /<title>[^<]*<\/title>/, `<title>${escapeText(title)}</title>`);
+  html = setTag(html, /<link rel="canonical" href="[^"]*" data-rh="true" \/>/, `<link rel="canonical" href="${url}" data-rh="true" />\n    ${alternates.join("\n    ")}`);
   html = setTag(html, /<meta property="og:url" content="[^"]*"/, `<meta property="og:url" content="${url}"`);
+  html = setTag(html, /<meta property="og:locale" content="[^"]*"/, `<meta property="og:locale" content="${OG_LOCALES[lang]}"`);
+  for (const attr of ['property="og:title"', 'name="twitter:title"']) {
+    html = setTag(html, new RegExp(`<meta ${attr} content="[^"]*"`), `<meta ${attr} content="${escapeAttr(title)}"`);
+  }
   for (const attr of ['name="description"', 'property="og:description"', 'name="twitter:description"']) {
     html = setTag(html, new RegExp(`<meta ${attr} content="[^"]*"`), `<meta ${attr} content="${escapeAttr(description)}"`);
   }
   return html;
 }
 
-for (const page of pages) {
-  const target = path.join(dist, `${page.route || "index"}.html`);
-  await mkdir(path.dirname(target), { recursive: true });
-  await writeFile(target, renderPage(page));
+// The 404 page answers for unknown URLs in both languages, so it claims no canonical URL of its own
+function render404() {
+  let html = setTag(template, /<title>[^<]*<\/title>/, `<title>${escapeText(t("en", "seo.notFound.title"))}</title>`);
+  html = setTag(html, /\s*<link rel="canonical"[^>]*>/, "");
+  html = setTag(html, /\s*<meta property="og:url"[^>]*>/, "");
+  return html.replace("</head>", `  <meta name="robots" content="noindex" data-rh="true" />\n  </head>`);
 }
 
+const write = async (route, html) => {
+  const target = path.join(dist, `${route || "index"}.html`);
+  await mkdir(path.dirname(target), { recursive: true });
+  await writeFile(target, html);
+};
+
+for (const page of pages) {
+  for (const lang of LANGS) await write(localizeRoute(page.route, lang), renderPage(page, lang));
+}
+// /sv is also a folder (sv/lag.html …), so give it an index too in case the host serves /sv/ instead of sv.html
+await write("sv/index", renderPage(pages[0], "sv"));
+await write("404", render404());
+
+// Every page in both languages, each listing its other-language version
 const sitemapUrls = pages
   .filter((page) => page.priority)
-  .map(
-    (page) =>
-      `  <url>\n    <loc>${SITE_URL}/${page.route}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${page.priority}</priority>\n  </url>`,
+  .flatMap((page) =>
+    LANGS.map((lang) =>
+      [
+        "  <url>",
+        `    <loc>${urlFor(page.route, lang)}</loc>`,
+        ...LANGS.map((l) => `    <xhtml:link rel="alternate" hreflang="${l}" href="${urlFor(page.route, l)}" />`),
+        `    <lastmod>${lastmod}</lastmod>`,
+        `    <priority>${page.priority}</priority>`,
+        "  </url>",
+      ].join("\n"),
+    ),
   );
 await writeFile(
   path.join(dist, "sitemap.xml"),
-  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapUrls.join("\n")}\n</urlset>\n`,
+  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${sitemapUrls.join("\n")}\n</urlset>\n`,
 );
 
-console.log(`Wrote ${pages.length} route pages (${latestRow.size} players), sitemap with ${sitemapUrls.length} URLs`);
+console.log(`Wrote ${pages.length} pages in ${LANGS.length} languages (${latestRow.size} players), sitemap with ${sitemapUrls.length} URLs`);
