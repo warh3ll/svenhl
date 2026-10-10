@@ -63,7 +63,7 @@ const TopPlayersOfWeek = ({
     return Object.values(playerStats).sort((a, b) => b.points - a.points || b.goals - a.goals).slice(0, 3);
   }, [games]);
   if (topPlayers.length === 0) {
-    return <div className="mb-8 min-h-[344px] lg:min-h-[192px]">
+    return <div className="mb-8 min-h-[360px] lg:min-h-[192px]">
         <div className="flex items-center justify-center gap-2 mb-6">
           <MaterialIcon name="emoji_events" size="lg" className="text-[hsl(var(--sweden-yellow))]" />
           <h2 className="text-2xl font-bold text-foreground">{t('topWeek.heading')}</h2>
@@ -93,7 +93,7 @@ const TopPlayersOfWeek = ({
         <h2 className="text-2xl font-bold text-foreground">{t('topWeek.heading')}</h2>
       </div>
       
-      <div className="grid gap-2 lg:grid-cols-3 lg:gap-4">
+      <div className="grid gap-4 lg:grid-cols-3 lg:gap-6">
         {topPlayers.map((player, index) => <Link key={player.playerId} to={path(`/player/${player.playerId}`)} className={`group flex items-center gap-3 rounded-xl p-3 transition-all hover:shadow-lg sm:gap-4 sm:p-4 ${getRankStyles(index)}`}>
             {/* Headshot with rank medal */}
             <div className="relative shrink-0">
