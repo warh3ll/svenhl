@@ -89,8 +89,8 @@ const NHLSverigeCarousel = () => {
                   <VideoCard video={video} />
                 </CarouselItem>)}
             </CarouselContent>
-            <CarouselPrevious className="left-2 md:-left-4 bg-background/80 backdrop-blur-sm border-border hover:bg-background" />
-            <CarouselNext className="right-2 md:-right-4 bg-background/80 backdrop-blur-sm border-border hover:bg-background" />
+            <CarouselPrevious className="left-2 md:-left-4" />
+            <CarouselNext className="right-2 md:-right-4" />
           </Carousel> : <p lang="sv" className="text-center text-slate-700 py-8">Inga videor tillgängliga</p>}
       </div>
     </section>;

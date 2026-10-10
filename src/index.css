@@ -33,7 +33,7 @@ All colors MUST be HSL.
     --sweden-blue: 210 100% 45%;
     --sweden-yellow: 45 100% 50%;
     --ice: 200 40% 96%;
-    --goal: 210 100% 45%;
+    --goal: 210 100% 35%;
     --goal-foreground: 0 0% 100%;
     --assist: 45 100% 50%;
     --assist-foreground: 265 4% 12.9%;
@@ -43,6 +43,14 @@ All colors MUST be HSL.
 
     --destructive: 27 24.5% 40%;
     --destructive-foreground: 0 0% 100%;
+
+    /* The one button style: a plain soft fill, no border */
+    --button: 250 3% 92%;
+    --button-hover: 250 3% 87%;
+    --button-foreground: 265 4% 12.9%;
+    /* Ko-fi red, kept for the Support Us call to action */
+    --support: 2 63% 48%;
+    --support-foreground: 0 0% 100%;
 
     --border: 256 1.3% 92.9%;
     --input: 256 1.3% 92.9%;
@@ -131,6 +139,12 @@ All colors MUST be HSL.
 
     --destructive: 22 19.1% 70.4%;
     --destructive-foreground: 248 0.3% 98.4%;
+
+    --button: 260 4% 28%;
+    --button-hover: 260 4% 34%;
+    --button-foreground: 248 0.3% 98.4%;
+    --support: 2 63% 48%;
+    --support-foreground: 0 0% 100%;
 
     --border: 0 0% 100% / 10%;
     --input: 0 0% 100% / 15%;

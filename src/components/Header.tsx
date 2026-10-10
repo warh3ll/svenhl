@@ -53,33 +53,36 @@ const Header = () => {
     mobile?: boolean;
     onNavigate?: () => void;
   }) => <>
-      {navItems.map(item => <Link key={item.href} to={item.href} onClick={onNavigate} aria-current={location.pathname === item.href ? "page" : undefined} className={cn("whitespace-nowrap px-4 py-2 text-sm font-medium rounded-lg transition-colors", mobile && "w-full text-left", location.pathname === item.href ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted")}>
-          {item.label}
-        </Link>)}
+      {/* Tabs share the plain button shape: the current page is goal blue, the others get the grey fill only on hover */}
+      {navItems.map(item => <Button key={item.href} size="sm" asChild className={cn("px-4", mobile && "w-full justify-start", location.pathname === item.href ? "bg-[hsl(var(--goal))] text-[hsl(var(--goal-foreground))] hover:bg-[hsl(var(--goal))]" : "bg-transparent text-muted-foreground hover:bg-button hover:text-foreground")}>
+          <Link to={item.href} onClick={onNavigate} aria-current={location.pathname === item.href ? "page" : undefined}>
+            {item.label}
+          </Link>
+        </Button>)}
     </>;
   const ActionButtons = ({
     mobile = false
   }: {
     mobile?: boolean;
   }) => <div className={cn("flex items-center gap-2", mobile && "flex-col w-full")}>
-      <Button variant="outline" size="sm" onClick={toggleSpoilerMode} className={cn(mobile && "w-full justify-start")}>
+      <Button size="sm" onClick={toggleSpoilerMode} className={cn(mobile && "w-full justify-start")}>
         {spoilerMode ? <>
-            <MaterialIcon name="visibility_off" size="sm" className="mr-2" />
+            <MaterialIcon name="visibility_off" size="sm" />
             {t("spoiler.show")}
           </> : <>
-            <MaterialIcon name="visibility" size="sm" className="mr-2" />
+            <MaterialIcon name="visibility" size="sm" />
             {t("spoiler.hide")}
           </>}
       </Button>
-      <Button variant="ghost" size="sm" asChild className={cn(mobile && "w-full justify-start")}>
+      <Button size="sm" asChild className={cn(mobile && "w-full justify-start")}>
         <Link to={otherLangPath} lang={otherLang} hrefLang={otherLang} aria-label={t("language.switchLabel")}>
-          <MaterialIcon name="language" size="sm" className="mr-2" />
+          <MaterialIcon name="language" size="sm" />
           {t("language.switch")}
         </Link>
       </Button>
     </div>;
   return <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
         {t("nav.skipToContent")}
       </a>
       <div className="container h-16 flex items-center justify-between">
@@ -102,7 +105,7 @@ const Header = () => {
         {/* Mobile Menu */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon">
+            <Button size="icon">
               <MaterialIcon name="menu" size="md" />
               <span className="sr-only">{t("nav.openMenu")}</span>
             </Button>
