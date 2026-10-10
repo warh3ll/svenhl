@@ -96,7 +96,7 @@ export default {
   		},
   		fontFamily: {
   			sans: [
-  				'Inter',
+  				'Outfit Variable',
   				'ui-sans-serif',
   				'system-ui',
   				'sans-serif',
