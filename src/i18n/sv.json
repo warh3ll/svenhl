@@ -42,6 +42,8 @@
   "home.recentGames": "Senaste matcherna",
   "home.noGames": "Inga matcher hittades",
   "home.checkBack": "Titta in igen senare",
+  "home.showingGames": "Visar {shown} av {total} matcher",
+  "home.loadMoreGames": "Visa fler matcher",
 
   "topWeek.heading": "Veckans topp 3",
   "topWeek.empty": "Inga poäng de senaste 7 dagarna",

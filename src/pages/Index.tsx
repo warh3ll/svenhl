@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import GameFeed from '@/components/GameFeed';
@@ -8,10 +9,17 @@ import PointStreakBar from '@/components/PointStreakBar';
 import SEO from '@/components/SEO';
 import { mockGames } from '@/data/mockData';
 import MaterialIcon from '@/components/ui/material-icon';
+import { Button } from '@/components/ui/button';
 import { useNHLGames, useRecentGamesForStats, useUpcomingGames } from '@/hooks/useNHLData';
 import { useI18n } from '@/i18n';
 
+// Games in the feed at first, and how many more each "Load more games" click adds
+// (multiples of 3 so the desktop grid rows stay full)
+const GAMES_PAGE_SIZE = 18;
+const GAMES_LOAD_MORE = 12;
+
 const Index = () => {
+  const [visibleGames, setVisibleGames] = useState(GAMES_PAGE_SIZE);
   const { data: games, isLoading: gamesLoading } = useNHLGames();
   const { data: recentGames } = useRecentGamesForStats();
   const { data: upcomingGames } = useUpcomingGames();
@@ -56,13 +64,27 @@ const Index = () => {
               <MaterialIcon name="progress_activity" size="xl" className="animate-spin text-primary" />
             </div>
           ) : (
-            <GameFeed 
-              games={displayGames} 
-              insertAfter={{
-                count: 6,
-                element: <NHLSverigeCarousel />
-              }}
-            />
+            <>
+              <GameFeed
+                games={displayGames.slice(0, visibleGames)}
+                insertAfter={{
+                  count: 6,
+                  element: <NHLSverigeCarousel />
+                }}
+              />
+              <div className="flex flex-col items-center gap-3 pt-4">
+                {/* Announced to screen readers when more games are added */}
+                <p className="text-sm text-muted-foreground" aria-live="polite">
+                  {t('home.showingGames', { shown: Math.min(visibleGames, displayGames.length), total: displayGames.length })}
+                </p>
+                {visibleGames < displayGames.length && (
+                  <Button variant="outline" size="lg" onClick={() => setVisibleGames((n) => n + GAMES_LOAD_MORE)}>
+                    <MaterialIcon name="expand_more" size="sm" />
+                    {t('home.loadMoreGames')}
+                  </Button>
+                )}
+              </div>
+            </>
           )}
         </div>
       </main>

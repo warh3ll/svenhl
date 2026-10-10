@@ -135,11 +135,11 @@ export function useSwedishGoalies(season: string = CURRENT_SEASON) {
 export function useNHLGames() {
   return useQuery({
     queryKey: ['nhl-games'],
-    // Finished and live games only; scheduled games are shown separately (useUpcomingGames)
+    // Finished and live games only; scheduled games are shown separately (useUpcomingGames).
+    // All of them: the home feed shows a page at a time with a "Load more games" button
     queryFn: async () =>
       (await fetchGames())
         .filter((game) => game.status !== 'scheduled')
-        .slice(0, 20)
         .map(transformGame),
     staleTime: 1000 * 60 * 5, // 5 minutes for games (more frequent updates)
   });
