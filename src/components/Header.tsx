@@ -62,18 +62,18 @@ const Header = () => {
   }: {
     mobile?: boolean;
   }) => <div className={cn("flex items-center gap-2", mobile && "flex-col w-full")}>
-      <Button variant="outline" size="sm" onClick={toggleSpoilerMode} className={cn(mobile && "w-full justify-start")}>
+      <Button size="sm" onClick={toggleSpoilerMode} className={cn(mobile && "w-full justify-start")}>
         {spoilerMode ? <>
-            <MaterialIcon name="visibility_off" size="sm" className="mr-2" />
+            <MaterialIcon name="visibility_off" size="sm" />
             {t("spoiler.show")}
           </> : <>
-            <MaterialIcon name="visibility" size="sm" className="mr-2" />
+            <MaterialIcon name="visibility" size="sm" />
             {t("spoiler.hide")}
           </>}
       </Button>
-      <Button variant="ghost" size="sm" asChild className={cn(mobile && "w-full justify-start")}>
+      <Button size="sm" asChild className={cn(mobile && "w-full justify-start")}>
         <Link to={otherLangPath} lang={otherLang} hrefLang={otherLang} aria-label={t("language.switchLabel")}>
-          <MaterialIcon name="language" size="sm" className="mr-2" />
+          <MaterialIcon name="language" size="sm" />
           {t("language.switch")}
         </Link>
       </Button>
@@ -102,7 +102,7 @@ const Header = () => {
         {/* Mobile Menu */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon">
+            <Button size="icon">
               <MaterialIcon name="menu" size="md" />
               <span className="sr-only">{t("nav.openMenu")}</span>
             </Button>

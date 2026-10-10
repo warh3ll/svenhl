@@ -47,6 +47,15 @@ export default {
   				DEFAULT: 'hsl(var(--card))',
   				foreground: 'hsl(var(--card-foreground))'
   			},
+  			button: {
+  				DEFAULT: 'hsl(var(--button))',
+  				hover: 'hsl(var(--button-hover))',
+  				foreground: 'hsl(var(--button-foreground))'
+  			},
+  			support: {
+  				DEFAULT: 'hsl(var(--support))',
+  				foreground: 'hsl(var(--support-foreground))'
+  			},
   			streak: {
   				DEFAULT: 'hsl(var(--streak))',
   				foreground: 'hsl(var(--streak-foreground))'

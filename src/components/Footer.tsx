@@ -8,9 +8,9 @@ const Footer = () => {
           <p>{t("footer.dataNote")}</p>
           <p className="mt-1">{t("footer.celebrating")}</p>
         </div>
-        <Button variant="outline" size="sm" asChild className="bg-[#C9302C] hover:bg-[#C9302C]/90 text-white hover:text-white border-[#C9302C] hover:border-[#C9302C]/90">
+        <Button variant="support" size="sm" asChild>
           <a href="https://ko-fi.com/svenhl" target="_blank" rel="noopener noreferrer">
-            <img src="https://storage.ko-fi.com/cdn/cup-border.png" alt="" className="h-4 w-4 mr-2" />
+            <img src="https://storage.ko-fi.com/cdn/cup-border.png" alt="" className="h-4 w-4" />
             {t("footer.support")}
           </a>
         </Button>

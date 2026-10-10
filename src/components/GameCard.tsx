@@ -92,10 +92,8 @@ const GameCard = ({
               <span className="text-sm">{t('game.spoilerOn')}</span>
             </div>
             <Button
-              variant="outline"
               size="sm"
               onClick={() => revealGame(game.id)}
-              className="flex items-center gap-2"
               aria-label={t('game.revealLabel', { away: game.awayTeamAbbr, home: game.homeTeamAbbr })}
             >
               <MaterialIcon name="visibility" size="sm" />

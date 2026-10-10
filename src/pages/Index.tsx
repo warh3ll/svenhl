@@ -78,7 +78,7 @@ const Index = () => {
                   {t('home.showingGames', { shown: Math.min(visibleGames, displayGames.length), total: displayGames.length })}
                 </p>
                 {visibleGames < displayGames.length && (
-                  <Button variant="outline" size="lg" onClick={() => setVisibleGames((n) => n + GAMES_LOAD_MORE)}>
+                  <Button onClick={() => setVisibleGames((n) => n + GAMES_LOAD_MORE)}>
                     <MaterialIcon name="expand_more" size="sm" />
                     {t('home.loadMoreGames')}
                   </Button>
