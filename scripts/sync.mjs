@@ -24,9 +24,12 @@ const REGULAR_SEASON = 2;
 // How many days of games to keep in games.json (home feed, weekly top players, player game logs)
 const GAME_HISTORY_DAYS = 14;
 
-// YouTube Data API quota is 10,000 units/day and a search costs 100. With hourly syncs,
-// 3 searches per run stays under the quota even in the worst case.
-const MAX_YOUTUBE_SEARCHES_PER_SYNC = 3;
+// YouTube Data API quota is 10,000 units/day and a search costs 100. Highlights are found in
+// the NHL uploads list (a few units per sync); search is only a fallback for games still missing
+// a video 6 hours after puck drop. With syncs every 30 minutes, 1 search per run stays under the quota.
+const MAX_YOUTUBE_SEARCHES_PER_SYNC = 1;
+// Pages of 50 latest NHL uploads to scan for highlight videos each sync (1 quota unit each)
+const UPLOAD_PAGES_PER_SYNC = 4;
 const MIN_HIGHLIGHT_DURATION_SECONDS = 300;
 const EXCLUDE_TITLE_PATTERNS = /\b(#shorts?|short|goal of the|save of the|hit of the|fight|shootout only)\b/i;
 const PREFER_TITLE_PATTERNS = /\b(full highlights?|game recap|extended highlights?|nhl highlights?)\b/i;
@@ -290,55 +293,96 @@ async function youtubeGet(url) {
   return data;
 }
 
+async function fetchDurations(videoIds) {
+  const durations = new Map();
+  for (let i = 0; i < videoIds.length; i += 50) {
+    try {
+      const videos = await youtubeGet(
+        `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds.slice(i, i + 50).join(",")}&key=${youtubeApiKey}`,
+      );
+      for (const video of videos.items || []) durations.set(video.id, parseDuration(video.contentDetails?.duration || ""));
+    } catch (e) {
+      if (e instanceof YouTubeUnavailableError) throw e;
+      console.log("Duration lookup failed, continuing without duration filtering");
+    }
+  }
+  return durations;
+}
+
 // STRICT MATCHING: NHL channel only, both teams in title, date in title must match the game.
-// Returns null when nothing matches (no video beats a wrong video).
-async function searchHighlightVideo(homeAbbr, awayAbbr, gameDate) {
-  const shortName = (abbr) => (TEAM_NAMES[abbr] || abbr).split(" ").pop();
+// videos: [{ videoId, title, channelId }]. Returns null when nothing matches (no video beats a wrong video).
+function pickHighlightVideo(videos, durations, homeAbbr, awayAbbr, gameDate) {
+  const shortName = (abbr) => (TEAM_NAMES[abbr] || abbr).split(" ").pop().toLowerCase();
   const homeShort = shortName(homeAbbr);
   const awayShort = shortName(awayAbbr);
-  const gameDateObj = new Date(gameDate);
-
-  const query = `${awayShort} vs ${homeShort} NHL Highlights`;
-  const search = await youtubeGet(
-    `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}` +
-      `&type=video&channelId=${NHL_CHANNEL_ID}&maxResults=15&order=date&key=${youtubeApiKey}`,
-  );
-  const items = (search.items || []).filter((item) => item.id?.videoId);
-  if (items.length === 0) return null;
-
-  const durations = new Map();
-  try {
-    const videos = await youtubeGet(
-      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${items.map((i) => i.id.videoId).join(",")}&key=${youtubeApiKey}`,
-    );
-    for (const video of videos.items || []) durations.set(video.id, parseDuration(video.contentDetails?.duration || ""));
-  } catch (e) {
-    if (e instanceof YouTubeUnavailableError) throw e;
-    console.log("Duration lookup failed, continuing without duration filtering");
-  }
+  const gameTime = new Date(gameDate).getTime();
 
   const candidates = [];
-  for (const item of items) {
-    const title = item.snippet?.title || "";
-    const lowerTitle = title.toLowerCase();
-    const duration = durations.get(item.id.videoId) || 0;
-    const videoDate = extractDateFromTitle(title);
+  for (const video of videos) {
+    const lowerTitle = video.title.toLowerCase();
+    const duration = durations.get(video.videoId) || 0;
+    const videoDate = extractDateFromTitle(video.title);
 
-    if (item.snippet?.channelId !== NHL_CHANNEL_ID) continue;
-    if (!lowerTitle.includes(homeShort.toLowerCase()) || !lowerTitle.includes(awayShort.toLowerCase())) continue;
-    if (!videoDate || Math.abs(videoDate.getTime() - gameDateObj.getTime()) > 36 * 60 * 60 * 1000) continue;
+    if (video.channelId !== NHL_CHANNEL_ID) continue;
+    if (!lowerTitle.includes(homeShort) || !lowerTitle.includes(awayShort)) continue;
+    if (!videoDate || Math.abs(videoDate.getTime() - gameTime) > 36 * 60 * 60 * 1000) continue;
     if (duration > 0 && duration < MIN_HIGHLIGHT_DURATION_SECONDS) continue;
     if (EXCLUDE_TITLE_PATTERNS.test(lowerTitle)) continue;
 
     let score = 100;
     if (PREFER_TITLE_PATTERNS.test(lowerTitle)) score += 50;
     if (duration > 0) score += Math.min(30, Math.floor(duration / 20));
-    candidates.push({ videoId: item.id.videoId, score, title });
+    candidates.push({ videoId: video.videoId, score, title: video.title });
   }
 
   candidates.sort((a, b) => b.score - a.score);
   if (candidates.length > 0) console.log(`  Selected video ${candidates[0].videoId}: "${candidates[0].title}"`);
   return candidates[0]?.videoId ?? null;
+}
+
+// The NHL channel's latest uploads, read from its uploads playlist. Costs 1 quota unit per page
+// (a search costs 100), so every sync can check all recent games at once.
+async function fetchRecentNHLUploads() {
+  const uploadsPlaylistId = `UU${NHL_CHANNEL_ID.slice(2)}`;
+  const videos = [];
+  let pageToken = "";
+  for (let page = 0; page < UPLOAD_PAGES_PER_SYNC; page++) {
+    const data = await youtubeGet(
+      `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}` +
+        `&maxResults=50&key=${youtubeApiKey}${pageToken ? `&pageToken=${pageToken}` : ""}`,
+    );
+    for (const item of data.items || []) {
+      const videoId = item.snippet?.resourceId?.videoId;
+      if (!videoId) continue;
+      videos.push({
+        videoId,
+        title: item.snippet.title || "",
+        channelId: item.snippet.videoOwnerChannelId || item.snippet.channelId,
+      });
+    }
+    if (!data.nextPageToken) break;
+    pageToken = data.nextPageToken;
+  }
+  // Only highlight-looking titles need a duration check
+  const durations = await fetchDurations(videos.filter((v) => extractDateFromTitle(v.title)).map((v) => v.videoId));
+  console.log(`Loaded ${videos.length} recent NHL uploads`);
+  return { videos, durations };
+}
+
+// Fallback when a game's video is not among the latest uploads
+async function searchHighlightVideo(homeAbbr, awayAbbr, gameDate) {
+  const shortName = (abbr) => (TEAM_NAMES[abbr] || abbr).split(" ").pop();
+  const query = `${shortName(awayAbbr)} vs ${shortName(homeAbbr)} NHL Highlights`;
+  const search = await youtubeGet(
+    `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}` +
+      `&type=video&channelId=${NHL_CHANNEL_ID}&maxResults=15&order=date&key=${youtubeApiKey}`,
+  );
+  const videos = (search.items || [])
+    .filter((item) => item.id?.videoId)
+    .map((item) => ({ videoId: item.id.videoId, title: item.snippet?.title || "", channelId: item.snippet?.channelId }));
+  if (videos.length === 0) return null;
+  const durations = await fetchDurations(videos.map((v) => v.videoId));
+  return pickHighlightVideo(videos, durations, homeAbbr, awayAbbr, gameDate);
 }
 
 async function syncNHLSverigeVideos() {
@@ -448,8 +492,19 @@ async function syncGames({ players, goalies }) {
 
   const fortyEightHoursAgo = now.getTime() - 48 * 60 * 60 * 1000;
   const fourHoursAgo = now.getTime() - 4 * 60 * 60 * 1000;
+  const sixHoursAgo = now.getTime() - 6 * 60 * 60 * 1000;
   let youtubeSearches = 0;
   let youtubeUnavailable = !youtubeApiKey;
+
+  let recentUploads = { videos: [], durations: new Map() };
+  if (!youtubeUnavailable) {
+    try {
+      recentUploads = await fetchRecentNHLUploads();
+    } catch (e) {
+      console.error("Failed to load recent NHL uploads:", e.message);
+      if (e instanceof YouTubeUnavailableError) youtubeUnavailable = true;
+    }
+  }
 
   // Newest games first so the YouTube search budget goes to the most recent ones
   scheduledGames.sort((a, b) => new Date(b.startTimeUTC) - new Date(a.startTimeUTC));
@@ -478,10 +533,20 @@ async function syncGames({ players, goalies }) {
     let highlightCheckedAt = previous?.highlight_checked_at || null;
     const gameTime = new Date(game.startTimeUTC).getTime();
     const checkedRecently = highlightCheckedAt && new Date(highlightCheckedAt).getTime() > fourHoursAgo;
+    if (isFinal && !highlightVideoId && gameTime > fortyEightHoursAgo) {
+      highlightVideoId = pickHighlightVideo(
+        recentUploads.videos,
+        recentUploads.durations,
+        game.homeTeam?.abbrev,
+        game.awayTeam?.abbrev,
+        game.startTimeUTC,
+      );
+    }
     if (
       isFinal &&
       !highlightVideoId &&
       gameTime > fortyEightHoursAgo &&
+      gameTime < sixHoursAgo &&
       !checkedRecently &&
       !youtubeUnavailable &&
       youtubeSearches < MAX_YOUTUBE_SEARCHES_PER_SYNC

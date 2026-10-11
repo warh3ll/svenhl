@@ -1,9 +1,10 @@
 name: Sync data and deploy
 
 on:
-  # Hourly data refresh (GitHub may delay scheduled runs a few minutes)
+  # Data refresh every 30 minutes. GitHub often delays or skips scheduled runs,
+  # so two slots per hour keep the gaps between real runs shorter.
   schedule:
-    - cron: "17 * * * *"
+    - cron: "17,47 * * * *"
   push:
     branches: [main]
   workflow_dispatch:
