@@ -95,6 +95,7 @@ const Teams = () => {
     () => groupByTeam(players ?? [], goalies ?? []),
     [players, goalies]
   );
+  const maxPoints = Math.max(1, ...teamsWithPlayers.flatMap(team => team.players.map(p => p.points)));
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -146,12 +147,14 @@ const Teams = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {/* One scale across all cards, so bars compare players on different teams */}
             {teamsWithPlayers.map(({ teamAbbr, players, goalies }) => (
               <TeamCard
                 key={teamAbbr}
                 teamAbbr={teamAbbr}
                 players={players}
                 goalies={goalies}
+                maxPoints={maxPoints}
               />
             ))}
           </div>
