@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import { Skeleton } from '@/components/ui/skeleton';
 import MaterialIcon from '@/components/ui/material-icon';
 import TeamLogo from '@/components/TeamLogo';
+import StatBar from '@/components/StatBar';
 import { getTeamBackgroundColor } from '@/lib/teamColors';
 import SEO from '@/components/SEO';
 import { Helmet } from 'react-helmet-async';
@@ -328,7 +329,7 @@ const CareerTable = ({
               {isGoalie ? (
                 <>
                   <td className={`${td} w-1/2 pl-4`}>
-                    <BarCell
+                    <StatBar
                       total={s.wins ?? 0}
                       max={max}
                       segments={[{ value: s.wins ?? 0, className: 'bg-[hsl(var(--positive))]' }]}
@@ -342,7 +343,7 @@ const CareerTable = ({
               ) : (
                 <>
                   <td className={`${td} w-1/2 pl-4`}>
-                    <BarCell
+                    <StatBar
                       total={s.points ?? 0}
                       max={max}
                       segments={[
@@ -368,35 +369,6 @@ const CareerTable = ({
     </table>
   );
 };
-
-const BarCell = ({
-  total,
-  max,
-  segments,
-  label,
-  detail,
-  srLabel,
-}: {
-  total: number;
-  max: number;
-  segments: { value: number; className: string }[];
-  label: string;
-  detail?: string;
-  srLabel: string;
-}) => (
-  <div className="flex items-center gap-3">
-    <span aria-hidden="true" className="w-7 shrink-0 text-right font-semibold">{label}</span>
-    <div aria-hidden="true" className="flex h-2 flex-1 overflow-hidden rounded-full bg-muted">
-      <div className="flex gap-px" style={{ width: `${(total / max) * 100}%` }}>
-        {segments.filter((s) => s.value > 0).map((s, i) => (
-          <div key={i} className={s.className} style={{ flexGrow: s.value }} />
-        ))}
-      </div>
-    </div>
-    {detail && <span aria-hidden="true" className="hidden w-20 shrink-0 text-xs font-normal text-muted-foreground md:inline">{detail}</span>}
-    <span className="sr-only">{srLabel}</span>
-  </div>
-);
 
 // Recent points grouped into one row per game: date, matchup, a chip per point and a G/A summary.
 // Goal/assist is spelled out for screen readers and shown as a G/A letter, not by color alone.
