@@ -9,6 +9,7 @@ const StatBar = ({
   detail,
   srLabel,
   alwaysShowDetail = false,
+  alignDetailEnd = false,
 }: {
   total: number;
   max: number;
@@ -17,6 +18,8 @@ const StatBar = ({
   detail?: string;
   srLabel: string;
   alwaysShowDetail?: boolean;
+  // Right-align the detail so it ends flush with the row's right edge
+  alignDetailEnd?: boolean;
 }) => (
   <div className="flex items-center gap-3">
     {label !== undefined && <span aria-hidden="true" className="w-7 shrink-0 text-right font-semibold">{label}</span>}
@@ -30,7 +33,7 @@ const StatBar = ({
     {detail && (
       <span
         aria-hidden="true"
-        className={`w-20 shrink-0 text-xs font-normal text-muted-foreground ${alwaysShowDetail ? '' : 'hidden md:inline'}`}
+        className={`w-20 shrink-0 text-xs font-normal text-muted-foreground ${alwaysShowDetail ? '' : 'hidden md:inline'} ${alignDetailEnd ? 'text-right' : ''}`}
       >
         {detail}
       </span>

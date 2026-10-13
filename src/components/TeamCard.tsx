@@ -114,6 +114,7 @@ const TeamCard = ({ teamAbbr, players, goalies }: TeamCardProps) => {
                     detail={`${player.goals} ${t('game.goalLetter')} · ${player.assists} ${t('game.assistLetter')}`}
                     srLabel={`${t('count.goals', { count: player.goals })}, ${t('count.assists', { count: player.assists })}`}
                     alwaysShowDetail
+                    alignDetailEnd
                   />
                 </div>
               </div>
