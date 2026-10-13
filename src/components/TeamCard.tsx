@@ -4,7 +4,7 @@ import TeamLogo from '@/components/TeamLogo';
 import PlayerHeadshot from '@/components/PlayerHeadshot';
 import { getTeamColor, getTeamBackgroundColor } from '@/lib/teamColors';
 import { SwedishPlayer, SwedishGoalie } from '@/types/nhl';
-import { cn } from '@/lib/utils';
+import StatBar from '@/components/StatBar';
 import { useI18n } from '@/i18n';
 
 // Full team names mapped from abbreviations
@@ -87,25 +87,37 @@ const TeamCard = ({ teamAbbr, players, goalies }: TeamCardProps) => {
               to={path(`/player/${player.id}`)}
               className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
             >
-              <span className={cn(
-                "w-8 text-center text-xs font-semibold rounded px-1.5 py-0.5",
-                "bg-muted text-muted-foreground"
-              )}>
-                {position(player.position)}
-              </span>
-              <PlayerHeadshot 
-                playerId={player.id} 
-                playerName={player.name} 
+              <PlayerHeadshot
+                playerId={player.id}
+                playerName={player.name}
                 teamAbbr={teamAbbr}
                 season={player.season}
-                size="sm" 
+                size="sm"
               />
-              <span className="flex-1 font-medium text-foreground truncate">
-                {player.name}
-              </span>
-              <span className="text-sm font-semibold text-foreground">
-                {t('teams.points', { count: player.points })}
-              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline gap-2">
+                  <span className="truncate font-medium text-foreground">{player.name}</span>
+                  <span className="text-xs text-muted-foreground">{position(player.position)}</span>
+                  <span className="ml-auto shrink-0 text-sm font-semibold tabular-nums text-foreground">
+                    {t('teams.points', { count: player.points })}
+                  </span>
+                </div>
+                {/* Bar is the player's own goal/assist split, so it's full whenever they have points */}
+                <div className="mt-1.5 text-sm tabular-nums">
+                  <StatBar
+                    total={player.points}
+                    max={Math.max(1, player.points)}
+                    segments={[
+                      { value: player.goals, className: 'bg-[hsl(var(--goal))]' },
+                      { value: player.assists, className: 'bg-[hsl(var(--assist))]' },
+                    ]}
+                    detail={`${player.goals} ${t('game.goalLetter')} · ${player.assists} ${t('game.assistLetter')}`}
+                    srLabel={`${t('count.goals', { count: player.goals })}, ${t('count.assists', { count: player.assists })}`}
+                    alwaysShowDetail
+                    alignDetailEnd
+                  />
+                </div>
+              </div>
             </Link>
           ))}
           {sortedGoalies.map((goalie) => (
@@ -114,25 +126,25 @@ const TeamCard = ({ teamAbbr, players, goalies }: TeamCardProps) => {
               to={path(`/player/${goalie.id}`)}
               className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
             >
-              <span className={cn(
-                "w-8 text-center text-xs font-semibold rounded px-1.5 py-0.5",
-                "bg-primary/20 text-primary"
-              )}>
-                {position('G')}
-              </span>
-              <PlayerHeadshot 
-                playerId={goalie.id} 
-                playerName={goalie.name} 
+              <PlayerHeadshot
+                playerId={goalie.id}
+                playerName={goalie.name}
                 teamAbbr={teamAbbr}
                 season={goalie.season}
-                size="sm" 
+                size="sm"
               />
-              <span className="flex-1 font-medium text-foreground truncate">
-                {goalie.name}
-              </span>
-              <span className="text-sm font-semibold text-foreground">
-                {percent(goalie.savePercentage)}
-              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline gap-2">
+                  <span className="truncate font-medium text-foreground">{goalie.name}</span>
+                  <span className="text-xs text-muted-foreground">{position('G')}</span>
+                  <span className="ml-auto shrink-0 text-sm font-semibold tabular-nums text-foreground">
+                    {percent(goalie.savePercentage)}
+                  </span>
+                </div>
+                <div className="mt-0.5 text-xs tabular-nums text-muted-foreground">
+                  {t('game.saves', { saves: goalie.saves, shots: goalie.shotsAgainst })}
+                </div>
+              </div>
             </Link>
           ))}
         </div>

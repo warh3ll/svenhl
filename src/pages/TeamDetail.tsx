@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import TeamLogo from '@/components/TeamLogo';
 import PlayerHeadshot from '@/components/PlayerHeadshot';
 import GameCard from '@/components/GameCard';
+import StatBar from '@/components/StatBar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -85,6 +86,23 @@ const TeamDetail = () => {
       .sort((a, b) => b.points - a.points);
   }, [allPlayers, normalizedAbbr]);
   
+  // Points bars are scaled to the team's top scorer
+  const maxPoints = Math.max(1, ...teamPlayers.map(p => p.points));
+  const pointsBar = (player: (typeof teamPlayers)[number]) => (
+    <StatBar
+      total={player.points}
+      max={maxPoints}
+      segments={[
+        { value: player.goals, className: 'bg-[hsl(var(--goal))]' },
+        { value: player.assists, className: 'bg-[hsl(var(--assist))]' },
+      ]}
+      label={`${player.points}`}
+      detail={`${player.goals} ${t('game.goalLetter')} · ${player.assists} ${t('game.assistLetter')}`}
+      srLabel={`${t('count.points', { count: player.points })}: ${t('count.goals', { count: player.goals })}, ${t('count.assists', { count: player.assists })}`}
+      alwaysShowDetail
+    />
+  );
+
   const teamGoalies = useMemo(() => {
     if (!allGoalies) return [];
     return allGoalies
@@ -207,11 +225,9 @@ const TeamDetail = () => {
                       <TableHeader>
                         <TableRow>
                           <TableHead className="w-[250px]">{t('table.player')}</TableHead>
-                          <TableHead className="text-center">{t('stat.pos')}</TableHead>
+                          <TableHead className="text-center hidden sm:table-cell">{t('stat.pos')}</TableHead>
                           <TableHead className="text-center">{t('stat.gp')}</TableHead>
-                          <TableHead className="text-center">{t('stat.g')}</TableHead>
-                          <TableHead className="text-center">{t('stat.a')}</TableHead>
-                          <TableHead className="text-center">{t('stat.p')}</TableHead>
+                          <TableHead className="min-w-[260px] pl-6 hidden sm:table-cell">{t('player.points')}</TableHead>
                           <TableHead className="text-center">{t('stat.plusMinus')}</TableHead>
                           <TableHead className="text-center">{t('stat.pim')}</TableHead>
                           <TableHead className="text-center">{t('stat.ppg')}</TableHead>
@@ -236,20 +252,25 @@ const TeamDetail = () => {
                                   size="sm" 
                                 />
                                 <div>
-                                  <div className="font-medium">{player.name}</div>
-                                  <div className="text-xs text-muted-foreground">#{player.jerseyNumber}</div>
+                                  <div className="font-medium whitespace-nowrap">{player.name}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    #{player.jerseyNumber}
+                                    <span className="sm:hidden"> · {position(player.position)}</span>
+                                  </div>
                                 </div>
                               </Link>
+                              {/* On phones the bar runs under the name instead of in its own column */}
+                              <div className="mt-2 min-w-[240px] sm:hidden">{pointsBar(player)}</div>
                             </TableCell>
-                            <TableCell className="text-center">
+                            <TableCell className="text-center hidden sm:table-cell">
                               <span className="bg-muted text-muted-foreground text-xs font-semibold px-2 py-0.5 rounded">
                                 {position(player.position)}
                               </span>
                             </TableCell>
                             <TableCell className="text-center">{player.games}</TableCell>
-                            <TableCell className="text-center font-medium">{player.goals}</TableCell>
-                            <TableCell className="text-center font-medium">{player.assists}</TableCell>
-                            <TableCell className="text-center font-bold">{player.points}</TableCell>
+                            <TableCell className="pl-6 hidden sm:table-cell">
+                              {pointsBar(player)}
+                            </TableCell>
                             <TableCell className={cn(
                               "text-center",
                               player.plusMinus > 0 && "text-[hsl(var(--positive))]",
