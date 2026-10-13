@@ -10,6 +10,7 @@ import Analytics from "./components/Analytics";
 // Lazy load pages for code splitting
 const Index = lazy(() => import("./pages/Index"));
 const Statistics = lazy(() => import("./pages/Statistics"));
+const Records = lazy(() => import("./pages/Records"));
 const Teams = lazy(() => import("./pages/Teams"));
 const TeamDetail = lazy(() => import("./pages/TeamDetail"));
 const PlayerProfile = lazy(() => import("./pages/PlayerProfile"));
@@ -29,12 +30,14 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/statistics" element={<Statistics />} />
+              <Route path="/records" element={<Records />} />
               <Route path="/teams" element={<Teams />} />
               <Route path="/teams/:teamAbbr" element={<TeamDetail />} />
               <Route path="/player/:playerId" element={<PlayerProfile />} />
               {/* Swedish pages: slugs come from src/i18n/routes.json */}
               <Route path="/sv" element={<Index />} />
               <Route path="/sv/statistik" element={<Statistics />} />
+              <Route path="/sv/rekord" element={<Records />} />
               <Route path="/sv/lag" element={<Teams />} />
               <Route path="/sv/lag/:teamAbbr" element={<TeamDetail />} />
               <Route path="/sv/spelare/:playerId" element={<PlayerProfile />} />

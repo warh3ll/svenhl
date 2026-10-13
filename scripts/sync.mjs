@@ -126,8 +126,8 @@ const lastTeam = (teamAbbrevs) => teamAbbrevs?.split(",").pop()?.trim() || "UNK"
 const formatToi = (seconds) =>
   seconds ? `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}` : "0:00";
 
-const statsUrl = (kind, season, sortProperty, limit) =>
-  `https://api.nhle.com/stats/rest/en/${kind}/summary?isAggregate=false&isGame=false` +
+const statsUrl = (kind, season, sortProperty, limit, report = "summary") =>
+  `https://api.nhle.com/stats/rest/en/${kind}/${report}?isAggregate=false&isGame=false` +
   `&sort=${encodeURIComponent(JSON.stringify([{ property: sortProperty, direction: "DESC" }]))}` +
   `&start=0&limit=${limit}` +
   `&cayenneExp=${encodeURIComponent(`seasonId=${season} and gameTypeId=${REGULAR_SEASON} and nationalityCode="SWE"`)}`;
@@ -151,30 +151,59 @@ async function fetchPlayerDetails(playerIds) {
   return details;
 }
 
-// Games in a row with at least one point, counting back from the player's latest regular season game
-// this season. The landing endpoint only has the last 5 games, so longer streaks need the full game log.
-async function fetchPointStreak(id, last5Games, season) {
-  const countStreak = (games) => {
-    let streak = 0;
-    for (const game of games) {
-      const thisSeason = game.gameTypeId === REGULAR_SEASON && String(game.gameId).startsWith(season.slice(0, 4));
-      if (!thisSeason || !(game.points > 0)) break;
-      streak++;
-    }
-    return streak;
-  };
-
-  const streak = countStreak(last5Games);
-  if (streak < 5) return streak;
+// Streaks and big games from a player's regular season game log (newest game first). Streaks count
+// games the player played in, so games he missed don't break them. Returns null if the log can't be fetched.
+async function fetchGameLogRecords(id, season, isGoalie) {
+  let log;
   try {
-    const log = await fetchJson(`https://api-web.nhle.com/v1/player/${id}/game-log/${season}/${REGULAR_SEASON}`);
-    await sleep(100);
-    return Math.max(streak, countStreak(log.gameLog || []));
+    log = (await fetchJson(`https://api-web.nhle.com/v1/player/${id}/game-log/${season}/${REGULAR_SEASON}`)).gameLog || [];
   } catch (e) {
     console.error(`Failed to fetch game log for player ${id}:`, e.message);
-    return streak;
+    return null;
+  } finally {
+    await sleep(100); // stay under the NHL API rate limit
   }
+
+  // Current streak (counting back from the latest game) and longest streak of games that pass the test
+  const streaks = (games, test) => {
+    let current = 0;
+    while (current < games.length && test(games[current])) current++;
+    let longest = 0;
+    let run = 0;
+    for (const game of games) {
+      run = test(game) ? run + 1 : 0;
+      longest = Math.max(longest, run);
+    }
+    return { current, longest };
+  };
+
+  if (isGoalie) {
+    // Win streaks count decisions only: a relief appearance without a decision doesn't end one
+    const wins = streaks(log.filter((game) => game.decision), (game) => game.decision === "W");
+    return { win_streak: wins.current, longest_win_streak: wins.longest };
+  }
+  const points = streaks(log, (game) => game.points > 0);
+  const goals = streaks(log, (game) => game.goals > 0);
+  return {
+    point_streak: points.current,
+    longest_point_streak: points.longest,
+    goal_streak: goals.current,
+    longest_goal_streak: goals.longest,
+    three_point_games: log.filter((game) => game.points >= 3).length,
+    hat_tricks: log.filter((game) => game.goals >= 3).length,
+  };
 }
+
+// Points in a row from the landing endpoint's last 5 games, for when the game log can't be fetched
+const lastGamesPointStreak = (last5Games, season) => {
+  let streak = 0;
+  for (const game of last5Games) {
+    const thisSeason = game.gameTypeId === REGULAR_SEASON && String(game.gameId).startsWith(season.slice(0, 4));
+    if (!thisSeason || !(game.points > 0)) break;
+    streak++;
+  }
+  return streak;
+};
 
 // ---------- season stats ----------
 
@@ -182,6 +211,10 @@ async function syncSeasonStats(season, isCurrentSeason) {
   console.log(`Fetching Swedish skater and goalie stats for ${season}...`);
   const skaters = (await fetchJson(statsUrl("skater", season, "points", 200))).data || [];
   const goalies = (await fetchJson(statsUrl("goalie", season, "wins", 50))).data || [];
+  // Hits and blocked shots are in the "realtime" report instead of the summary
+  const realtime = new Map(
+    ((await fetchJson(statsUrl("skater", season, "hits", 200, "realtime"))).data || []).map((p) => [String(p.playerId), p]),
+  );
   console.log(`Found ${skaters.length} skaters and ${goalies.length} goalies`);
 
   const details = await fetchPlayerDetails([...skaters, ...goalies].map((p) => p.playerId));
@@ -190,14 +223,14 @@ async function syncSeasonStats(season, isCurrentSeason) {
   const jerseyFor = (p) => details.get(String(p.playerId))?.sweaterNumber || 0;
   const updatedAt = new Date().toISOString();
 
-  // Point streaks only make sense for the season being played
-  const pointStreaks = new Map();
-  if (isCurrentSeason) {
-    for (const p of skaters) {
-      const id = String(p.playerId);
-      pointStreaks.set(id, await fetchPointStreak(id, details.get(id)?.last5Games || [], season));
-    }
-  }
+  // Streaks and big games for the Season Records page, from every player's game log
+  console.log("Fetching game logs...");
+  const records = new Map();
+  for (const p of skaters) records.set(String(p.playerId), await fetchGameLogRecords(p.playerId, season, false));
+  for (const g of goalies) records.set(String(g.playerId), await fetchGameLogRecords(g.playerId, season, true));
+  const recordsFor = (p) => records.get(String(p.playerId)) || {};
+  // Current streaks only make sense for the season being played
+  const currentStreak = (p, key, fallback = 0) => (isCurrentSeason ? recordsFor(p)[key] ?? fallback : 0);
 
   const players = skaters.map((p) => {
     const team = teamFor(p);
@@ -220,7 +253,14 @@ async function syncSeasonStats(season, isCurrentSeason) {
       game_winning_goals: p.gameWinningGoals || 0,
       shots: p.shots || 0,
       shooting_pct: p.shootingPct ? Number((p.shootingPct * 100).toFixed(1)) : 0,
-      point_streak: pointStreaks.get(String(p.playerId)) || 0,
+      hits: realtime.get(String(p.playerId))?.hits || 0,
+      blocked_shots: realtime.get(String(p.playerId))?.blockedShots || 0,
+      point_streak: currentStreak(p, "point_streak", lastGamesPointStreak(details.get(String(p.playerId))?.last5Games || [], season)),
+      longest_point_streak: recordsFor(p).longest_point_streak || 0,
+      goal_streak: currentStreak(p, "goal_streak"),
+      longest_goal_streak: recordsFor(p).longest_goal_streak || 0,
+      three_point_games: recordsFor(p).three_point_games || 0,
+      hat_tricks: recordsFor(p).hat_tricks || 0,
       season,
       updated_at: updatedAt,
     };
@@ -245,6 +285,8 @@ async function syncSeasonStats(season, isCurrentSeason) {
       saves: g.saves || 0,
       shots_against: g.shotsAgainst || 0,
       time_on_ice: g.timeOnIce ? `${Math.floor(g.timeOnIce / 60)}:00` : "0:00",
+      win_streak: currentStreak(g, "win_streak"),
+      longest_win_streak: recordsFor(g).longest_win_streak || 0,
       season,
       updated_at: updatedAt,
     };

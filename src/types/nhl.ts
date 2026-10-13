@@ -19,6 +19,14 @@ export interface SwedishPlayer {
   shootingPct: number;
   // Games in a row with a point, up to the latest game (current season only)
   pointStreak?: number;
+  hits?: number;
+  blockedShots?: number;
+  // Season bests from the player's game log (Season Records page); goalStreak is current, like pointStreak
+  longestPointStreak?: number;
+  goalStreak?: number;
+  longestGoalStreak?: number;
+  threePointGames?: number;
+  hatTricks?: number;
   season?: string;
 }
 
@@ -39,6 +47,9 @@ export interface SwedishGoalie {
   saves: number;
   shotsAgainst: number;
   timeOnIce: string;
+  // Wins in a row in games with a decision: the current run and the season's longest
+  winStreak?: number;
+  longestWinStreak?: number;
   season?: string;
 }
 

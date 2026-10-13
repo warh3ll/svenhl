@@ -43,6 +43,9 @@ const Header = () => {
     href: path("/statistics"),
     label: t("nav.statistics")
   }, {
+    href: path("/records"),
+    label: t("nav.records")
+  }, {
     href: path("/teams"),
     label: t("nav.teams")
   }];
