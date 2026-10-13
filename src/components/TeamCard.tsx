@@ -48,11 +48,9 @@ interface TeamCardProps {
   teamAbbr: string;
   players: SwedishPlayer[];
   goalies: SwedishGoalie[];
-  // Points of the best skater on the page, so every card's bars share one scale
-  maxPoints: number;
 }
 
-const TeamCard = ({ teamAbbr, players, goalies, maxPoints }: TeamCardProps) => {
+const TeamCard = ({ teamAbbr, players, goalies }: TeamCardProps) => {
   const { t, path, position, percent } = useI18n();
   const teamColor = getTeamColor(teamAbbr);
   const teamName = TEAM_NAMES[teamAbbr] || teamAbbr;
@@ -104,10 +102,11 @@ const TeamCard = ({ teamAbbr, players, goalies, maxPoints }: TeamCardProps) => {
                     {t('teams.points', { count: player.points })}
                   </span>
                 </div>
+                {/* Bar is the player's own goal/assist split, so it's full whenever they have points */}
                 <div className="mt-1.5 text-sm tabular-nums">
                   <StatBar
                     total={player.points}
-                    max={maxPoints}
+                    max={Math.max(1, player.points)}
                     segments={[
                       { value: player.goals, className: 'bg-[hsl(var(--goal))]' },
                       { value: player.assists, className: 'bg-[hsl(var(--assist))]' },
