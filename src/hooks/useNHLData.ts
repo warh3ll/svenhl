@@ -62,6 +62,13 @@ const transformPlayer = (row: any): SwedishPlayer => ({
   shots: row.shots,
   shootingPct: Number(row.shooting_pct) || 0,
   pointStreak: row.point_streak || 0,
+  hits: row.hits || 0,
+  blockedShots: row.blocked_shots || 0,
+  longestPointStreak: row.longest_point_streak || 0,
+  goalStreak: row.goal_streak || 0,
+  longestGoalStreak: row.longest_goal_streak || 0,
+  threePointGames: row.three_point_games || 0,
+  hatTricks: row.hat_tricks || 0,
   season: row.season,
 });
 
@@ -82,6 +89,8 @@ const transformGoalie = (row: any): SwedishGoalie => ({
   saves: row.saves,
   shotsAgainst: row.shots_against,
   timeOnIce: row.time_on_ice || '0:00',
+  winStreak: row.win_streak || 0,
+  longestWinStreak: row.longest_win_streak || 0,
   season: row.season,
 });
 

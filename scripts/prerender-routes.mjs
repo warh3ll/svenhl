@@ -67,6 +67,7 @@ for (const kind of ["players", "goalies"]) {
 const pages = [
   { route: "", seo: "home", priority: "1.0" },
   { route: "statistics", seo: "statistics", priority: "0.9" },
+  { route: "records", seo: "records", priority: "0.8" },
   { route: "teams", seo: "teams", priority: "0.8" },
 ].map(({ route, seo, priority }) => ({
   route,
