@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import RecordList, { RecordEntry } from '@/components/RecordList';
+import ImpactRecordList from '@/components/ImpactRecordList';
 import SEO from '@/components/SEO';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -12,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CURRENT_SEASON, formatSeason, seasons } from '@/lib/season';
-import { useSwedishPlayers, useSwedishGoalies } from '@/hooks/useNHLData';
+import { useSwedishPlayers, useSwedishGoalies, useImpactRecords } from '@/hooks/useNHLData';
 import { useI18n } from '@/i18n';
 import { SwedishGoalie, SwedishPlayer } from '@/types/nhl';
 
@@ -59,6 +60,8 @@ const GROUPS: { key: string; records: RecordDef[] }[] = [
       },
     ],
   },
+  // Its one list (games, not players) is drawn by ImpactRecordList
+  { key: 'impact', records: [] },
   {
     key: 'scoring',
     records: [
@@ -85,6 +88,7 @@ const Records = () => {
 
   const { data: players, isLoading: playersLoading } = useSwedishPlayers(selectedSeason);
   const { data: goalies, isLoading: goaliesLoading } = useSwedishGoalies(selectedSeason);
+  const { data: impactGames, isLoading: impactLoading } = useImpactRecords(selectedSeason);
   const isLoading = playersLoading || goaliesLoading;
 
   return (
@@ -130,6 +134,12 @@ const Records = () => {
                 {t(`records.group.${group.key}`)}
               </h2>
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {group.key === 'impact' &&
+                  (impactLoading ? (
+                    <Skeleton className="h-[340px] rounded-xl md:col-span-2" />
+                  ) : (
+                    <ImpactRecordList games={impactGames ?? []} />
+                  ))}
                 {group.records.map((record) =>
                   isLoading ? (
                     <Skeleton key={record.key} className="h-[340px] rounded-xl" />

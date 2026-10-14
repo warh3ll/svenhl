@@ -3,13 +3,13 @@
 //
 // Usage:
 //   node scripts/sync.mjs                    # sync the current season, recent games and videos
-//   node scripts/sync.mjs --season 20252026  # (re)sync stats for one specific season only
+//   node scripts/sync.mjs --season 20252026  # (re)sync stats and Impact records for one specific season only
 //
 // Environment:
 //   YOUTUBE_API_KEY  optional; without it highlight search and the NHL Sverige carousel are skipped
 //
 // Game state (cached highlight video IDs) is carried over from the existing public/data/games.json,
-// so the workflow downloads the live copy before running this script.
+// and the Impact records from impact-<season>.json, so the workflow downloads the live copies first.
 
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -654,6 +654,90 @@ async function syncGames({ players, goalies }) {
   console.log(`Saved ${games.length} games (${scheduledGames.length} from this week's schedule)`);
 }
 
+// ---------- Impact records ----------
+
+// Games with the highest Swedish share of the points, for the Season Records page. impact-<season>.json
+// keeps the top games plus the ID of every finished game already looked at, so each sync only fetches
+// games it hasn't seen (and fills any gaps, e.g. after a missed sync) instead of the whole season.
+const IMPACT_GAMES_TO_KEEP = 25;
+// Fewer Swedish points than this don't count, or 1-0 games where a Swede scored would top the list
+const MIN_IMPACT_POINTS = 3;
+
+// Highest share first; with the same share, more Swedish points first (3 of 3 beats 1 of 1)
+const byImpact = (a, b) =>
+  (b.goals + b.assists) / b.total - (a.goals + a.assists) / a.total || b.goals + b.assists - (a.goals + a.assists);
+
+async function syncImpactRecords(season, swedishPlayers, { maxFetches = Infinity } = {}) {
+  const file = `impact-${season}.json`;
+  const saved = await readJson(file, { checked: [], games: [] });
+  const checked = new Set(saved.checked);
+  const games = new Map(saved.games.map((g) => [g.id, g]));
+
+  const schedule = await fetchJson(
+    `https://api.nhle.com/stats/rest/en/game?cayenneExp=${encodeURIComponent(`season=${season} and gameType=${REGULAR_SEASON}`)}`,
+  );
+  const finished = (schedule.data || []).filter((g) => g.gameStateId === 7).map((g) => String(g.id));
+  const recent = new Map((await readJson("games.json", [])).map((g) => [g.id, g]));
+
+  const add = (row) => {
+    if (row.goals + row.assists >= MIN_IMPACT_POINTS) games.set(row.id, row);
+  };
+
+  let fetches = 0;
+  for (const id of finished) {
+    if (checked.has(id)) continue;
+    // Recent games already have their impact in games.json
+    const known = recent.get(id);
+    if (known?.status === "final" && known.impact) {
+      add({
+        id,
+        game_date: known.game_date,
+        home_team_abbr: known.home_team_abbr,
+        away_team_abbr: known.away_team_abbr,
+        home_score: known.home_score,
+        away_score: known.away_score,
+        period: known.period,
+        ...known.impact,
+      });
+      checked.add(id);
+      continue;
+    }
+    if (fetches >= maxFetches) continue;
+    fetches++;
+    try {
+      const landing = await fetchJson(`https://api-web.nhle.com/v1/gamecenter/${id}/landing`);
+      const impact = { goals: 0, assists: 0, total: 0 };
+      for (const period of landing.summary?.scoring || []) {
+        if (period.periodDescriptor?.periodType === "SO") continue; // shootout goals aren't points
+        for (const goal of period.goals || []) {
+          impact.total += 1 + (goal.assists || []).length;
+          if (swedishPlayers.has(String(goal.playerId))) impact.goals++;
+          impact.assists += (goal.assists || []).filter((a) => swedishPlayers.has(String(a.playerId))).length;
+        }
+      }
+      add({
+        id,
+        game_date: landing.startTimeUTC,
+        home_team_abbr: landing.homeTeam?.abbrev || "UNK",
+        away_team_abbr: landing.awayTeam?.abbrev || "UNK",
+        home_score: landing.homeTeam?.score || 0,
+        away_score: landing.awayTeam?.score || 0,
+        period: landing.periodDescriptor?.number ? `P${landing.periodDescriptor.number}` : null,
+        ...impact,
+      });
+      checked.add(id);
+    } catch (e) {
+      console.error(`Failed to fetch impact for game ${id}:`, e.message);
+    }
+    await sleep(100);
+  }
+
+  const top = [...games.values()].sort(byImpact).slice(0, IMPACT_GAMES_TO_KEEP);
+  await writeJson(file, { checked: [...checked].sort(), games: top });
+  const missing = finished.filter((id) => !checked.has(id)).length;
+  console.log(`Impact records: ${fetches} games fetched, ${missing} finished games still to check`);
+}
+
 // ---------- main ----------
 
 async function updateManifest(currentSeason) {
@@ -673,7 +757,9 @@ async function main() {
   if (seasonArg !== -1) {
     const season = process.argv[seasonArg + 1];
     if (!/^\d{8}$/.test(season ?? "")) throw new Error("--season expects an ID like 20252026");
-    await syncSeasonStats(season, season === currentSeason);
+    const { players } = await syncSeasonStats(season, season === currentSeason);
+    // Every finished game of the season, so a past season gets its full Impact list in one run
+    await syncImpactRecords(season, new Map(players.map((p) => [p.id, p])));
     const manifest = await readJson("manifest.json", { seasons: [] });
     manifest.seasons = [...new Set([...manifest.seasons, season])].sort().reverse();
     await writeJson("manifest.json", manifest);
@@ -683,6 +769,12 @@ async function main() {
   console.log(`Syncing current season ${currentSeason}`);
   const stats = await syncSeasonStats(currentSeason, true);
   await syncGames(stats);
+  // Games from games.json are free; older gaps are filled a few at a time to keep each sync short
+  try {
+    await syncImpactRecords(currentSeason, new Map(stats.players.map((p) => [p.id, p])), { maxFetches: 40 });
+  } catch (e) {
+    console.error("Failed to sync impact records:", e.message);
+  }
 
   if (youtubeApiKey) {
     try {
