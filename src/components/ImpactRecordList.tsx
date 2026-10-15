@@ -1,6 +1,5 @@
 import MaterialIcon from '@/components/ui/material-icon';
 import TeamLogo from './TeamLogo';
-import { useSpoiler } from '@/contexts/SpoilerContext';
 import { useI18n } from '@/i18n';
 import { ImpactRecord } from '@/types/nhl';
 
@@ -14,10 +13,9 @@ const byImpact = (a: ImpactRecord, b: ImpactRecord) =>
 
 // The season's games where Swedes had the biggest share of the points, like the Impact meter on game cards.
 // Only games with at least 3 Swedish points are kept (MIN_IMPACT_POINTS in scripts/sync.mjs).
-// Scores and shares give results away, so the list is hidden while scores are hidden.
+// Stays visible in spoiler mode (Hide Scores): it looks back at the season, like the point streak band.
 const ImpactRecordList = ({ games }: { games: ImpactRecord[] }) => {
   const { t, locale } = useI18n();
-  const { spoilerMode } = useSpoiler();
 
   const rows = [...games].sort(byImpact).slice(0, TOP);
   // Games with the same share and the same Swedish points share a rank
@@ -33,12 +31,7 @@ const ImpactRecordList = ({ games }: { games: ImpactRecord[] }) => {
         </div>
       </div>
 
-      {spoilerMode ? (
-        <p className="flex items-center justify-center gap-2 py-6 text-center text-sm text-muted-foreground">
-          <MaterialIcon name="visibility_off" size="sm" />
-          {t('records.impact.hidden')}
-        </p>
-      ) : rows.length === 0 ? (
+      {rows.length === 0 ? (
         <p className="py-6 text-center text-sm text-muted-foreground">{t('records.empty')}</p>
       ) : (
         <ol className="space-y-1">
