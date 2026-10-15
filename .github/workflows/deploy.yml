@@ -44,6 +44,18 @@ jobs:
             echo "Live games.json unavailable, using committed copy"
           fi
 
+      # Same for the season's Impact records (games already checked), so they aren't fetched again
+      - name: Restore Impact records from live site
+        run: |
+          season=$(curl -fsSL https://svenhl.com/data/manifest.json | node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(0, "utf8")).currentSeason || "")') || season=""
+          if [ -n "$season" ] && curl -fsSL "https://svenhl.com/data/impact-$season.json" -o /tmp/impact.json \
+            && node -e 'if (!Array.isArray(JSON.parse(require("fs").readFileSync("/tmp/impact.json", "utf8")).checked)) process.exit(1)'; then
+            mv /tmp/impact.json "public/data/impact-$season.json"
+            echo "Restored impact-$season.json from live site"
+          else
+            echo "Live Impact records unavailable, using committed copy"
+          fi
+
       - name: Sync NHL data
         run: node scripts/sync.mjs
         env:

@@ -125,3 +125,17 @@ export interface CareerSeasonStats {
 export type SortField = 'name' | 'team' | 'games' | 'goals' | 'assists' | 'points' | 'penaltyMinutes' | 'plusMinus';
 export type GoalieSortField = 'name' | 'team' | 'games' | 'wins' | 'losses' | 'savePercentage' | 'goalsAgainstAverage' | 'shutouts';
 export type SortDirection = 'asc' | 'desc';
+
+// One of the season's games with the highest Swedish share of the points (Season Records page)
+export interface ImpactRecord {
+  id: string;
+  date: string;
+  homeTeamAbbr: string;
+  awayTeamAbbr: string;
+  homeScore: number;
+  awayScore: number;
+  overtimeType?: 'OT' | 'SO';
+  goals: number;
+  assists: number;
+  total: number;
+}
