@@ -7,6 +7,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { useEffect, useState } from "react";
 import svenhlLogo from "@/assets/svenhl-logo.svg";
 import { englishPath, localizePath, useI18n } from "@/i18n";
+import { useRecordUpdates } from "@/hooks/useRecordUpdates";
+import UpdateBadge from "@/components/UpdateBadge";
 
 // The first page a visitor lands on keeps the browser's normal focus. After that, every
 // in-app navigation moves focus to the new page's heading so screen readers announce it.
@@ -26,6 +28,8 @@ const Header = () => {
   } = useSpoiler();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { lang, t, path } = useI18n();
+  // A dot on the Records tab (and the mobile menu button) when a record list changed since the last visit there
+  const { navHasUpdate, markNavSeen } = useRecordUpdates();
   // The same page in the other language
   const otherLang = lang === "en" ? "sv" : "en";
   const otherLangPath = localizePath(englishPath(location.pathname), otherLang);
@@ -36,7 +40,12 @@ const Header = () => {
     }
     focusPageHeading();
   }, [location.pathname]);
-  const navItems = [{
+  const navItems: {
+    href: string;
+    label: string;
+    updated?: boolean;
+    onClick?: () => void;
+  }[] = [{
     href: path("/"),
     label: t("nav.gameFeed")
   }, {
@@ -44,7 +53,9 @@ const Header = () => {
     label: t("nav.statistics")
   }, {
     href: path("/records"),
-    label: t("nav.records")
+    label: t("nav.records"),
+    updated: navHasUpdate,
+    onClick: markNavSeen
   }, {
     href: path("/teams"),
     label: t("nav.teams")
@@ -58,8 +69,12 @@ const Header = () => {
   }) => <>
       {/* Tabs share the plain button shape: the current page is goal blue, the others get the grey fill only on hover */}
       {navItems.map(item => <Button key={item.href} size="sm" asChild className={cn("px-4", mobile && "w-full justify-start", location.pathname === item.href ? "bg-[hsl(var(--goal))] text-[hsl(var(--goal-foreground))] hover:bg-[hsl(var(--goal))]" : "bg-transparent text-muted-foreground hover:bg-button hover:text-foreground")}>
-          <Link to={item.href} onClick={onNavigate} aria-current={location.pathname === item.href ? "page" : undefined}>
+          <Link to={item.href} onClick={() => {
+          item.onClick?.();
+          onNavigate?.();
+        }} aria-current={location.pathname === item.href ? "page" : undefined}>
             {item.label}
+            {item.updated && <UpdateBadge label={t("records.updates.nav")} className="-mr-1" />}
           </Link>
         </Button>)}
     </>;
@@ -108,9 +123,10 @@ const Header = () => {
         {/* Mobile Menu */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button size="icon">
+            <Button size="icon" className="relative">
               <MaterialIcon name="menu" size="md" />
               <span className="sr-only">{t("nav.openMenu")}</span>
+              {navHasUpdate && <UpdateBadge label={t("records.updates.menu")} className="absolute right-1.5 top-1.5" />}
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-[280px]">

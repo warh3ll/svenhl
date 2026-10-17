@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import RecordList, { RecordEntry } from '@/components/RecordList';
+import RecordList from '@/components/RecordList';
 import ImpactRecordList from '@/components/ImpactRecordList';
 import SEO from '@/components/SEO';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,72 +15,8 @@ import {
 import { CURRENT_SEASON, formatSeason, seasons } from '@/lib/season';
 import { useSwedishPlayers, useSwedishGoalies, useImpactRecords } from '@/hooks/useNHLData';
 import { useI18n } from '@/i18n';
-import { SwedishGoalie, SwedishPlayer } from '@/types/nhl';
-
-interface RecordDef {
-  key: string;
-  icon: string;
-  unitKey: string;
-  entries: (players: SwedishPlayer[], goalies: SwedishGoalie[]) => RecordEntry[];
-}
-
-const skater = (value: (p: SwedishPlayer) => number | undefined, active?: (p: SwedishPlayer) => boolean) =>
-  (players: SwedishPlayer[]) =>
-    players.map((p) => ({ id: p.id, name: p.name, teamAbbr: p.teamAbbr, value: value(p) ?? 0, active: active?.(p) }));
-
-const goalie = (value: (g: SwedishGoalie) => number | undefined, active?: (g: SwedishGoalie) => boolean) =>
-  (_: SwedishPlayer[], goalies: SwedishGoalie[]) =>
-    goalies.map((g) => ({ id: g.id, name: g.name, teamAbbr: g.teamAbbr, value: value(g) ?? 0, active: active?.(g) }));
-
-// A season best that's still going: the current streak is as long as the longest one
-const ongoing = (current = 0, longest = 0) => current > 0 && current === longest;
-
-// Each list's title and description come from records.<key>.title / .description
-const GROUPS: { key: string; records: RecordDef[] }[] = [
-  {
-    key: 'streaks',
-    records: [
-      {
-        key: 'pointStreak',
-        icon: 'local_fire_department',
-        unitKey: 'records.unit.games',
-        entries: skater((p) => p.longestPointStreak, (p) => ongoing(p.pointStreak, p.longestPointStreak)),
-      },
-      {
-        key: 'goalStreak',
-        icon: 'sports_hockey',
-        unitKey: 'records.unit.games',
-        entries: skater((p) => p.longestGoalStreak, (p) => ongoing(p.goalStreak, p.longestGoalStreak)),
-      },
-      {
-        key: 'winStreak',
-        icon: 'trending_up',
-        unitKey: 'records.unit.wins',
-        entries: goalie((g) => g.longestWinStreak, (g) => ongoing(g.winStreak, g.longestWinStreak)),
-      },
-    ],
-  },
-  // Its one list (games, not players) is drawn by ImpactRecordList
-  { key: 'impact', records: [] },
-  {
-    key: 'scoring',
-    records: [
-      { key: 'hatTricks', icon: 'military_tech', unitKey: 'records.unit.hatTricks', entries: skater((p) => p.hatTricks) },
-      { key: 'threePointGames', icon: 'star', unitKey: 'records.unit.games', entries: skater((p) => p.threePointGames) },
-      { key: 'shots', icon: 'target', unitKey: 'records.unit.shots', entries: skater((p) => p.shots) },
-      { key: 'ppGoals', icon: 'bolt', unitKey: 'records.unit.goals', entries: skater((p) => p.powerPlayGoals) },
-      { key: 'gwGoals', icon: 'emoji_events', unitKey: 'records.unit.goals', entries: skater((p) => p.gameWinningGoals) },
-    ],
-  },
-  {
-    key: 'defense',
-    records: [
-      { key: 'shutouts', icon: 'block', unitKey: 'records.unit.shutouts', entries: goalie((g) => g.shutouts) },
-      { key: 'hits', icon: 'sports_mma', unitKey: 'records.unit.hits', entries: skater((p) => p.hits) },
-      { key: 'blocks', icon: 'shield', unitKey: 'records.unit.blocks', entries: skater((p) => p.blockedShots) },
-    ],
-  },
-];
+import { IMPACT_KEY, RECORD_GROUPS } from '@/lib/records';
+import { useRecordUpdates } from '@/hooks/useRecordUpdates';
 
 const Records = () => {
   const [selectedSeason, setSelectedSeason] = useState(CURRENT_SEASON);
@@ -90,6 +26,14 @@ const Records = () => {
   const { data: goalies, isLoading: goaliesLoading } = useSwedishGoalies(selectedSeason);
   const { data: impactGames, isLoading: impactLoading } = useImpactRecords(selectedSeason);
   const isLoading = playersLoading || goaliesLoading;
+
+  // Opening the page clears the badge on the Records tab; the list and entry badges clear on hover
+  const { isUpdated, markSeen, markNavSeen } = useRecordUpdates();
+  useEffect(markNavSeen, [markNavSeen]);
+  const updatesFor = (list: string) =>
+    selectedSeason === CURRENT_SEASON
+      ? { isUpdated: (id: string) => isUpdated(list, id), markSeen: (id: string) => markSeen(list, id) }
+      : undefined;
 
   return (
     <div className="min-h-screen bg-background">
@@ -128,17 +72,17 @@ const Records = () => {
         </div>
 
         <div className="space-y-10">
-          {GROUPS.map((group) => (
+          {RECORD_GROUPS.map((group) => (
             <section key={group.key} aria-labelledby={`records-${group.key}`}>
               <h2 id={`records-${group.key}`} className="mb-4 text-2xl font-bold text-foreground">
                 {t(`records.group.${group.key}`)}
               </h2>
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {group.key === 'impact' &&
+                {group.key === IMPACT_KEY &&
                   (impactLoading ? (
                     <Skeleton className="h-[340px] rounded-xl md:col-span-2" />
                   ) : (
-                    <ImpactRecordList games={impactGames ?? []} />
+                    <ImpactRecordList games={impactGames ?? []} updates={updatesFor(IMPACT_KEY)} />
                   ))}
                 {group.records.map((record) =>
                   isLoading ? (
@@ -153,6 +97,7 @@ const Records = () => {
                       unitKey={record.unitKey}
                       entries={record.entries(players ?? [], goalies ?? [])}
                       season={selectedSeason}
+                      updates={updatesFor(record.key)}
                     />
                   ),
                 )}
