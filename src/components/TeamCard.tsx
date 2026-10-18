@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import TeamLogo from '@/components/TeamLogo';
 import PlayerHeadshot from '@/components/PlayerHeadshot';
-import { getTeamColor, getTeamBackgroundColor } from '@/lib/teamColors';
+import { getTeamColor } from '@/lib/teamColors';
 import { SwedishPlayer, SwedishGoalie } from '@/types/nhl';
 import StatBar from '@/components/StatBar';
 import { useI18n } from '@/i18n';
@@ -54,7 +54,7 @@ const TeamCard = ({ teamAbbr, players, goalies }: TeamCardProps) => {
   const { t, path, position, percent } = useI18n();
   const teamColor = getTeamColor(teamAbbr);
   const teamName = TEAM_NAMES[teamAbbr] || teamAbbr;
-  const bgColor = getTeamBackgroundColor(teamAbbr, 0.08);
+  const bgColor = teamColor.tint;
 
   // Sort players by points (desc), goalies by wins (desc)
   const sortedPlayers = [...players].sort((a, b) => b.points - a.points);
@@ -63,7 +63,7 @@ const TeamCard = ({ teamAbbr, players, goalies }: TeamCardProps) => {
   return (
     <Card 
       className="overflow-hidden transition-shadow hover:shadow-lg"
-      style={{ borderLeftWidth: '4px', borderLeftColor: teamColor.primary }}
+      style={{ borderLeftWidth: '4px', borderLeftColor: teamColor.main }}
     >
       <Link to={path(`/teams/${teamAbbr}`)}>
         <CardHeader 

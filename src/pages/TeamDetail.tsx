@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/table';
 import { useSwedishPlayers, useSwedishGoalies, useNHLGames } from '@/hooks/useNHLData';
 import { CURRENT_SEASON, formatSeason } from '@/lib/season';
-import { getTeamColor, getTeamBackgroundColor } from '@/lib/teamColors';
+import { getTeamColor } from '@/lib/teamColors';
 import { cn } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
 import SEO from '@/components/SEO';
@@ -123,7 +123,7 @@ const TeamDetail = () => {
   
   const teamName = TEAM_NAMES[normalizedAbbr] || normalizedAbbr;
   const teamColor = getTeamColor(normalizedAbbr);
-  const bgColor = getTeamBackgroundColor(normalizedAbbr, 0.08);
+  const bgColor = teamColor.tint;
   
   const totalPlayers = teamPlayers.length + teamGoalies.length;
 
@@ -180,7 +180,7 @@ const TeamDetail = () => {
           className="rounded-lg p-6 mb-8 flex items-center gap-6"
           style={{ 
             backgroundColor: bgColor,
-            borderLeft: `4px solid ${teamColor.primary}`
+            borderLeft: `4px solid ${teamColor.main}`
           }}
         >
           <TeamLogo teamAbbr={normalizedAbbr} size="lg" />

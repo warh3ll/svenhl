@@ -8,7 +8,7 @@ import TeamLogo from './TeamLogo';
 import PlayerHeadshot from './PlayerHeadshot';
 import LazyYouTubeEmbed from './LazyYouTubeEmbed';
 import { useSpoiler } from '@/contexts/SpoilerContext';
-import { getTeamColor, getTeamBackgroundColor } from '@/lib/teamColors';
+import { getTeamColor } from '@/lib/teamColors';
 import { useI18n } from '@/i18n';
 
 interface GameCardProps {
@@ -183,7 +183,7 @@ const PointItem = ({
   const { t, path } = useI18n();
   const isGoal = point.type === 'goal';
   const teamColor = getTeamColor(point.playerTeamAbbr || '');
-  const bgColor = getTeamBackgroundColor(point.playerTeamAbbr || '', 0.1);
+  const bgColor = teamColor.tint;
   
   return (
     <div 
@@ -192,7 +192,7 @@ const PointItem = ({
     >
       <div 
         className="absolute left-0 top-0 bottom-0 w-1.5"
-        style={{ backgroundColor: teamColor.primary }}
+        style={{ backgroundColor: teamColor.main }}
       />
       <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shrink-0 leading-none ${isGoal ? 'bg-[hsl(var(--goal))] text-[hsl(var(--goal-foreground))]' : 'bg-[hsl(var(--assist))] text-[hsl(var(--assist-foreground))]'}`}>
         {isGoal ? t('game.goalLetter') : t('game.assistLetter')}
@@ -217,7 +217,7 @@ const GoalieItem = ({
   const { t, path, percent } = useI18n();
   const isWin = goalie.result === 'W';
   const teamColor = getTeamColor(goalie.teamAbbr);
-  const bgColor = getTeamBackgroundColor(goalie.teamAbbr, 0.1);
+  const bgColor = teamColor.tint;
   
   return (
     <div 
@@ -226,7 +226,7 @@ const GoalieItem = ({
     >
       <div 
         className="absolute left-0 top-0 bottom-0 w-1.5"
-        style={{ backgroundColor: teamColor.primary }}
+        style={{ backgroundColor: teamColor.main }}
       />
       <div className="flex items-center gap-2 min-w-0">
         <Badge variant={isWin ? 'default' : 'secondary'} className="shrink-0">{t(`game.result.${goalie.result}`)}</Badge>
