@@ -1,6 +1,6 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, Navigate } from 'react-router-dom';
 import type { CareerSeasonStats, PlayerGameLogEntry } from '@/types/nhl';
-import { usePlayer, useGoalie, usePlayerGameLog, usePlayerCareerStats } from '@/hooks/useNHLData';
+import { usePlayer, useGoalie, usePlayerGameLog, usePlayerCareerStats, usePlayerIndex } from '@/hooks/useNHLData';
 import { CURRENT_SEASON, formatSeason } from '@/lib/season';
 import Header from '@/components/Header';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -13,19 +13,29 @@ import { Helmet } from 'react-helmet-async';
 import { useI18n } from '@/i18n';
 
 const PlayerProfile = () => {
-  const { playerId } = useParams<{ playerId: string }>();
-  
+  // The address is the player's name (/player/elias-pettersson-1998); older links use his NHL ID
+  const { playerSlug = '' } = useParams<{ playerSlug: string }>();
+  const isNhlId = /^\d+$/.test(playerSlug);
+  const { data: index, isLoading: indexLoading } = usePlayerIndex();
+  const entry = index?.bySlug.get(playerSlug) ?? (isNhlId ? index?.byId.get(playerSlug) : undefined);
+  const playerId = entry?.id ?? (isNhlId ? playerSlug : '');
+
   const { data: player, isLoading: playerLoading } = usePlayer(playerId || '');
   const { data: goalie, isLoading: goalieLoading } = useGoalie(playerId || '');
   const { data: gameLog, isLoading: gameLogLoading } = usePlayerGameLog(playerId || '');
   const { data: careerStats, isLoading: careerLoading } = usePlayerCareerStats(playerId || '');
   const { t, path, decimal, percent } = useI18n();
 
-  const isLoading = playerLoading && goalieLoading;
+  const isLoading = (playerLoading && goalieLoading) || (indexLoading && !playerId);
   const isGoalie = !player && goalie;
   const currentPlayer = player || goalie;
   // Season of the stats row shown (the player's most recent season on record)
   const playerSeason = currentPlayer?.season ?? CURRENT_SEASON;
+
+  // An NHL ID or an old name: move on to the player's current address
+  if (entry && entry.slug !== playerSlug) {
+    return <Navigate to={path(`/player/${entry.slug}`)} replace />;
+  }
 
   if (isLoading) {
     return (
@@ -66,7 +76,7 @@ const PlayerProfile = () => {
       <SEO
         title={t('seo.player.title', { name: currentPlayer.name })}
         description={t('seo.player.description', { name: currentPlayer.name, team: currentPlayer.team })}
-        path={`/player/${playerId}`}
+        path={`/player/${entry?.slug ?? playerSlug}`}
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'Person',

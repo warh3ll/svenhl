@@ -8,6 +8,7 @@ import TeamLogo from './TeamLogo';
 import PlayerHeadshot from './PlayerHeadshot';
 import { useSwedishPlayers, useSwedishGoalies } from '@/hooks/useNHLData';
 import { LOCALES, useI18n, type Lang } from '@/i18n';
+import { usePlayerPath } from '@/hooks/usePlayerPath';
 
 interface UpcomingGamesStripProps {
   games: Game[];
@@ -40,7 +41,8 @@ const POSITION_ORDER: Record<string, number> = { C: 0, L: 0, R: 0, D: 1, G: 2 };
 const byPosition = (a: Swede, b: Swede) => (POSITION_ORDER[a.position] ?? 0) - (POSITION_ORDER[b.position] ?? 0);
 
 const TeamSwedes = ({ teamAbbr, swedes }: { teamAbbr: string; swedes: Swede[] }) => {
-  const { t, path, position } = useI18n();
+  const { t, position } = useI18n();
+  const playerPath = usePlayerPath();
   return (
   <div className="space-y-2">
     <div className="flex items-center gap-2">
@@ -54,7 +56,7 @@ const TeamSwedes = ({ teamAbbr, swedes }: { teamAbbr: string; swedes: Swede[] })
         {swedes.map((swede) => (
           <li key={swede.id}>
             <Link
-              to={path(`/player/${swede.id}`)}
+              to={playerPath(swede.id)}
               className="flex items-center gap-2 rounded-md px-1 py-1 transition-colors hover:bg-muted"
             >
               <PlayerHeadshot playerId={swede.id} playerName={swede.name} teamAbbr={teamAbbr} size="sm" />

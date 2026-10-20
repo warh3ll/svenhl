@@ -6,6 +6,7 @@ import { getTeamColor } from '@/lib/teamColors';
 import { SwedishPlayer, SwedishGoalie } from '@/types/nhl';
 import StatBar from '@/components/StatBar';
 import { useI18n } from '@/i18n';
+import { usePlayerPath } from '@/hooks/usePlayerPath';
 
 // Full team names mapped from abbreviations
 const TEAM_NAMES: Record<string, string> = {
@@ -52,6 +53,7 @@ interface TeamCardProps {
 
 const TeamCard = ({ teamAbbr, players, goalies }: TeamCardProps) => {
   const { t, path, position, percent } = useI18n();
+  const playerPath = usePlayerPath();
   const teamColor = getTeamColor(teamAbbr);
   const teamName = TEAM_NAMES[teamAbbr] || teamAbbr;
   const bgColor = teamColor.tint;
@@ -84,7 +86,7 @@ const TeamCard = ({ teamAbbr, players, goalies }: TeamCardProps) => {
           {sortedPlayers.map((player) => (
             <Link
               key={player.id}
-              to={path(`/player/${player.id}`)}
+              to={playerPath(player.id)}
               className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
             >
               <PlayerHeadshot
@@ -123,7 +125,7 @@ const TeamCard = ({ teamAbbr, players, goalies }: TeamCardProps) => {
           {sortedGoalies.map((goalie) => (
             <Link
               key={goalie.id}
-              to={path(`/player/${goalie.id}`)}
+              to={playerPath(goalie.id)}
               className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
             >
               <PlayerHeadshot

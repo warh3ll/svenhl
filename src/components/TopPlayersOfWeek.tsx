@@ -5,6 +5,7 @@ import TeamLogo from './TeamLogo';
 import { Game } from '@/types/nhl';
 import MaterialIcon from '@/components/ui/material-icon';
 import { useI18n } from '@/i18n';
+import { usePlayerPath } from '@/hooks/usePlayerPath';
 interface TopPlayer {
   playerId: string;
   playerName: string;
@@ -19,7 +20,8 @@ interface TopPlayersOfWeekProps {
 const TopPlayersOfWeek = ({
   games
 }: TopPlayersOfWeekProps) => {
-  const { t, path } = useI18n();
+  const { t } = useI18n();
+  const playerPath = usePlayerPath();
   const topPlayers = useMemo(() => {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -94,7 +96,7 @@ const TopPlayersOfWeek = ({
       </div>
       
       <div className="grid gap-4 lg:grid-cols-3 lg:gap-6">
-        {topPlayers.map((player, index) => <Link key={player.playerId} to={path(`/player/${player.playerId}`)} className={`group flex items-center gap-3 rounded-xl p-3 transition-all hover:shadow-lg sm:gap-4 sm:p-4 ${getRankStyles(index)}`}>
+        {topPlayers.map((player, index) => <Link key={player.playerId} to={playerPath(player.playerId)} className={`group flex items-center gap-3 rounded-xl p-3 transition-all hover:shadow-lg sm:gap-4 sm:p-4 ${getRankStyles(index)}`}>
             {/* Headshot with rank medal */}
             <div className="relative shrink-0">
               <PlayerHeadshot playerId={player.playerId} playerName={player.playerName} teamAbbr={player.teamAbbr} size="lg" priority={index === 0} // First player gets priority for LCP

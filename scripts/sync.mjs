@@ -4,6 +4,7 @@
 // Usage:
 //   node scripts/sync.mjs                    # sync the current season, recent games and videos
 //   node scripts/sync.mjs --season 20252026  # (re)sync stats and Impact records for one specific season only
+//   node scripts/sync.mjs --player-index     # only rebuild players-index.json (player page URLs)
 //
 // Environment:
 //   YOUTUBE_API_KEY  optional; without it highlight search and the NHL Sverige carousel are skipped
@@ -141,6 +142,7 @@ async function fetchPlayerDetails(playerIds) {
       details.set(String(id), {
         sweaterNumber: player.sweaterNumber || 0,
         currentTeam: player.currentTeamAbbrev,
+        birthDate: player.birthDate,
         last5Games: player.last5Games || [],
       });
     } catch (e) {
@@ -296,7 +298,76 @@ async function syncSeasonStats(season, isCurrentSeason) {
   goalieRows.sort((a, b) => b.wins - a.wins);
   await writeJson(`players-${season}.json`, players);
   await writeJson(`goalies-${season}.json`, goalieRows);
-  return { players, goalies: goalieRows };
+  const birthDates = new Map([...details].map(([id, d]) => [id, d.birthDate]));
+  return { players, goalies: goalieRows, birthDates };
+}
+
+// ---------- player page URLs ----------
+
+// "Isac Lundeström" -> "isac-lundestrom"
+const slugify = (name) =>
+  name
+    .replace(/[øØ]/g, "o")
+    .replace(/[æÆ]/g, "ae")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+// players-index.json gives every player on the site a readable URL: /player/william-nylander. Players
+// who share a name get their birth year added (/player/elias-pettersson-1998, -2004), and if that is
+// still not unique, their NHL ID. A player's old address stays in "aliases" when his URL changes (say
+// a namesake turns up), so links to it keep working. Birth dates are kept in the file, so they are only
+// fetched once per player; the past seasons' players come from the committed copy.
+async function updatePlayerIndex(birthDates = new Map()) {
+  const previous = new Map((await readJson("players-index.json", [])).map((entry) => [entry.id, entry]));
+  const { seasons } = await readJson("manifest.json", { seasons: [] });
+
+  // Every player in any season file, with the name and season of his latest row
+  const players = new Map();
+  for (const season of seasons) {
+    for (const kind of ["players", "goalies"]) {
+      for (const row of await readJson(`${kind}-${season}.json`, [])) {
+        const known = players.get(row.id);
+        if (!known || row.season > known.season) players.set(row.id, { id: row.id, name: row.name, season: row.season });
+      }
+    }
+  }
+
+  for (const player of players.values()) {
+    player.birth_date = birthDates.get(player.id) || previous.get(player.id)?.birth_date;
+    if (player.birth_date) continue;
+    try {
+      player.birth_date = (await fetchJson(`https://api-web.nhle.com/v1/player/${player.id}/landing`)).birthDate;
+    } catch (e) {
+      console.error(`Failed to fetch birth date for player ${player.id}:`, e.message);
+    }
+    await sleep(100); // stay under the NHL API rate limit
+  }
+
+  const byName = Map.groupBy(players.values(), (player) => slugify(player.name));
+  for (const [base, namesakes] of byName) {
+    for (const player of namesakes) {
+      player.slug = namesakes.length > 1 && player.birth_date ? `${base}-${player.birth_date.slice(0, 4)}` : base;
+    }
+    for (const player of namesakes) {
+      if (namesakes.length > 1 && (!player.birth_date || namesakes.filter((p) => p.slug === player.slug).length > 1)) {
+        player.slug = `${base}-${player.id}`;
+      }
+    }
+  }
+
+  const slugs = new Set([...players.values()].map((player) => player.slug));
+  const index = [...players.values()]
+    .sort((a, b) => a.slug.localeCompare(b.slug))
+    .map((player) => {
+      const before = previous.get(player.id);
+      const aliases = [...(before?.aliases || []), before?.slug].filter((slug) => slug && slug !== player.slug && !slugs.has(slug));
+      return { ...player, ...(aliases.length && { aliases: [...new Set(aliases)] }) };
+    });
+  await writeJson("players-index.json", index);
+  console.log(`Player index: ${index.length} players`);
 }
 
 // ---------- YouTube ----------
@@ -753,16 +824,20 @@ async function main() {
   const seasonArg = process.argv.indexOf("--season");
   const currentSeason = await getCurrentSeason();
 
+  if (process.argv.includes("--player-index")) return updatePlayerIndex();
+
   // One-off resync of a specific season: stats only
   if (seasonArg !== -1) {
     const season = process.argv[seasonArg + 1];
     if (!/^\d{8}$/.test(season ?? "")) throw new Error("--season expects an ID like 20252026");
-    const { players } = await syncSeasonStats(season, season === currentSeason);
+    const stats = await syncSeasonStats(season, season === currentSeason);
+    const { players } = stats;
     // Every finished game of the season, so a past season gets its full Impact list in one run
     await syncImpactRecords(season, new Map(players.map((p) => [p.id, p])));
     const manifest = await readJson("manifest.json", { seasons: [] });
     manifest.seasons = [...new Set([...manifest.seasons, season])].sort().reverse();
     await writeJson("manifest.json", manifest);
+    await updatePlayerIndex(stats.birthDates);
     return;
   }
 
@@ -787,6 +862,7 @@ async function main() {
   }
 
   await updateManifest(currentSeason);
+  await updatePlayerIndex(stats.birthDates);
   console.log("Sync complete");
 }
 

@@ -305,3 +305,25 @@ export function useImpactRecords(season: string = CURRENT_SEASON) {
     staleTime: 1000 * 60 * 30,
   });
 }
+
+export interface PlayerIndexEntry {
+  id: string;
+  name: string;
+  slug: string;
+  aliases?: string[];
+}
+
+// Readable player page addresses (/player/elias-pettersson-1998), written by scripts/sync.mjs
+export function usePlayerIndex() {
+  return useQuery({
+    queryKey: ['players-index'],
+    queryFn: () => fetchData<PlayerIndexEntry[]>('players-index.json'),
+    select: (entries) => ({
+      slugById: new Map(entries.map((entry) => [entry.id, entry.slug])),
+      // Current and old addresses, so links to a player's previous URL still find him
+      bySlug: new Map(entries.flatMap((entry) => [entry.slug, ...(entry.aliases ?? [])].map((slug) => [slug, entry]))),
+      byId: new Map(entries.map((entry) => [entry.id, entry])),
+    }),
+    staleTime: 1000 * 60 * 30,
+  });
+}
