@@ -120,6 +120,15 @@ export interface CareerSeasonStats {
   savePercentage?: number;
   goalsAgainstAverage?: number;
   shutouts?: number;
+  shutoutGames?: ShutoutGame[];
+}
+
+export interface ShutoutGame {
+  gameId: string;
+  date: string;
+  opponent: string;
+  home: boolean;
+  saves: number;
 }
 
 export type SortField = 'name' | 'team' | 'games' | 'goals' | 'assists' | 'points' | 'penaltyMinutes' | 'plusMinus';

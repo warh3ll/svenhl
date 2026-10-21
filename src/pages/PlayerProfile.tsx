@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import type { CareerSeasonStats, PlayerGameLogEntry } from '@/types/nhl';
+import type { CareerSeasonStats, PlayerGameLogEntry, ShutoutGame } from '@/types/nhl';
 import { usePlayer, useGoalie, usePlayerGameLog, usePlayerCareerStats } from '@/hooks/useNHLData';
 import { CURRENT_SEASON, formatSeason } from '@/lib/season';
 import Header from '@/components/Header';
@@ -198,7 +198,19 @@ const PlayerProfile = () => {
           </section>
 
           <div className="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
-            {/* Game Log */}
+            {isGoalie ? (
+              <section aria-labelledby="shutouts-heading">
+                <SectionHeading id="shutouts-heading">{t('player.shutouts')}</SectionHeading>
+                {careerLoading ? (
+                  <Skeleton className="h-40 w-full" />
+                ) : careerStats?.some((s) => s.shutoutGames?.length) ? (
+                  <ShutoutsBySeason seasons={careerStats} />
+                ) : (
+                  <p className="py-6 text-muted-foreground">{t('player.noShutouts')}</p>
+                )}
+              </section>
+            ) : (
+            /* Game Log */
             <section aria-labelledby="points-heading">
               <SectionHeading id="points-heading">{t('player.recentPoints')}</SectionHeading>
               {gameLogLoading ? (
@@ -209,6 +221,7 @@ const PlayerProfile = () => {
                 <p className="py-6 text-muted-foreground">{t('player.noPoints')}</p>
               )}
             </section>
+            )}
 
             {/* Career Stats */}
             <section aria-labelledby="career-heading">
@@ -439,6 +452,58 @@ const PointChip = ({ point }: { point: PlayerGameLogEntry }) => {
       </span>
       <span className="sr-only">
         {isGoal ? t('player.goal') : t('player.assist')}, {overtime ? t('period.overtimeName') : t('period.name', { period: point.period })}, {point.time}
+      </span>
+    </li>
+  );
+};
+
+// A goalie's shutouts, one group per season (newest first), each game with date, opponent and saves
+const ShutoutsBySeason = ({ seasons }: { seasons: CareerSeasonStats[] }) => {
+  const { t } = useI18n();
+  return (
+    <div className="space-y-8">
+      {seasons
+        .filter((s) => s.shutoutGames?.length)
+        .map((s) => (
+          <div key={s.season}>
+            <h3 className="mb-3 flex items-baseline justify-between text-sm">
+              <span className="font-semibold">{formatSeason(s.season)}</span>
+              <span className="text-muted-foreground">{t('count.shutouts', { count: s.shutoutGames!.length })}</span>
+            </h3>
+            <ol className="divide-y">
+              {s.shutoutGames!.map((game) => (
+                <ShutoutRow key={game.gameId} game={game} />
+              ))}
+            </ol>
+          </div>
+        ))}
+    </div>
+  );
+};
+
+const ShutoutRow = ({ game }: { game: ShutoutGame }) => {
+  const { t, locale } = useI18n();
+  // Game dates are local calendar days; read them at noon so no time zone shifts the day
+  const date = new Date(`${game.date}T12:00:00`);
+  return (
+    <li className="grid grid-cols-[2.5rem_auto_1fr_auto] items-center gap-x-4 py-3">
+      <time dateTime={game.date} className="flex flex-col items-center leading-none">
+        <span className="text-xl font-bold tabular-nums">{date.toLocaleDateString(locale, { day: 'numeric' })}</span>
+        <span className="mt-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          {date.toLocaleDateString(locale, { month: 'short' }).replace('.', '')}
+        </span>
+      </time>
+      <TeamLogo teamAbbr={game.opponent} size="sm" />
+      <span className="font-medium">
+        <span aria-hidden="true">
+          {t(game.home ? 'player.vsOpponent' : 'player.atOpponent', { team: game.opponent })}
+        </span>
+        <span className="sr-only">
+          {t(game.home ? 'player.homeGameVs' : 'player.awayGameAt', { team: game.opponent })}
+        </span>
+      </span>
+      <span className="text-right text-sm tabular-nums text-muted-foreground whitespace-nowrap">
+        {t('count.saves', { count: game.saves })}
       </span>
     </li>
   );
