@@ -274,6 +274,13 @@ export function usePlayerCareerStats(playerId: string) {
         savePercentage: Number(row.save_percentage) || 0,
         goalsAgainstAverage: Number(row.goals_against_average) || 0,
         shutouts: row.shutouts || 0,
+        shutoutGames: (row.shutout_games || []).map((game: DataRow) => ({
+          gameId: game.game_id,
+          date: game.date,
+          opponent: game.opponent,
+          home: game.home,
+          saves: game.saves || 0,
+        })),
       }));
     },
     enabled: !!playerId,

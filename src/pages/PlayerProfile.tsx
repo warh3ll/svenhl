@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import type { CareerSeasonStats, PlayerGameLogEntry } from '@/types/nhl';
+import type { CareerSeasonStats, PlayerGameLogEntry, ShutoutGame } from '@/types/nhl';
 import { usePlayer, useGoalie, usePlayerGameLog, usePlayerCareerStats } from '@/hooks/useNHLData';
 import { CURRENT_SEASON, formatSeason } from '@/lib/season';
 import Header from '@/components/Header';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import MaterialIcon from '@/components/ui/material-icon';
 import TeamLogo from '@/components/TeamLogo';
 import StatBar from '@/components/StatBar';
@@ -198,7 +200,19 @@ const PlayerProfile = () => {
           </section>
 
           <div className="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
-            {/* Game Log */}
+            {isGoalie ? (
+              <section aria-labelledby="shutouts-heading">
+                <SectionHeading id="shutouts-heading">{t('player.shutouts')}</SectionHeading>
+                {careerLoading ? (
+                  <Skeleton className="h-40 w-full" />
+                ) : careerStats && careerStats.length > 0 ? (
+                  <GoalieShutouts seasons={careerStats} defaultSeason={playerSeason} />
+                ) : (
+                  <p className="py-6 text-muted-foreground">{t('player.noShutouts')}</p>
+                )}
+              </section>
+            ) : (
+            /* Game Log */
             <section aria-labelledby="points-heading">
               <SectionHeading id="points-heading">{t('player.recentPoints')}</SectionHeading>
               {gameLogLoading ? (
@@ -209,6 +223,7 @@ const PlayerProfile = () => {
                 <p className="py-6 text-muted-foreground">{t('player.noPoints')}</p>
               )}
             </section>
+            )}
 
             {/* Career Stats */}
             <section aria-labelledby="career-heading">
@@ -439,6 +454,76 @@ const PointChip = ({ point }: { point: PlayerGameLogEntry }) => {
       </span>
       <span className="sr-only">
         {isGoal ? t('player.goal') : t('player.assist')}, {overtime ? t('period.overtimeName') : t('period.name', { period: point.period })}, {point.time}
+      </span>
+    </li>
+  );
+};
+
+// A goalie's shutouts for one season at a time (newest game first), picked from the seasons they played.
+// Starts on the season shown at the top of the page.
+const GoalieShutouts = ({ seasons, defaultSeason }: { seasons: CareerSeasonStats[]; defaultSeason: string }) => {
+  const { t } = useI18n();
+  const [selected, setSelected] = useState(defaultSeason);
+  const season = seasons.find((s) => s.season === selected) ?? seasons[0];
+  const games = season?.shutoutGames ?? [];
+  return (
+    <div>
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <label htmlFor="shutouts-season" className="text-sm font-medium text-foreground">{t('statistics.seasonLabel')}</label>
+          <Select value={season?.season} onValueChange={setSelected}>
+            <SelectTrigger id="shutouts-season" className="w-[140px]">
+              <SelectValue placeholder={t('statistics.selectSeason')} />
+            </SelectTrigger>
+            <SelectContent>
+              {seasons.map((s) => (
+                <SelectItem key={s.season} value={s.season}>
+                  {formatSeason(s.season)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {games.length > 0 && (
+          <span className="text-sm text-muted-foreground">{t('count.shutouts', { count: games.length })}</span>
+        )}
+      </div>
+      {games.length > 0 ? (
+        <ol className="divide-y">
+          {games.map((game) => (
+            <ShutoutRow key={game.gameId} game={game} />
+          ))}
+        </ol>
+      ) : (
+        <p className="py-6 text-muted-foreground">{t('player.noShutouts')}</p>
+      )}
+    </div>
+  );
+};
+
+const ShutoutRow = ({ game }: { game: ShutoutGame }) => {
+  const { t, locale } = useI18n();
+  // Game dates are local calendar days; read them at noon so no time zone shifts the day
+  const date = new Date(`${game.date}T12:00:00`);
+  return (
+    <li className="grid grid-cols-[2.5rem_auto_1fr_auto] items-center gap-x-4 py-3">
+      <time dateTime={game.date} className="flex flex-col items-center leading-none">
+        <span className="text-xl font-bold tabular-nums">{date.toLocaleDateString(locale, { day: 'numeric' })}</span>
+        <span className="mt-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          {date.toLocaleDateString(locale, { month: 'short' }).replace('.', '')}
+        </span>
+      </time>
+      <TeamLogo teamAbbr={game.opponent} size="sm" />
+      <span className="font-medium">
+        <span aria-hidden="true">
+          {t(game.home ? 'player.vsOpponent' : 'player.atOpponent', { team: game.opponent })}
+        </span>
+        <span className="sr-only">
+          {t(game.home ? 'player.homeGameVs' : 'player.awayGameAt', { team: game.opponent })}
+        </span>
+      </span>
+      <span className="text-right text-sm tabular-nums text-muted-foreground whitespace-nowrap">
+        {t('count.saves', { count: game.saves })}
       </span>
     </li>
   );
