@@ -277,7 +277,7 @@
   "player.noCareer": "Ingen karriärhistorik finns.",
   "player.careerSeason": "Säsong",
   "player.pointsByGame": "Poäng per match",
-  "player.noShutouts": "Inga nollor under säsongerna vi har.",
+  "player.noShutouts": "Inga nollor den här säsongen.",
   "player.vsOpponent": "mot {team}",
   "player.atOpponent": "@ {team}",
   "player.homeGameVs": "Hemmamatch mot {team}",

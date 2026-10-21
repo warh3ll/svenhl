@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import type { CareerSeasonStats, PlayerGameLogEntry, ShutoutGame } from '@/types/nhl';
 import { usePlayer, useGoalie, usePlayerGameLog, usePlayerCareerStats } from '@/hooks/useNHLData';
 import { CURRENT_SEASON, formatSeason } from '@/lib/season';
 import Header from '@/components/Header';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import MaterialIcon from '@/components/ui/material-icon';
 import TeamLogo from '@/components/TeamLogo';
 import StatBar from '@/components/StatBar';
@@ -203,8 +205,8 @@ const PlayerProfile = () => {
                 <SectionHeading id="shutouts-heading">{t('player.shutouts')}</SectionHeading>
                 {careerLoading ? (
                   <Skeleton className="h-40 w-full" />
-                ) : careerStats?.some((s) => s.shutoutGames?.length) ? (
-                  <ShutoutsBySeason seasons={careerStats} />
+                ) : careerStats && careerStats.length > 0 ? (
+                  <GoalieShutouts seasons={careerStats} defaultSeason={playerSeason} />
                 ) : (
                   <p className="py-6 text-muted-foreground">{t('player.noShutouts')}</p>
                 )}
@@ -457,26 +459,44 @@ const PointChip = ({ point }: { point: PlayerGameLogEntry }) => {
   );
 };
 
-// A goalie's shutouts, one group per season (newest first), each game with date, opponent and saves
-const ShutoutsBySeason = ({ seasons }: { seasons: CareerSeasonStats[] }) => {
+// A goalie's shutouts for one season at a time (newest game first), picked from the seasons they played.
+// Starts on the season shown at the top of the page.
+const GoalieShutouts = ({ seasons, defaultSeason }: { seasons: CareerSeasonStats[]; defaultSeason: string }) => {
   const { t } = useI18n();
+  const [selected, setSelected] = useState(defaultSeason);
+  const season = seasons.find((s) => s.season === selected) ?? seasons[0];
+  const games = season?.shutoutGames ?? [];
   return (
-    <div className="space-y-8">
-      {seasons
-        .filter((s) => s.shutoutGames?.length)
-        .map((s) => (
-          <div key={s.season}>
-            <h3 className="mb-3 flex items-baseline justify-between text-sm">
-              <span className="font-semibold">{formatSeason(s.season)}</span>
-              <span className="text-muted-foreground">{t('count.shutouts', { count: s.shutoutGames!.length })}</span>
-            </h3>
-            <ol className="divide-y">
-              {s.shutoutGames!.map((game) => (
-                <ShutoutRow key={game.gameId} game={game} />
+    <div>
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <label htmlFor="shutouts-season" className="text-sm font-medium text-foreground">{t('statistics.seasonLabel')}</label>
+          <Select value={season?.season} onValueChange={setSelected}>
+            <SelectTrigger id="shutouts-season" className="w-[140px]">
+              <SelectValue placeholder={t('statistics.selectSeason')} />
+            </SelectTrigger>
+            <SelectContent>
+              {seasons.map((s) => (
+                <SelectItem key={s.season} value={s.season}>
+                  {formatSeason(s.season)}
+                </SelectItem>
               ))}
-            </ol>
-          </div>
-        ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {games.length > 0 && (
+          <span className="text-sm text-muted-foreground">{t('count.shutouts', { count: games.length })}</span>
+        )}
+      </div>
+      {games.length > 0 ? (
+        <ol className="divide-y">
+          {games.map((game) => (
+            <ShutoutRow key={game.gameId} game={game} />
+          ))}
+        </ol>
+      ) : (
+        <p className="py-6 text-muted-foreground">{t('player.noShutouts')}</p>
+      )}
     </div>
   );
 };

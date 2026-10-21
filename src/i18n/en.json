@@ -277,7 +277,7 @@
   "player.noCareer": "No career history available.",
   "player.careerSeason": "Season",
   "player.pointsByGame": "Points by game",
-  "player.noShutouts": "No shutouts in the seasons on record.",
+  "player.noShutouts": "No shutouts this season.",
   "player.vsOpponent": "vs {team}",
   "player.atOpponent": "@ {team}",
   "player.homeGameVs": "Home game against {team}",
