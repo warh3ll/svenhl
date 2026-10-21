@@ -14,13 +14,15 @@ import { cn } from '@/lib/utils';
 import TeamLogo from '@/components/TeamLogo';
 import PlayerHeadshot from '@/components/PlayerHeadshot';
 import { useI18n } from '@/i18n';
+import { usePlayerPath } from '@/hooks/usePlayerPath';
 
 interface PlayerTableProps {
   players: SwedishPlayer[];
 }
 
 const PlayerTable = ({ players }: PlayerTableProps) => {
-  const { t, path, position, percent } = useI18n();
+  const { t, position, percent } = useI18n();
+  const playerPath = usePlayerPath();
   const [sortField, setSortField] = useState<SortField>('points');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
@@ -101,7 +103,7 @@ const PlayerTable = ({ players }: PlayerTableProps) => {
               <TableRow key={player.id} className="hover:bg-muted/30 transition-colors">
                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
                 <TableCell>
-                  <Link to={path(`/player/${player.id}`)} className="group">
+                  <Link to={playerPath(player.id)} className="group">
                     <div className="flex items-center gap-3">
                       <PlayerHeadshot playerId={player.id} playerName={player.name} teamAbbr={player.teamAbbr} season={player.season} size="sm" />
                       <div className="flex flex-col">

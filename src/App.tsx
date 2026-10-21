@@ -33,14 +33,14 @@ const App = () => (
               <Route path="/records" element={<Records />} />
               <Route path="/teams" element={<Teams />} />
               <Route path="/teams/:teamAbbr" element={<TeamDetail />} />
-              <Route path="/player/:playerId" element={<PlayerProfile />} />
+              <Route path="/player/:playerSlug" element={<PlayerProfile />} />
               {/* Swedish pages: slugs come from src/i18n/routes.json */}
               <Route path="/sv" element={<Index />} />
               <Route path="/sv/statistik" element={<Statistics />} />
               <Route path="/sv/rekord" element={<Records />} />
               <Route path="/sv/lag" element={<Teams />} />
               <Route path="/sv/lag/:teamAbbr" element={<TeamDetail />} />
-              <Route path="/sv/spelare/:playerId" element={<PlayerProfile />} />
+              <Route path="/sv/spelare/:playerSlug" element={<PlayerProfile />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -14,13 +14,15 @@ import { cn } from '@/lib/utils';
 import TeamLogo from '@/components/TeamLogo';
 import PlayerHeadshot from '@/components/PlayerHeadshot';
 import { useI18n } from '@/i18n';
+import { usePlayerPath } from '@/hooks/usePlayerPath';
 
 interface GoalieTableProps {
   goalies: SwedishGoalie[];
 }
 
 const GoalieTable = ({ goalies }: GoalieTableProps) => {
-  const { t, path, decimal, percent } = useI18n();
+  const { t, decimal, percent } = useI18n();
+  const playerPath = usePlayerPath();
   const [sortField, setSortField] = useState<GoalieSortField>('savePercentage');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
@@ -108,7 +110,7 @@ const GoalieTable = ({ goalies }: GoalieTableProps) => {
               <TableRow key={goalie.id} className="hover:bg-muted/30 transition-colors">
                 <TableCell className="font-medium text-muted-foreground">{index + 1}</TableCell>
                 <TableCell>
-                  <Link to={path(`/player/${goalie.id}`)} className="group">
+                  <Link to={playerPath(goalie.id)} className="group">
                     <div className="flex items-center gap-3">
                       <PlayerHeadshot playerId={goalie.id} playerName={goalie.name} teamAbbr={goalie.teamAbbr} season={goalie.season} size="sm" />
                       <div className="flex flex-col">

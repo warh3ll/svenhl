@@ -10,6 +10,7 @@ import LazyYouTubeEmbed from './LazyYouTubeEmbed';
 import { useSpoiler } from '@/contexts/SpoilerContext';
 import { getTeamColor } from '@/lib/teamColors';
 import { useI18n } from '@/i18n';
+import { usePlayerPath } from '@/hooks/usePlayerPath';
 
 interface GameCardProps {
   game: Game;
@@ -180,7 +181,8 @@ const PointItem = ({
 }: {
   point: GamePoint;
 }) => {
-  const { t, path } = useI18n();
+  const { t } = useI18n();
+  const playerPath = usePlayerPath();
   const isGoal = point.type === 'goal';
   const teamColor = getTeamColor(point.playerTeamAbbr || '');
   const bgColor = teamColor.tint;
@@ -199,7 +201,7 @@ const PointItem = ({
       </div>
       <PlayerHeadshot playerId={point.playerId} playerName={point.playerName} teamAbbr={point.playerTeamAbbr} size="sm" />
       <div className="flex flex-col min-w-0">
-        <Link to={path(`/player/${point.playerId}`)} className="font-semibold text-foreground hover:text-primary transition-colors truncate">
+        <Link to={playerPath(point.playerId)} className="font-semibold text-foreground hover:text-primary transition-colors truncate">
           {point.playerName}
         </Link>
         <span className="text-xs text-muted-foreground whitespace-nowrap">
@@ -214,7 +216,8 @@ const GoalieItem = ({
 }: {
   goalie: GoaliePerformance;
 }) => {
-  const { t, path, percent } = useI18n();
+  const { t, percent } = useI18n();
+  const playerPath = usePlayerPath();
   const isWin = goalie.result === 'W';
   const teamColor = getTeamColor(goalie.teamAbbr);
   const bgColor = teamColor.tint;
@@ -232,7 +235,7 @@ const GoalieItem = ({
         <Badge variant={isWin ? 'default' : 'secondary'} className="shrink-0">{t(`game.result.${goalie.result}`)}</Badge>
         <PlayerHeadshot playerId={goalie.goalieId} playerName={goalie.goalieName} teamAbbr={goalie.teamAbbr} size="sm" />
         <div className="flex flex-col min-w-0">
-          <Link to={path(`/player/${goalie.goalieId}`)} className="font-semibold text-foreground hover:text-primary transition-colors leading-tight">
+          <Link to={playerPath(goalie.goalieId)} className="font-semibold text-foreground hover:text-primary transition-colors leading-tight">
             {goalie.goalieName}
           </Link>
           <span className="text-xs text-muted-foreground whitespace-nowrap">

@@ -93,9 +93,20 @@ for (const [abbr, team] of Object.entries(TEAM_NAMES)) {
   });
 }
 
+// Player pages live at /player/<name> (slugs from players-index.json, written by scripts/sync.mjs)
+const playerIndex = await readJson(path.join(dataDir, "players-index.json"));
+const slugById = new Map(playerIndex.map((entry) => [entry.id, entry.slug]));
+// Old addresses (the NHL ID, a name the player has since outgrown) answer with a redirect
+const playerRedirects = [];
+
 for (const [id, row] of latestRow) {
+  const slug = slugById.get(id) ?? id;
+  if (slug !== id) playerRedirects.push({ from: `player/${id}`, to: `player/${slug}`, name: row.name });
+  for (const alias of playerIndex.find((entry) => entry.id === id)?.aliases ?? []) {
+    playerRedirects.push({ from: `player/${alias}`, to: `player/${slug}`, name: row.name });
+  }
   pages.push({
-    route: `player/${id}`,
+    route: `player/${slug}`,
     title: (lang) => t(lang, "seo.player.title", { name: row.name }),
     description: (lang) => t(lang, "seo.player.description", { name: row.name, team: row.team }),
     priority: row.season === currentSeason ? "0.8" : "0.5",
@@ -136,6 +147,26 @@ function renderPage(page, lang) {
   return html;
 }
 
+// A page that only sends the visitor on to a player's current address. GitHub Pages can't answer with
+// a real 301, but search engines treat an instant meta refresh plus a canonical link the same way.
+function renderRedirect(target, name, lang) {
+  const url = urlFor(target, lang);
+  return `<!doctype html>
+<html lang="${lang}">
+  <head>
+    <meta charset="UTF-8" />
+    <title>${escapeText(name)}</title>
+    <link rel="canonical" href="${url}" />
+    <meta http-equiv="refresh" content="0; url=${url}" />
+    <script>location.replace(${JSON.stringify("/" + localizeRoute(target, lang))} + location.search + location.hash);</script>
+  </head>
+  <body>
+    <a href="${url}">${escapeText(name)}</a>
+  </body>
+</html>
+`;
+}
+
 // The 404 page answers for unknown URLs in both languages, so it claims no canonical URL of its own
 function render404() {
   let html = setTag(template, /<title>[^<]*<\/title>/, `<title>${escapeText(t("en", "seo.notFound.title"))}</title>`);
@@ -152,6 +183,9 @@ const write = async (route, html) => {
 
 for (const page of pages) {
   for (const lang of LANGS) await write(localizeRoute(page.route, lang), renderPage(page, lang));
+}
+for (const { from, to, name } of playerRedirects) {
+  for (const lang of LANGS) await write(localizeRoute(from, lang), renderRedirect(to, name, lang));
 }
 // /sv is also a folder (sv/lag.html …), so give it an index too in case the host serves /sv/ instead of sv.html
 await write("sv/index", renderPage(pages[0], "sv"));
@@ -177,4 +211,4 @@ await writeFile(
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${sitemapUrls.join("\n")}\n</urlset>\n`,
 );
 
-console.log(`Wrote ${pages.length} pages in ${LANGS.length} languages (${latestRow.size} players), sitemap with ${sitemapUrls.length} URLs`);
+console.log(`Wrote ${pages.length} pages in ${LANGS.length} languages (${latestRow.size} players, ${playerRedirects.length} player redirects), sitemap with ${sitemapUrls.length} URLs`);

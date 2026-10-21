@@ -25,6 +25,14 @@ npm run dev    # http://localhost:8080
 
 Resync stats for a past season with `node scripts/sync.mjs --season 20252026`.
 
+## Player page addresses
+
+Player pages use the player's name: `/player/william-nylander`. Players who share a name get their
+birth year added (`/player/elias-pettersson-1998`, `/player/elias-pettersson-2004`). The addresses
+are in `public/data/players-index.json`, which every sync rebuilds (`node scripts/sync.mjs
+--player-index` rebuilds only that file). Old addresses with the NHL ID, like `/player/8480012`,
+redirect to the name.
+
 ## Texts and translations
 
 The site is in English and Swedish (Swedish pages live under `/sv`, e.g. `/sv/lag/VAN`).

@@ -25,6 +25,7 @@ import { ArrowLeft } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { Helmet } from 'react-helmet-async';
 import { listNames, useI18n } from '@/i18n';
+import { usePlayerPath } from '@/hooks/usePlayerPath';
 
 // Full team names mapped from abbreviations
 const TEAM_NAMES: Record<string, string> = {
@@ -67,6 +68,7 @@ const TeamDetail = () => {
   const { teamAbbr } = useParams<{ teamAbbr: string }>();
   const normalizedAbbr = teamAbbr?.toUpperCase() || '';
   const { lang, t, path, position, decimal, percent } = useI18n();
+  const playerPath = usePlayerPath();
   const season = formatSeason(CURRENT_SEASON);
   
   const { data: allPlayers, isLoading: playersLoading } = useSwedishPlayers(CURRENT_SEASON);
@@ -242,7 +244,7 @@ const TeamDetail = () => {
                           <TableRow key={player.id} className="hover:bg-muted/50">
                             <TableCell>
                               <Link 
-                                to={path(`/player/${player.id}`)}
+                                to={playerPath(player.id)}
                                 className="flex items-center gap-3 hover:text-primary transition-colors"
                               >
                                 <PlayerHeadshot 
@@ -322,7 +324,7 @@ const TeamDetail = () => {
                           <TableRow key={goalie.id} className="hover:bg-muted/50">
                             <TableCell>
                               <Link 
-                                to={path(`/player/${goalie.id}`)}
+                                to={playerPath(goalie.id)}
                                 className="flex items-center gap-3 hover:text-primary transition-colors"
                               >
                                 <PlayerHeadshot 

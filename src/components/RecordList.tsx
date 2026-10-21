@@ -3,6 +3,7 @@ import MaterialIcon from '@/components/ui/material-icon';
 import PlayerHeadshot from './PlayerHeadshot';
 import UpdateBadge from './UpdateBadge';
 import { useI18n } from '@/i18n';
+import { usePlayerPath } from '@/hooks/usePlayerPath';
 import { RecordEntry, topRows } from '@/lib/records';
 import { useSeenOnHover } from '@/hooks/useRecordUpdates';
 
@@ -81,13 +82,14 @@ interface RecordRowProps {
 }
 
 const RecordRow = ({ entry, rank, unitKey, season, updated, onSeen }: RecordRowProps) => {
-  const { t, path } = useI18n();
+  const { t } = useI18n();
+  const playerPath = usePlayerPath();
   const seenProps = useSeenOnHover<HTMLAnchorElement>(updated, onSeen);
 
   return (
     <li>
       <Link
-        to={path(`/player/${entry.id}`)}
+        to={playerPath(entry.id)}
         {...seenProps}
         className="group flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-button focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >

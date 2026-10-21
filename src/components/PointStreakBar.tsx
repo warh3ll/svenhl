@@ -3,6 +3,7 @@ import MaterialIcon from '@/components/ui/material-icon';
 import TeamLogo from './TeamLogo';
 import { useSwedishPlayers } from '@/hooks/useNHLData';
 import { useI18n } from '@/i18n';
+import { usePlayerPath } from '@/hooks/usePlayerPath';
 
 // Shortest streak worth showing
 const MIN_STREAK = 2;
@@ -11,7 +12,8 @@ const MIN_STREAK = 2;
 // Shown in spoiler mode too, since a streak isn't treated as a spoiler.
 const PointStreakBar = () => {
   const { data: players } = useSwedishPlayers();
-  const { t, path } = useI18n();
+  const { t } = useI18n();
+  const playerPath = usePlayerPath();
 
   const streaks = (players ?? [])
     .filter((player) => (player.pointStreak ?? 0) >= MIN_STREAK)
@@ -37,7 +39,7 @@ const PointStreakBar = () => {
           {streaks.map((player) => (
             <li key={player.id} className="shrink-0">
               <Link
-                to={path(`/player/${player.id}`)}
+                to={playerPath(player.id)}
                 aria-label={t('streak.player', { name: player.name, count: player.pointStreak })}
                 className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors hover:bg-background/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
