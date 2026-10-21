@@ -182,7 +182,7 @@ async function fetchGameLogRecords(id, season, isGoalie) {
   if (isGoalie) {
     // Win streaks count decisions only: a relief appearance without a decision doesn't end one
     const wins = streaks(log.filter((game) => game.decision), (game) => game.decision === "W");
-    return { win_streak: wins.current, longest_win_streak: wins.longest };
+    return { win_streak: wins.current, longest_win_streak: wins.longest, shutout_games: shutoutGames(log) };
   }
   const points = streaks(log, (game) => game.points > 0);
   const goals = streaks(log, (game) => game.goals > 0);
@@ -195,6 +195,18 @@ async function fetchGameLogRecords(id, season, isGoalie) {
     hat_tricks: log.filter((game) => game.goals >= 3).length,
   };
 }
+
+// The goalie's shutouts from their game log (newest first), for the list on the player page
+const shutoutGames = (log) =>
+  log
+    .filter((game) => game.shutouts > 0)
+    .map((game) => ({
+      game_id: String(game.gameId),
+      date: game.gameDate,
+      opponent: game.opponentAbbrev,
+      home: game.homeRoadFlag === "H",
+      saves: game.shotsAgainst || 0,
+    }));
 
 // Points in a row from the landing endpoint's last 5 games, for when the game log can't be fetched
 const lastGamesPointStreak = (last5Games, season) => {
@@ -289,6 +301,7 @@ async function syncSeasonStats(season, isCurrentSeason) {
       time_on_ice: g.timeOnIce ? `${Math.floor(g.timeOnIce / 60)}:00` : "0:00",
       win_streak: currentStreak(g, "win_streak"),
       longest_win_streak: recordsFor(g).longest_win_streak || 0,
+      shutout_games: recordsFor(g).shutout_games || [],
       season,
       updated_at: updatedAt,
     };
@@ -825,6 +838,26 @@ async function main() {
   const currentSeason = await getCurrentSeason();
 
   if (process.argv.includes("--player-index")) return updatePlayerIndex();
+
+  // One-off: add shutout games to every season's goalie file without touching the other stats
+  if (process.argv.includes("--shutouts")) {
+    const { seasons } = await readJson("manifest.json", { seasons: [] });
+    for (const season of seasons) {
+      const file = `goalies-${season}.json`;
+      const goalies = await readJson(file, []);
+      for (const goalie of goalies) {
+        if (goalie.shutouts === 0) {
+          goalie.shutout_games = [];
+          continue;
+        }
+        const records = await fetchGameLogRecords(goalie.id, season, true);
+        if (records) goalie.shutout_games = records.shutout_games;
+      }
+      await writeJson(file, goalies);
+      console.log(`Added shutout games to ${file}`);
+    }
+    return;
+  }
 
   // One-off resync of a specific season: stats only
   if (seasonArg !== -1) {
