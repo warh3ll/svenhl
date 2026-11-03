@@ -2,7 +2,7 @@ name: Sync data and deploy
 
 on:
   # Data refresh every 30 minutes. GitHub often delays or skips scheduled runs,
-  # so two slots per hour keep the gaps between real runs shorter.
+  # so the follow-up job below also chains runs itself while games are updating.
   schedule:
     - cron: "17,47 * * * *"
   push:
@@ -14,14 +14,15 @@ permissions:
   pages: write
   id-token: write
 
-# Never run two syncs/deploys at the same time
-concurrency:
-  group: pages
-  cancel-in-progress: false
-
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Never run two syncs at the same time
+    concurrency:
+      group: sync
+      cancel-in-progress: false
+    outputs:
+      pending_games: ${{ steps.pending.outputs.games }}
     steps:
       - uses: actions/checkout@v7
 
@@ -61,6 +62,22 @@ jobs:
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
 
+      # Games starting soon, live, or finished in the last 12 hours without a highlight video
+      - name: Check for games still updating
+        id: pending
+        run: |
+          node -e '
+            const games = JSON.parse(require("fs").readFileSync("public/data/games.json", "utf8"));
+            const now = Date.now();
+            const pending = games.filter((g) => {
+              const start = Date.parse(g.game_date);
+              return start < now + 60 * 60 * 1000 && start > now - 12 * 60 * 60 * 1000 &&
+                !(g.status === "final" && g.highlight_video_id);
+            });
+            console.log(`${pending.length} games still updating`);
+            require("fs").appendFileSync(process.env.GITHUB_OUTPUT, `games=${pending.length}\n`);
+          '
+
       - run: npm run build
 
       - name: Write route pages
@@ -73,9 +90,27 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
         uses: actions/deploy-pages@v5
+
+  # GitHub skips most scheduled runs (real gaps of 3-7 hours), so while games are live or
+  # waiting for highlight videos, each run starts the next one itself 20 minutes later.
+  # The chain stops on its own once every recent game is final with a video.
+  follow-up:
+    needs: [build, deploy]
+    if: fromJSON(needs.build.outputs.pending_games || '0') > 0
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - run: sleep 1200
+      - run: gh workflow run deploy.yml --repo "$GITHUB_REPOSITORY" --ref main
+        env:
+          GH_TOKEN: ${{ github.token }}
