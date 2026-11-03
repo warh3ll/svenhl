@@ -60,6 +60,10 @@
   "streak.games_one": "{count} match",
   "streak.games_other": "{count} matcher",
   "streak.player": "{name}: poäng i {count} matcher i rad",
+  "firstGoal.heading_one": "Första NHL-målet",
+  "firstGoal.heading_other": "Första NHL-målen",
+  "firstGoal.against": "mot {team}",
+  "firstGoal.player": "{name} gjorde sitt första NHL-mål mot {team} den {date}",
   "upcoming.noSwedes": "Inga svenska spelare",
 
   "game.status.final": "Slut",

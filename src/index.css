@@ -40,6 +40,8 @@ All colors MUST be HSL.
     --positive: 120 60% 30%;
     --streak: 0 90% 95%;
     --streak-foreground: 0 72% 33%;
+    --first-goal: 45 100% 93%;
+    --first-goal-foreground: 35 100% 24%;
 
     --destructive: 27 24.5% 40%;
     --destructive-foreground: 0 0% 100%;
@@ -117,6 +119,8 @@ All colors MUST be HSL.
     --background: 0 0% 15%;
     --streak: 0 35% 22%;
     --streak-foreground: 0 90% 84%;
+    --first-goal: 45 45% 20%;
+    --first-goal-foreground: 45 100% 72%;
     --foreground: 248 0.3% 98.4%;
 
     --card: 266 4% 20.8%;
