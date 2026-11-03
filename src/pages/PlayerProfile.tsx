@@ -10,6 +10,7 @@ import MaterialIcon from '@/components/ui/material-icon';
 import TeamLogo from '@/components/TeamLogo';
 import StatBar from '@/components/StatBar';
 import { getTeamBackgroundColor } from '@/lib/teamColors';
+import { formatBirthplace } from '@/lib/birthplace';
 import SEO from '@/components/SEO';
 import { Helmet } from 'react-helmet-async';
 import { useI18n } from '@/i18n';
@@ -21,7 +22,7 @@ const PlayerProfile = () => {
   const { data: goalie, isLoading: goalieLoading } = useGoalie(playerId || '');
   const { data: gameLog, isLoading: gameLogLoading } = usePlayerGameLog(playerId || '');
   const { data: careerStats, isLoading: careerLoading } = usePlayerCareerStats(playerId || '');
-  const { t, path, decimal, percent } = useI18n();
+  const { t, path, decimal, percent, locale } = useI18n();
 
   const isLoading = playerLoading && goalieLoading;
   const isGoalie = !player && goalie;
@@ -62,6 +63,7 @@ const PlayerProfile = () => {
 
   const currentTeam = currentPlayer.teamAbbr.split(',').pop() || currentPlayer.teamAbbr;
   const position = isGoalie ? 'G' : player?.position ?? '';
+  const birthplace = formatBirthplace(currentPlayer, locale);
 
   return (
     <div className="min-h-screen bg-background">
@@ -128,6 +130,12 @@ const PlayerProfile = () => {
                   <TeamLogo teamAbbr={currentTeam} size="sm" />
                   {currentPlayer.team}
                 </p>
+                {birthplace && (
+                  <p className="mt-1.5 flex items-center gap-2 text-sm text-foreground sm:text-base">
+                    <MaterialIcon name="location_on" size="sm" className="w-10 shrink-0 text-center text-muted-foreground" />
+                    {t('player.bornIn', { place: birthplace })}
+                  </p>
+                )}
               </div>
             </div>
           </div>

@@ -246,6 +246,7 @@
   "player.notFound": "Spelaren hittades inte",
   "player.notFoundText": "Spelaren du letar efter finns inte.",
   "player.backToStatistics": "← Tillbaka till statistiken",
+  "player.bornIn": "Född i {place}",
   "player.statistics": "Statistik",
   "player.season": "Säsongen {season}",
   "player.savePct": "Räddnings-%",

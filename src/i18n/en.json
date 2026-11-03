@@ -246,6 +246,7 @@
   "player.notFound": "Player Not Found",
   "player.notFoundText": "The player you're looking for doesn't exist.",
   "player.backToStatistics": "← Back to Statistics",
+  "player.bornIn": "Born in {place}",
   "player.statistics": "Statistics",
   "player.season": "{season} season",
   "player.savePct": "Save %",

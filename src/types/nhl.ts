@@ -5,6 +5,10 @@ export interface SwedishPlayer {
   teamAbbr: string;
   position: string;
   jerseyNumber: number;
+  // Where the player was born (from the NHL); region is a state/province, mostly for North America
+  birthCity?: string;
+  birthRegion?: string;
+  birthCountry?: string;
   games: number;
   goals: number;
   assists: number;
@@ -36,6 +40,10 @@ export interface SwedishGoalie {
   team: string;
   teamAbbr: string;
   jerseyNumber: number;
+  // Where the player was born (from the NHL); region is a state/province, mostly for North America
+  birthCity?: string;
+  birthRegion?: string;
+  birthCountry?: string;
   games: number;
   gamesStarted: number;
   wins: number;
