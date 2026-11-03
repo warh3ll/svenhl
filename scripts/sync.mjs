@@ -689,8 +689,17 @@ async function syncImpactRecords(season, swedishPlayers, { maxFetches = Infinity
   const schedule = await fetchJson(
     `https://api.nhle.com/stats/rest/en/game?cayenneExp=${encodeURIComponent(`season=${season} and gameType=${REGULAR_SEASON}`)}`,
   );
-  const finished = (schedule.data || []).filter((g) => g.gameStateId === 7).map((g) => String(g.id));
   const recent = new Map((await readJson("games.json", [])).map((g) => [g.id, g]));
+  // The stats API marks a game finished well after games.json does, and scheduled syncs can be hours
+  // apart, so also take this season's finished games from games.json or a late game misses a whole sync
+  const finished = [
+    ...new Set([
+      ...(schedule.data || []).filter((g) => g.gameStateId === 7).map((g) => String(g.id)),
+      ...[...recent.values()]
+        .filter((g) => g.status === "final" && g.impact && g.id.startsWith(`${season.slice(0, 4)}0${REGULAR_SEASON}`))
+        .map((g) => g.id),
+    ]),
+  ];
 
   const add = (row) => {
     if (row.goals + row.assists >= MIN_IMPACT_POINTS) games.set(row.id, row);
