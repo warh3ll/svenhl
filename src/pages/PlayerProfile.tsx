@@ -10,6 +10,7 @@ import MaterialIcon from '@/components/ui/material-icon';
 import TeamLogo from '@/components/TeamLogo';
 import StatBar from '@/components/StatBar';
 import { getTeamBackgroundColor } from '@/lib/teamColors';
+import { birthplaceMapUrl, formatBirthplace } from '@/lib/birthplace';
 import SEO from '@/components/SEO';
 import { Helmet } from 'react-helmet-async';
 import { useI18n } from '@/i18n';
@@ -21,7 +22,7 @@ const PlayerProfile = () => {
   const { data: goalie, isLoading: goalieLoading } = useGoalie(playerId || '');
   const { data: gameLog, isLoading: gameLogLoading } = usePlayerGameLog(playerId || '');
   const { data: careerStats, isLoading: careerLoading } = usePlayerCareerStats(playerId || '');
-  const { t, path, decimal, percent } = useI18n();
+  const { t, path, decimal, percent, locale } = useI18n();
 
   const isLoading = playerLoading && goalieLoading;
   const isGoalie = !player && goalie;
@@ -62,6 +63,10 @@ const PlayerProfile = () => {
 
   const currentTeam = currentPlayer.teamAbbr.split(',').pop() || currentPlayer.teamAbbr;
   const position = isGoalie ? 'G' : player?.position ?? '';
+  const birthplace = formatBirthplace(currentPlayer, locale);
+  const birthplaceMap = birthplaceMapUrl(currentPlayer);
+  // "Born in {place}" with the place as a map link, in whatever word order the language uses
+  const [bornBefore, bornAfter = ''] = t('player.bornIn', { place: '\u0000' }).split('\u0000');
 
   return (
     <div className="min-h-screen bg-background">
@@ -128,6 +133,24 @@ const PlayerProfile = () => {
                   <TeamLogo teamAbbr={currentTeam} size="sm" />
                   {currentPlayer.team}
                 </p>
+                {birthplace && (
+                  <p className="mt-1.5 flex items-center gap-2 text-sm text-foreground sm:text-base">
+                    <MaterialIcon name="location_on" size="sm" className="w-10 shrink-0 text-center text-muted-foreground" />
+                    <span>
+                      {bornBefore}
+                      <a
+                        href={birthplaceMap ?? undefined}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline decoration-muted-foreground/50 underline-offset-4 transition-colors hover:decoration-foreground"
+                      >
+                        {birthplace}
+                        <span className="sr-only"> {t('player.openInMaps')}</span>
+                      </a>
+                      {bornAfter}
+                    </span>
+                  </p>
+                )}
               </div>
             </div>
           </div>

@@ -132,7 +132,14 @@ const statsUrl = (kind, season, sortProperty, limit, report = "summary") =>
   `&start=0&limit=${limit}` +
   `&cayenneExp=${encodeURIComponent(`seasonId=${season} and gameTypeId=${REGULAR_SEASON} and nationalityCode="SWE"`)}`;
 
-// Jersey number and current team from the player landing endpoint (the stats API has neither)
+// Where a player was born, from the landing endpoint. Region (state/province) is mostly given for North America only.
+const birthplace = (player) => ({
+  birth_city: player.birthCity?.default || null,
+  birth_region: player.birthStateProvince?.default || null,
+  birth_country: player.birthCountry || null,
+});
+
+// Jersey number, current team and birthplace from the player landing endpoint (the stats API has none of them)
 async function fetchPlayerDetails(playerIds) {
   const details = new Map();
   for (const id of playerIds) {
@@ -142,6 +149,7 @@ async function fetchPlayerDetails(playerIds) {
         sweaterNumber: player.sweaterNumber || 0,
         currentTeam: player.currentTeamAbbrev,
         last5Games: player.last5Games || [],
+        birthplace: birthplace(player),
       });
     } catch (e) {
       console.error(`Failed to fetch details for player ${id}:`, e.message);
@@ -233,6 +241,7 @@ async function syncSeasonStats(season, isCurrentSeason) {
   // Only the current season should take players' team from their present roster
   const teamFor = (p) => (isCurrentSeason && details.get(String(p.playerId))?.currentTeam) || lastTeam(p.teamAbbrevs);
   const jerseyFor = (p) => details.get(String(p.playerId))?.sweaterNumber || 0;
+  const birthplaceFor = (p) => details.get(String(p.playerId))?.birthplace || {};
   const updatedAt = new Date().toISOString();
 
   // Streaks and big games for the Season Records page, from every player's game log
@@ -253,6 +262,7 @@ async function syncSeasonStats(season, isCurrentSeason) {
       team_abbr: team,
       position: p.positionCode || "F",
       jersey_number: jerseyFor(p),
+      ...birthplaceFor(p),
       games: p.gamesPlayed || 0,
       goals: p.goals || 0,
       assists: p.assists || 0,
@@ -286,6 +296,7 @@ async function syncSeasonStats(season, isCurrentSeason) {
       team: TEAM_NAMES[team] || team,
       team_abbr: team,
       jersey_number: jerseyFor(g),
+      ...birthplaceFor(g),
       games: g.gamesPlayed || 0,
       games_started: g.gamesStarted || 0,
       wins: g.wins || 0,
@@ -782,6 +793,31 @@ async function main() {
       }
       await writeJson(file, goalies);
       console.log(`Added shutout games to ${file}`);
+    }
+    return;
+  }
+
+  // One-off: add birthplaces to every season's player and goalie files without touching the other stats
+  if (process.argv.includes("--birthplaces")) {
+    const { seasons } = await readJson("manifest.json", { seasons: [] });
+    const known = new Map();
+    for (const season of seasons) {
+      for (const file of [`players-${season}.json`, `goalies-${season}.json`]) {
+        const rows = await readJson(file, []);
+        for (const row of rows) {
+          if (!known.has(row.id)) {
+            try {
+              known.set(row.id, birthplace(await fetchJson(`https://api-web.nhle.com/v1/player/${row.id}/landing`)));
+            } catch (e) {
+              console.error(`Failed to fetch birthplace for player ${row.id}:`, e.message);
+            }
+            await sleep(100); // stay under the NHL API rate limit
+          }
+          Object.assign(row, known.get(row.id) || {});
+        }
+        await writeJson(file, rows);
+        console.log(`Added birthplaces to ${file}`);
+      }
     }
     return;
   }
