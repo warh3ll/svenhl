@@ -28,3 +28,11 @@ export const formatBirthplace = (
   if (!place.birthCountry || place.birthCountry === 'SWE') return place.birthCity;
   return [place.birthCity, place.birthRegion, countryName(place.birthCountry, locale)].filter(Boolean).join(', ');
 };
+
+/** Google Maps search for the full birthplace (country included, so small towns land in the right country) */
+export const birthplaceMapUrl = (place: { birthCity?: string; birthRegion?: string; birthCountry?: string }) => {
+  if (!place.birthCity) return null;
+  const country = place.birthCountry ? countryName(place.birthCountry, 'en-US') : undefined;
+  const query = [place.birthCity, place.birthRegion, country].filter(Boolean).join(', ');
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+};

@@ -247,6 +247,7 @@
   "player.notFoundText": "Spelaren du letar efter finns inte.",
   "player.backToStatistics": "← Tillbaka till statistiken",
   "player.bornIn": "Född i {place}",
+  "player.openInMaps": "(öppnar Google Maps i en ny flik)",
   "player.statistics": "Statistik",
   "player.season": "Säsongen {season}",
   "player.savePct": "Räddnings-%",
