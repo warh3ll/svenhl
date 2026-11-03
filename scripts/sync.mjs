@@ -468,6 +468,38 @@ async function syncNHLSverigeVideos() {
 
 // ---------- games ----------
 
+// A player's NHL goals per season and game type, from the landing endpoint's season list, cached for the run
+const nhlGoalsBySeason = new Map();
+async function fetchNhlGoalsBySeason(playerId) {
+  if (!nhlGoalsBySeason.has(playerId)) {
+    const player = await fetchJson(`https://api-web.nhle.com/v1/player/${playerId}/landing`);
+    await sleep(100); // stay under the NHL API rate limit
+    nhlGoalsBySeason.set(
+      playerId,
+      (player.seasonTotals || [])
+        .filter((s) => s.leagueAbbrev === "NHL")
+        .map((s) => ({ season: String(s.season), gameType: s.gameTypeId, goals: s.goals || 0 })),
+    );
+  }
+  return nhlGoalsBySeason.get(playerId);
+}
+
+// Is this goal the player's first in the NHL? goalsToDate counts his goals this season (regular season or
+// playoffs, matching the game), so it's his first if that is 1 and he has no NHL goals from anything before.
+// Preseason goals don't count. Returns false if the player's history can't be fetched.
+async function isFirstNhlGoal(goal, season, gameType) {
+  if (goal.goalsToDate !== 1 || (gameType !== 2 && gameType !== 3)) return false;
+  try {
+    const seasons = await fetchNhlGoalsBySeason(String(goal.playerId));
+    const earlier = seasons.filter((s) => !(s.season === season && s.gameType === gameType));
+    // Playoff goals in earlier seasons count, but this season's playoffs come after its regular season
+    return earlier.every((s) => s.goals === 0 || (gameType === 2 && s.season === season && s.gameType === 3));
+  } catch (e) {
+    console.error(`Failed to check first NHL goal for player ${goal.playerId}:`, e.message);
+    return false;
+  }
+}
+
 // Scoring plays and goalie performances by Swedes in a finished game
 async function fetchSwedishGameStats(game, swedishPlayers, swedishGoalies) {
   const points = [];
@@ -488,6 +520,7 @@ async function fetchSwedishGameStats(game, swedishPlayers, swedishGoalies) {
       }
       const scorer = swedishPlayers.get(String(goal.playerId));
       if (scorer) {
+        const firstNhlGoal = !isShootout && (await isFirstNhlGoal(goal, String(landing.season), landing.gameType));
         points.push({
           playerId: String(goal.playerId),
           playerName: scorer.name,
@@ -496,6 +529,8 @@ async function fetchSwedishGameStats(game, swedishPlayers, swedishGoalies) {
           period: periodNumber,
           time: goal.timeInPeriod || "",
           description: `${scorer.name} - Goal`,
+          // Marks the scorer's first ever NHL goal, for the celebration card on the home page
+          ...(firstNhlGoal && { firstNhlGoal: true }),
         });
       }
       for (const assist of goal.assists || []) {

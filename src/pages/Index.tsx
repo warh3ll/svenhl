@@ -6,6 +6,7 @@ import TopPlayersOfWeek from '@/components/TopPlayersOfWeek';
 import NHLSverigeCarousel from '@/components/NHLSverigeCarousel';
 import UpcomingGamesStrip from '@/components/UpcomingGamesStrip';
 import PointStreakBar from '@/components/PointStreakBar';
+import FirstGoalCard from '@/components/FirstGoalCard';
 import SEO from '@/components/SEO';
 import { mockGames } from '@/data/mockData';
 import MaterialIcon from '@/components/ui/material-icon';
@@ -55,6 +56,9 @@ const Index = () => {
 
         {/* Top 3 of the Week */}
         <TopPlayersOfWeek games={statsGames} />
+
+        {/* Swedes who scored their first NHL goal in the last 48 hours */}
+        <FirstGoalCard games={statsGames} />
 
         {/* Game Feed with NHL Sverige carousel inserted after 6 cards */}
         <div className="space-y-4 min-h-[800px]">

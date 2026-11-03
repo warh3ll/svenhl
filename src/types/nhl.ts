@@ -69,6 +69,8 @@ export interface GamePoint {
   period: number;
   time: string;
   description: string;
+  // The scorer's first ever NHL goal (set by the sync)
+  firstNhlGoal?: boolean;
 }
 
 export interface GoaliePerformance {

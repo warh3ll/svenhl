@@ -60,6 +60,10 @@ export default {
   				DEFAULT: 'hsl(var(--streak))',
   				foreground: 'hsl(var(--streak-foreground))'
   			},
+  			'first-goal': {
+  				DEFAULT: 'hsl(var(--first-goal))',
+  				foreground: 'hsl(var(--first-goal-foreground))'
+  			},
   			sidebar: {
   				DEFAULT: 'hsl(var(--sidebar-background))',
   				foreground: 'hsl(var(--sidebar-foreground))',
